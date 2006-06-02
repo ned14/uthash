@@ -1,0 +1,27 @@
+Automated tests for uthash
+==============================================================================
+Run "make" or "make debug" in this directory to build the tests and run them.
+The latter usage activates the uthash internal debugging consistency checks.
+
+
+test1:  make 10-item hash, iterate and print each one
+test2:  make 10-item hash, lookup items with even keys, print
+test3:  make 10-item hash, delete items with even keys, print others 
+test4:  10 structs have dual hash handles, separate keys
+test5:  10 structs have dual hash handles, lookup evens by alt key
+test6:  test alt malloc macros
+test7:  test alt malloc macros with 1000 structs so bucket expansion occurs
+test8:  test num_items counter in UT_hash_handle
+test9:  test "find" after bucket expansion
+test10: dual-hash handle test, bucket expansion on one and not the other
+test11: read dat file of names (all are bucket 15) into hash, induce noexpand
+test12: create hash with string keys, add 10 items, lookup each item
+test13: make 10-item hash, delete items with even keys, reverse print others
+test14: read dat file of names into hash, read file again and lookup each one
+test15: build string-keyed hash of 3 items, lookup one item 
+test16: hash on aggregate key, iterate, lookup, using generalized macros
+
+
+Other files
+------------------------------------------------------------------------------
+bkt:    prints bucket number for each argument. Usage: bkt [-b num_bkts] arg1 

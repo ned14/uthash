@@ -1,0 +1,99 @@
+#banner {
+    /* font-size: x-large; */
+    /* background: #ff00ff; */
+    /* height: 100px; */
+}
+
+#topnav {
+    /* background-image: url(img/grad_topnav.png); */
+    /* background-repeat: repeat-y; */
+    /* background-color: #af00af; */
+    /* height: 25px; */
+    margin-top: 5px;
+    margin-bottom: 10px;
+    padding: 3px;
+    font-size: 9pt;
+    font-family: sans;
+    /* border-style: solid; */
+    /* border-width: 1px; */
+}
+
+#topnav a {
+    padding: 8px;
+}
+
+h1,p {  margin: 0; }  /* non-0 margin on firefox */
+
+#mid {
+    background-image: url(img/grad_blue.png);
+    /* background-color: #ffddaa; */
+    margin-bottom: 10px;
+}
+
+#nav {
+    background-color: #fff8f1;
+    margin-left: 10px;
+    margin-top: 20px;
+    float: left;
+    padding: 10px;
+    border-style: solid;
+    border-width: 2px;
+}
+
+
+#nav h2 {
+    font-weight: bold;
+    font-size: 10pt;
+    font-family: sans;
+}
+
+#nav div {
+    font-size: 9pt;
+    padding-left: 15px;
+}
+
+#main {
+    background: #ffffff;
+    margin-top: 20px;
+    margin-left: 170px;
+    padding-left: 20px;
+    height: 100%;
+}
+
+#main h1 {
+    font-family: sans;
+}
+
+.listing {
+    margin: 20px;
+    font-family: sans;
+    font-weight: bold;
+}
+
+.code {
+    padding: 10px;
+    font-size: 8pt;
+    font-weight: normal;
+    background: #f3f3f3;
+    /* width: 60%; */
+    border-style: solid;
+    border-width: 1px;
+}
+
+#footer {
+    /* background: #00ffff; */
+    margin-top: 5px;
+    font-size: small;
+    font-family: sans;
+}
+
+hr {
+    margin: 0;
+    border-style: solid;
+    border-width: 1px;
+}
+
+#footer img {
+    margin-right: 5px;
+    float: right;
+}

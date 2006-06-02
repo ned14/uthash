@@ -1,0 +1,114 @@
+<!DOCTYPE html
+     PUBLIC "-//W3C//DTD XTHML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <link rel="stylesheet" type="text/css" href="styles.css" />
+    <title>uthash home page</title>
+  </head>
+  <body>
+
+  <div id="banner">
+  <img src="img/banner.png" alt="ut hash logo" />
+  <!-- <img src="img/logo.png" alt="ut hash logo" /> -->
+  <!-- <img src="img/motto.png" alt="a type-independent hash for C structures" /> -->
+  </div> <!-- banner -->
+
+  <div id="topnav">
+  <a href="http://sourceforge.net">sourceforge.net</a> &gt;
+  <a href="http://sourceforge.net/projects/uthash/">uthash project</a> &gt;
+  uthash home
+  </div>
+
+  <hr />
+  <div id="mid">
+
+      <div id="nav">
+
+        <h2>documentation</h2>
+        <div><a href="userguide.html">user guide</a></div>
+        <div><a href="uthash.3.html">man page</a></div>
+
+        <h2>download</h2>
+        <div><a href="http://prdownloads.sourceforge.net/uthash/uthash-1.0.tar.bz2?download">uthash-1.0.tar.bz2</a></div>
+
+        <h2>other projects</h2>
+        <div><a href="http://libut.sourceforge.net/">libut</a></div>
+        <div><a href="http://tpl.sourceforge.net/">tpl</a></div>
+
+        <h2>author</h2>
+        <div>Troy D. Hanson</div>
+
+      </div>
+
+      <div id="main">
+        This is an easy-to-use hash implementation for C programmers. 
+
+<div class="listing">
+Example 1. Adding an item to a hash.
+<div class="code">
+<pre>
+#include "uthash.h"
+
+struct my_struct {
+    int id;                    /* key */
+    char name[10];             
+    UT_hash_handle hh;         /* makes this structure hashable */
+};
+
+struct my_struct *users = NULL;
+
+void add_user(struct my_struct *s) {
+    HASH_ADD_INT( users, id, s );  /* hash, key field name, item */
+}
+
+</pre>
+</div> <!-- code -->
+</div> <!-- listing -->
+
+<div class="listing">
+Example 2. Looking up an item in a hash.
+<div class="code">
+<pre>
+struct my_struct *find_user(int user_id) {
+    struct my_struct *s;
+
+    HASH_FIND_INT( users, s, id, &amp;user_id );  
+    return s;
+}
+
+</pre>
+</div> <!-- code -->
+</div> <!-- listing -->
+
+<div class="listing">
+Example 1. Deleting an item from a hash.
+<div class="code">
+
+<pre>
+void delete_user(struct my_struct *user) {
+    HASH_DEL( users, user);  /* hash, pointer to deletee */
+}
+
+</pre>
+</div> <!-- code -->
+</div> <!-- listing -->
+
+This hash can work with any kind of key, not just integer keys as shown here.
+For a more thorough explanation and more examples, please read the 
+<a href="userguide.html">User Guide.</a>
+
+</div> <!-- main -->
+</div> <!-- mid -->
+
+   <hr />
+  <div id="footer">
+    <a href="http://sourceforge.net"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=163879&amp;type=2" width="125" height="37" border="0" alt="SourceForge.net Logo" /></a> 
+    <p>This project is hosted on SourceForge.net</p>
+    <p>$Id: index.html,v 1.7 2006/06/02 07:07:49 thanson Exp $</p>
+  </div> <!-- footer -->
+
+  </body>
+
+</html>
+

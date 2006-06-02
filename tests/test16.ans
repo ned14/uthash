@@ -1,0 +1,11 @@
+user 0 caused event a on Wed Dec 31 18:00:00 1969
+user 1 caused event b on Thu Dec 31 18:00:00 1970
+user 2 caused event a on Fri Dec 31 18:00:00 1971
+user 3 caused event b on Sat Dec 30 18:00:00 1972
+user 4 caused event a on Sun Dec 30 18:00:00 1973
+user 5 caused event b on Mon Dec 30 18:00:00 1974
+user 6 caused event a on Tue Dec 30 18:00:00 1975
+user 7 caused event b on Wed Dec 29 18:00:00 1976
+user 8 caused event a on Thu Dec 29 18:00:00 1977
+user 9 caused event b on Fri Dec 29 18:00:00 1978
+event found: user 5

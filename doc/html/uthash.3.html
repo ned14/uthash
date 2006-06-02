@@ -1,0 +1,380 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 7.0.4" />
+<style type="text/css">
+/* Debug borders */
+p, li, dt, dd, div, pre, h1, h2, h3, h4, h5, h6 {
+/*
+  border: 1px solid red;
+*/
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a { color: blue; }
+a:visited { color: fuchsia; }
+
+em {
+  font-style: italic;
+}
+
+strong {
+  font-weight: bold;
+}
+
+tt {
+  color: navy;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  font-family: sans-serif;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  border-bottom: 2px solid silver;
+  padding-top: 0.5em;
+}
+
+div.sectionbody {
+  font-family: serif;
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+pre {
+  padding: 0;
+  margin: 0;
+}
+
+span#author {
+  color: #527bbd;
+  font-family: sans-serif;
+  font-weight: bold;
+  font-size: 1.2em;
+}
+span#email {
+}
+span#revision {
+  font-family: sans-serif;
+}
+
+div#footer {
+  font-family: sans-serif;
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+div#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+div#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+div#preamble,
+div.tableblock, div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-right: 10%;
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.5em;
+  margin-bottom: 2.5em;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  font-family: sans-serif;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid silver;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid silver;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+div.quoteblock > div.content {
+  padding-left: 2.0em;
+}
+div.quoteblock .attribution {
+  text-align: right;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 2px solid silver;
+}
+
+div.exampleblock > div.content {
+  border-left: 2px solid silver;
+  padding: 0.5em;
+}
+
+div.verseblock div.content {
+  white-space: pre;
+}
+
+div.imageblock div.content { padding-left: 0; }
+div.imageblock img { border: 1px solid silver; }
+span.image img { border-style: none; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: italic;
+}
+dd > *:first-child {
+  margin-top: 0;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.olist2 {
+  list-style-type: lower-alpha;
+}
+
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead {
+  font-family: sans-serif;
+  font-weight: bold;
+}
+tfoot {
+  font-weight: bold;
+}
+
+div.hlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+td.hlist1 {
+  vertical-align: top;
+  font-style: italic;
+  padding-right: 0.8em;
+}
+td.hlist2 {
+  vertical-align: top;
+}
+
+@media print {
+  div#footer-badges { display: none; }
+}
+include::./stylesheets/xhtml11-manpage.css[]
+/* Workarounds for IE6's broken and incomplete CSS2. */
+
+div.sidebar-content {
+  background: #ffffee;
+  border: 1px solid silver;
+  padding: 0.5em;
+}
+div.sidebar-title, div.image-title {
+  font-family: sans-serif;
+  font-weight: bold;
+  margin-top: 0.0em;
+  margin-bottom: 0.5em;
+}
+
+div.listingblock div.content {
+  border: 1px solid silver;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+div.quoteblock-content {
+  padding-left: 2.0em;
+}
+
+div.exampleblock-content {
+  border-left: 2px solid silver;
+  padding-left: 0.5em;
+}
+</style>
+<title>UTHASH(3)</title>
+</head>
+<body>
+<div id="header">
+<h1>
+UTHASH(3) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>uthash -
+   C macros to add, find and delete items from a hash
+</p>
+</div>
+</div>
+<h2>SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="literalblock">
+<div class="content">
+<pre><tt>HASH_ADD        (hh_name, head, keyfield_name, key_len, item_ptr)
+HASH_FIND       (hh_name, head, result_ptr, keyfield_name, key_ptr, key_len)
+HASH_DELETE     (hh_name, head, item_ptr)
+HASH_ADD_INT    (head, keyfield_name, item_ptr)
+HASH_FIND_INT   (head, result_ptr, keyfield_name, key_ptr)
+HASH_ADD_STR    (head, keyfield_name, item_ptr)
+HASH_FIND_STR   (head, result_ptr, keyfield_name, key_ptr)
+HASH_DEL        (hh_name, head, item_ptr)</tt></pre>
+</div></div>
+</div>
+<h2>DESCRIPTION</h2>
+<div class="sectionbody">
+<p>These macros add, find and delete items from a hash.</p>
+<p>The first three are the generalized macros, while the latter five are
+convenience macros which do the same thing as the generalized macros, but
+require fewer arguments.  They have key and naming restrictions.</p>
+<p>In order to use the convenience macros, the structure's <tt>UT_hash_handle</tt> field
+must be named <tt>hh</tt>.  The key field must be of type <tt>int</tt> or pointer to <tt>char</tt>.
+(For <tt>HASH_DEL</tt> the key field restriction does not apply.)</p>
+</div>
+<h2>ARGUMENTS</h2>
+<div class="sectionbody">
+<dl>
+<dt>
+hh_name
+</dt>
+<dd>
+<p>
+    name of the <tt>UT_hash_handle</tt> field in the structure. Conventionally called
+    <tt>hh</tt>.
+</p>
+</dd>
+<dt>
+head
+</dt>
+<dd>
+<p>
+    the structure pointer variable which acts as the "head" of the hash. So
+    named because this hash can also be iterated over as a doubly-linked list.
+</p>
+</dd>
+<dt>
+keyfield_name
+</dt>
+<dd>
+<p>
+    the name of the structure field which is the key (or in the case of an
+    aggregate key, the first field of the key).
+</p>
+</dd>
+<dt>
+key_len
+</dt>
+<dd>
+<p>
+    the length of the key field in bytes. E.g. for an integer key, this is
+    <tt>sizeof(int)</tt>, while for a string key it's <tt>strlen(key)</tt>. For an aggregate
+    key, see the notes in this guide on calculating aggregate key length.
+</p>
+</dd>
+<dt>
+key_ptr
+</dt>
+<dd>
+<p>
+    pointer to the key being sought using <tt>HASH_FIND</tt>. I.e. this cannot be a
+    literal value, it must be a pointer to a place in memory where the sought
+    key is stored.
+</p>
+</dd>
+<dt>
+item_ptr
+</dt>
+<dd>
+<p>
+    pointer to the structure being added or deleted
+</p>
+</dd>
+<dt>
+result_ptr
+</dt>
+<dd>
+<p>
+    output pointer where <tt>HASH_FIND</tt> stores the address of the found item, or
+    NULL if the item was not found
+</p>
+</dd>
+</dl>
+</div>
+<h2>AUTHOR</h2>
+<div class="sectionbody">
+<p>Written by Troy D. Hanson, &lt;<a href="mailto:thanson@users.sourceforge.net">thanson@users.sourceforge.net</a>&gt;</p>
+</div>
+<h2>RESOURCES</h2>
+<div class="sectionbody">
+<p>Main web site: <a href="http://uthash.sourceforge.net/">http://uthash.sourceforge.net/</a></p>
+<a href="http://sourceforge.net"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=163879&amp;type=1" width="88" height="31" border="0" alt="SourceForge.net Logo" /></a>
+</div>
+<div id="footer">
+<div id="footer-text">
+Last updated 02-Jun-2006 02:52:30 CDT
+</div>
+</div>
+</body>
+</html>
