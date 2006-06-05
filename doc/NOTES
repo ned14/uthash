@@ -2,12 +2,18 @@
 
 # packages used:
 # asciidoc
-# xmlto (for viewing html generated via docbook [includes TOC])
-# fop (later, for pdf generation)
+# xmlto  -- for generating html via docbook (includes TOC)
+# fop -- later, for pdf generation
 
-#update sourceforge 
-cd html
-scp *.{html,css} thanson@shell.sourceforge.net:/home/groups/u/ut/uthash/htdocs
+#View the manpage:
+#groff -mandoc -Tascii man/uthash.3 |less
 
-#View the generated manpage:
-groff -mandoc -Tascii man/uthash.3 |less
+# IE6 png gamma bug:
+# PNG images in IE6 display with wrong background colors,
+# solution: save PNG in Gimp *Without save gamma checked*
+
+#update sourceforge web site:
+#cd html
+#scp *.{html,css} thanson@shell.sourceforge.net:/home/groups/u/ut/uthash/htdocs
+#cd img
+#scp *.png thanson@shell.sourceforge.net:/home/groups/u/ut/uthash/htdocs/img

@@ -1,8 +1,10 @@
 uthash User's Guide
 ===================
 Troy D. Hanson <thanson@users.sourceforge.net>
+v1.0, June 2006
 
 include::sflogo.txt[]
+include::topnav.txt[]
 
 A hash in C
 -----------
@@ -48,7 +50,7 @@ open source. For the license text, see the LICENSE file in the distribution.
 Obtaining uthash
 ~~~~~~~~~~~~~~~~
 Please follow the link to download on the 
-http://uthash.sourceforge.net[uthash home page].
+http://uthash.sourceforge.net[uthash website].
 
 Keys and values
 ---------------
@@ -73,8 +75,8 @@ and any data type.
 
 .Data type independence
 ******************************************************************************
-The most surprising feature of this hash implementation might be that it is
-type-independent. It does not require your structures or your key to adhere to
+The most surprising feature of this hash implementation is likely its type-
+independence. It does not require your structure or your key field to have
 any particular datatype.  How is it possible to implement a type-independent
 hash in a strongly-typed language?  In a word, macros.  All the hash code is
 in the form of macros, whose arguments are typeless.  The only requirement is
@@ -128,11 +130,16 @@ int add_user(int id, char *name) {
 ----------------------------------------------------------------------
 
 [NOTE]
+Once an item has been added to the hash, do not change the value of its key.
+Instead, delete the item from the hash, change the key, and then re-add it.
+
 .Key uniqueness
-==============================================================================
+********************************************************************************
 Your application must enforce key uniqueness. In other words, do not add the
 same key to the hash more than once. If you do, hash behavior will be undefined. 
-==============================================================================
+********************************************************************************
+
+You can test whether a key already exists in the hash using `HASH_FIND`.
 
 Finding an item in the hash
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -144,16 +151,19 @@ To look up an item in a hash, you must have its key.  Then call `HASH_FIND`.
 .Looking up an item in a hash by its key
 ----------------------------------------------------------------------
 
-struct my_struct *find_user(int id) {
+struct my_struct *find_user(int user_id) {
     struct my_struct *s;
 
-    HASH_FIND_INT( users, s, id, &id );  /* hash, output pointer, key field name, key pointer */
+    HASH_FIND_INT( users, s, id, &user_id );  /* s: output pointer */
     return s;
 }
 ----------------------------------------------------------------------
 
+NOTE: The sought key is always passed by pointer.
+
 Here, `s` is the output variable of the `HASH_FIND_INT` macro. It's a pointer
-to the sought item, or `NULL` if no item with the given key was found.
+to the sought item, or `NULL` if the hash didn't contain an item with that
+key.
 
 Deleting an item from the hash
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -194,12 +204,10 @@ the hash, starting from any known item.
 
 .A hash is also a doubly-linked list
 *******************************************************************************
-As you can see from the `hh.prev` and `hh.next` fields inside of each
-structure, you can iterate forward and backward through the items in the hash
-as if they are a in a doubly-linked list.
+As you can see from the `hh.prev` and `hh.next` fields inside the
+`UT_hash_handle hh`, a hash is also an iterable doubly-linked list.
 
-The order is preserved as well. The items are in the order they were added,
-(obviously, omitting any subsequently deleted items).
+The items are in the order they were added to the hash.
 *******************************************************************************
 
 Putting it all together: A complete Example
@@ -238,10 +246,10 @@ int add_user(int id, char *name) {
     HASH_ADD_INT( users, id, s );  /* hash, key field name, item */
 }
 
-struct my_struct *find_user(int id) {
+struct my_struct *find_user(int user_id) {
     struct my_struct *s;
 
-    HASH_FIND_INT( users, s, id, &id );  /* hash, output pointer, key field name, key pointer */
+    HASH_FIND_INT( users, s, id, &user_id );  /* s: output pointer */
     return s;
 }
 
@@ -298,8 +306,8 @@ Non-integer keys
 An example with string keys
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This is almost the same as using integer keys except the convenience macros
-are named `HASH_ADD_STR` and `HASH_FIND_STR`.
+This is almost the same as using integer keys except the macros are named
+`HASH_ADD_STR` and `HASH_FIND_STR`.
 
 .A string-keyed hash
 ----------------------------------------------------------------------
@@ -324,21 +332,34 @@ int main(int argc, char *argv[]) {
         s = malloc(sizeof(struct my_struct));
         strcpy(s->name, *n);
         s->id = i++;
-        HASH_ADD_STR( users, name, s );  /* hash, key field name, item */
+        HASH_ADD_STR( users, name, s );  
     }
 
     /* args are hash, output pointer, key field name, key sought */
     HASH_FIND_STR( users, s, name, "betty");
     if (s) {
-        printf("betty's id is %d\n", s->id);   /* prints "betty's id is 2" */
+        printf("betty's id is %d\n", s->id);   
     }
 }
 ----------------------------------------------------------------------
+
+This example is included in the distribution in `tests/test15.c`. It prints:
+
+    betty's id is 2
+
+[NOTE]
+As with non-string keys, don't change an item's key after adding it to the
+hash. (Instead, delete the item from the hash, change the key and then re-add
+it to the hash).
 
 An example with an aggregate, binary key
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Your key field can have any data type, and it can even be an aggregate of
 multiple contiguous fields. 
+
+The generalized version of the macros (e.g., `HASH_ADD`) must be used. In
+addition to the usual arguments, the generalized macros require the name of
+the `UT_hash_handle` field, and the key length.
 
 .Calculating aggregate key length 
 *******************************************************************************
@@ -348,14 +369,11 @@ any intervening structure padding the compiler adds for alignment purposes.
 An easy way to calculate the key length is to use the `offsetof` macro from
 `<stddef.h>`.  The formula is:
 
-    key length = (last field offset + its length) - (first field offset)
+     key length = offsetof(last_key_field) + sizeof(last_key_field) - 
+                  offsetof(first_key_field)
 
 In the example below, the `keylen` variable is set using this technique.
 *******************************************************************************
-
-The generalized version of the macros (e.g., `HASH_ADD`) are used in this
-example, because the "convenience macros" (e.g. `HASH_ADD_STR`) only work for
-non-aggregate integer or string keys.
 
 .An aggregate, binary-keyed hash
 ----------------------------------------------------------------------
@@ -379,19 +397,17 @@ int main(int argc, char *argv[]) {
     struct my_event *e, ev, *events = NULL;
     int i, keylen;
 
-    /* key length = (last field offset + its length) - first field offset */
     keylen =   offsetof(struct my_event, event_code) + sizeof(char)                         
              - offsetof(struct my_event, tv);
 
     for(i = 0; i < 10; i++) {
         e = malloc(sizeof(struct my_event));
         memset(e,0,sizeof(struct my_event));        
-        e->tv.tv_sec = i * (60*60*24*365);          /* i years (sec)*/
+        e->tv.tv_sec = i * (60*60*24*365);     /* i years (sec)*/
         e->tv.tv_usec = 0;
-        e->event_code = 'a'+(i%2);                   /* meaningless */
+        e->event_code = 'a'+(i%2);             /* meaningless */
         e->user_id = i;
 
-        /* args: UT_hash_handle name, head, first key field, key len, item */
         HASH_ADD( hh, events, tv, keylen, e);
     }
 
@@ -629,11 +645,11 @@ If your application uses its own custom allocator, this hash can use them too.
 #undef uthash_tbl_malloc
 #undef uthash_tbl_free
 
-/* re-define specifying alternate functions */
-#define uthash_bkt_malloc(sz) my_malloc(sz)  /* malloc for UT_hash_bucket's */
-#define uthash_bkt_free(ptr) my_free(ptr)    /* free for UT_hash_bucket's   */
-#define uthash_tbl_malloc(sz) my_malloc(sz)  /* malloc for UT_hash_table    */
-#define uthash_tbl_free(ptr) my_free(ptr)    /* free for UT_hash_table      */
+/* re-define, specifying alternate functions */
+#define uthash_bkt_malloc(sz) my_malloc(sz)  /* for UT_hash_bucket */
+#define uthash_bkt_free(ptr) my_free(ptr)    
+#define uthash_tbl_malloc(sz) my_malloc(sz)  /* for UT_hash_table  */
+#define uthash_tbl_free(ptr) my_free(ptr)    
 
 ...
 ----------------------------------------------------------------------------
@@ -647,12 +663,6 @@ default is just to use `malloc` and `free` anyway), having them separate
 permits easy integration with pool or slab allocators where allocation from
 each pool is always of the same fixed size.
 *******************************************************************************
-
-////////////////////////////////
-diagram of hash 
-1. buckets w/items
-2. two items w/hash handles
-////////////////////////////////
 
 
 Appendix E: Internal implementation notes

@@ -13,7 +13,7 @@
     margin-bottom: 10px;
     padding: 3px;
     font-size: 9pt;
-    font-family: sans;
+    font-family: sans-serif;
     /* border-style: solid; */
     /* border-width: 1px; */
 }
@@ -26,7 +26,9 @@ h1,p {  margin: 0; }  /* non-0 margin on firefox */
 
 #mid {
     background-image: url(img/grad_blue.png);
+    background-repeat: repeat-y;
     /* background-color: #ffddaa; */
+    padding-top: 20px;
     margin-bottom: 10px;
 }
 
@@ -38,13 +40,13 @@ h1,p {  margin: 0; }  /* non-0 margin on firefox */
     padding: 10px;
     border-style: solid;
     border-width: 2px;
+    font-family: sans-serif;
 }
 
 
 #nav h2 {
     font-weight: bold;
     font-size: 10pt;
-    font-family: sans;
 }
 
 #nav div {
@@ -61,12 +63,12 @@ h1,p {  margin: 0; }  /* non-0 margin on firefox */
 }
 
 #main h1 {
-    font-family: sans;
+    font-family: sans-serif;
 }
 
 .listing {
     margin: 20px;
-    font-family: sans;
+    font-family: sans-serif;
     font-weight: bold;
 }
 
@@ -75,7 +77,7 @@ h1,p {  margin: 0; }  /* non-0 margin on firefox */
     font-size: 8pt;
     font-weight: normal;
     background: #f3f3f3;
-    /* width: 60%; */
+    width: 80%;
     border-style: solid;
     border-width: 1px;
 }
@@ -84,13 +86,13 @@ h1,p {  margin: 0; }  /* non-0 margin on firefox */
     /* background: #00ffff; */
     margin-top: 5px;
     font-size: small;
-    font-family: sans;
+    font-family: sans-serif;
 }
 
 hr {
-    margin: 0;
-    border-style: solid;
-    border-width: 1px;
+    height: 0.04em;
+    background: black;
+    margin: 0 10% 0 0;
 }
 
 #footer img {

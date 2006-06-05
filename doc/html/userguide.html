@@ -261,10 +261,18 @@ div.exampleblock-content {
 <h1>uthash User's Guide</h1>
 <span id="author">Troy D. Hanson</span><br />
 <span id="email"><tt>&lt;<a href="mailto:thanson@users.sourceforge.net">thanson@users.sourceforge.net</a>&gt;</tt></span><br />
+<span id="revision">version 1.0,</span>
+June 2006
 </div>
 <div id="preamble">
 <div class="sectionbody">
-<a href="http://sourceforge.net"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=163879&amp;type=1" width="88" height="31" border="0" alt="SourceForge.net Logo" /></a>
+<a style="float: right;" href="http://sourceforge.net"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=163879&amp;type=1" width="88" height="31" border="0" alt="SourceForge.net Logo" /></a>
+  <div id="topnav" style="font-size: 9pt; font-family: sans-serif;">
+  <a style="padding-right: 8px;" href="http://sourceforge.net">sourceforge.net</a> &gt;
+  <a style="padding: 8px;" href="http://sourceforge.net/projects/uthash/">uthash project</a> &gt;
+  <a style="padding: 8px;" href="index.html">uthash home</a> &gt;
+  uthash user guide
+  </div>
 </div>
 </div>
 <h2>A hash in C</h2>
@@ -318,7 +326,7 @@ the header file into your project, and:</p>
 open source. For the license text, see the LICENSE file in the distribution.</p>
 <h3>Obtaining uthash</h3>
 <p>Please follow the link to download on the
-<a href="http://uthash.sourceforge.net">uthash home page</a>.</p>
+<a href="http://uthash.sourceforge.net">uthash website</a>.</p>
 </div>
 <h2>Keys and values</h2>
 <div class="sectionbody">
@@ -341,8 +349,8 @@ and any data type.</p>
 <div class="sidebarblock">
 <div class="sidebar-content">
 <div class="sidebar-title">Data type independence</div>
-<p>The most surprising feature of this hash implementation might be that it is
-type-independent. It does not require your structures or your key to adhere to
+<p>The most surprising feature of this hash implementation is likely its type-
+independence. It does not require your structure or your key field to have
 any particular datatype.  How is it possible to implement a type-independent
 hash in a strongly-typed language?  In a word, macros.  All the hash code is
 in the form of macros, whose arguments are typeless.  The only requirement is
@@ -403,13 +411,17 @@ int add_user(int id, char *name) {
 <td class="icon">
 <div class="title">Note</div>
 </td>
-<td class="content">
-<div class="title">Key uniqueness</div>
-<p>Your application must enforce key uniqueness. In other words, do not add the
-same key to the hash more than once. If you do, hash behavior will be undefined.</p>
-</td>
+<td class="content">Once an item has been added to the hash, do not change the value of its key.
+Instead, delete the item from the hash, change the key, and then re-add it.</td>
 </tr></table>
 </div>
+<div class="sidebarblock">
+<div class="sidebar-content">
+<div class="sidebar-title">Key uniqueness</div>
+<p>Your application must enforce key uniqueness. In other words, do not add the
+same key to the hash more than once. If you do, hash behavior will be undefined.</p>
+</div></div>
+<p>You can test whether a key already exists in the hash using <tt>HASH_FIND</tt>.</p>
 <h3>Finding an item in the hash</h3>
 <p>To look up an item in a hash, you must have its key.  Then call <tt>HASH_FIND</tt>.
 (Here we'll use the convenient <tt>HASH_FIND_INT</tt> variation for keys of type
@@ -418,15 +430,24 @@ same key to the hash more than once. If you do, hash behavior will be undefined.
 <div class="title">Example: Looking up an item in a hash by its key</div>
 <div class="content">
 <pre><tt>
-struct my_struct *find_user(int id) {
+struct my_struct *find_user(int user_id) {
     struct my_struct *s;
 
-    HASH_FIND_INT( users, s, id, &amp;id );  /* hash, output pointer, key field name, key pointer */
+    HASH_FIND_INT( users, s, id, &amp;user_id );  /* s: output pointer */
     return s;
 }</tt></pre>
 </div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">The sought key is always passed by pointer.</td>
+</tr></table>
+</div>
 <p>Here, <tt>s</tt> is the output variable of the <tt>HASH_FIND_INT</tt> macro. It's a pointer
-to the sought item, or <tt>NULL</tt> if no item with the given key was found.</p>
+to the sought item, or <tt>NULL</tt> if the hash didn't contain an item with that
+key.</p>
 <h3>Deleting an item from the hash</h3>
 <p>To delete an item from a hash, you must have a pointer to the item.</p>
 <div class="listingblock">
@@ -465,11 +486,9 @@ the hash, starting from any known item.</p>
 <div class="sidebarblock">
 <div class="sidebar-content">
 <div class="sidebar-title">A hash is also a doubly-linked list</div>
-<p>As you can see from the <tt>hh.prev</tt> and <tt>hh.next</tt> fields inside of each
-structure, you can iterate forward and backward through the items in the hash
-as if they are a in a doubly-linked list.</p>
-<p>The order is preserved as well. The items are in the order they were added,
-(obviously, omitting any subsequently deleted items).</p>
+<p>As you can see from the <tt>hh.prev</tt> and <tt>hh.next</tt> fields inside the
+<tt>UT_hash_handle hh</tt>, a hash is also an iterable doubly-linked list.</p>
+<p>The items are in the order they were added to the hash.</p>
 </div></div>
 <h3>Putting it all together: A complete Example</h3>
 <p>We'll repeat all the code and embellish it with a <tt>main()</tt> function
@@ -506,10 +525,10 @@ int add_user(int id, char *name) {
     HASH_ADD_INT( users, id, s );  /* hash, key field name, item */
 }
 
-struct my_struct *find_user(int id) {
+struct my_struct *find_user(int user_id) {
     struct my_struct *s;
 
-    HASH_FIND_INT( users, s, id, &amp;id );  /* hash, output pointer, key field name, key pointer */
+    HASH_FIND_INT( users, s, id, &amp;user_id );  /* s: output pointer */
     return s;
 }
 
@@ -563,8 +582,8 @@ int main(int argc, char *argv[]) {
 <h2>Non-integer keys</h2>
 <div class="sectionbody">
 <h3>An example with string keys</h3>
-<p>This is almost the same as using integer keys except the convenience macros
-are named <tt>HASH_ADD_STR</tt> and <tt>HASH_FIND_STR</tt>.</p>
+<p>This is almost the same as using integer keys except the macros are named
+<tt>HASH_ADD_STR</tt> and <tt>HASH_FIND_STR</tt>.</p>
 <div class="listingblock">
 <div class="title">Example: A string-keyed hash</div>
 <div class="content">
@@ -589,19 +608,37 @@ int main(int argc, char *argv[]) {
         s = malloc(sizeof(struct my_struct));
         strcpy(s-&gt;name, *n);
         s-&gt;id = i++;
-        HASH_ADD_STR( users, name, s );  /* hash, key field name, item */
+        HASH_ADD_STR( users, name, s );
     }
 
     /* args are hash, output pointer, key field name, key sought */
     HASH_FIND_STR( users, s, name, "betty");
     if (s) {
-        printf("betty's id is %d\n", s-&gt;id);   /* prints "betty's id is 2" */
+        printf("betty's id is %d\n", s-&gt;id);
     }
 }</tt></pre>
 </div></div>
+<p>This example is included in the distribution in <tt>tests/test15.c</tt>. It prints:</p>
+<div class="literalblock">
+<div class="content">
+<pre><tt>betty's id is 2</tt></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">As with non-string keys, don't change an item's key after adding it to the
+hash. (Instead, delete the item from the hash, change the key and then re-add
+it to the hash).</td>
+</tr></table>
+</div>
 <h3>An example with an aggregate, binary key</h3>
 <p>Your key field can have any data type, and it can even be an aggregate of
 multiple contiguous fields.</p>
+<p>The generalized version of the macros (e.g., <tt>HASH_ADD</tt>) must be used. In
+addition to the usual arguments, the generalized macros require the name of
+the <tt>UT_hash_handle</tt> field, and the key length.</p>
 <div class="sidebarblock">
 <div class="sidebar-content">
 <div class="sidebar-title">Calculating aggregate key length</div>
@@ -611,13 +648,11 @@ any intervening structure padding the compiler adds for alignment purposes.</p>
 <tt>&lt;stddef.h&gt;</tt>.  The formula is:</p>
 <div class="literalblock">
 <div class="content">
-<pre><tt>key length = (last field offset + its length) - (first field offset)</tt></pre>
+<pre><tt>key length = offsetof(last_key_field) + sizeof(last_key_field) -
+             offsetof(first_key_field)</tt></pre>
 </div></div>
 <p>In the example below, the <tt>keylen</tt> variable is set using this technique.</p>
 </div></div>
-<p>The generalized version of the macros (e.g., <tt>HASH_ADD</tt>) are used in this
-example, because the "convenience macros" (e.g. <tt>HASH_ADD_STR</tt>) only work for
-non-aggregate integer or string keys.</p>
 <div class="listingblock">
 <div class="title">Example: An aggregate, binary-keyed hash</div>
 <div class="content">
@@ -641,19 +676,17 @@ int main(int argc, char *argv[]) {
     struct my_event *e, ev, *events = NULL;
     int i, keylen;
 
-    /* key length = (last field offset + its length) - first field offset */
     keylen =   offsetof(struct my_event, event_code) + sizeof(char)
              - offsetof(struct my_event, tv);
 
     for(i = 0; i &lt; 10; i++) {
         e = malloc(sizeof(struct my_event));
         memset(e,0,sizeof(struct my_event));
-        e-&gt;tv.tv_sec = i * (60*60*24*365);          /* i years (sec)*/
+        e-&gt;tv.tv_sec = i * (60*60*24*365);     /* i years (sec)*/
         e-&gt;tv.tv_usec = 0;
-        e-&gt;event_code = 'a'+(i%2);                   /* meaningless */
+        e-&gt;event_code = 'a'+(i%2);             /* meaningless */
         e-&gt;user_id = i;
 
-        /* args: UT_hash_handle name, head, first key field, key len, item */
         HASH_ADD( hh, events, tv, keylen, e);
     }
 
@@ -876,11 +909,11 @@ If your application uses its own custom allocator, this hash can use them too.</
 #undef uthash_tbl_malloc
 #undef uthash_tbl_free
 
-/* re-define specifying alternate functions */
-#define uthash_bkt_malloc(sz) my_malloc(sz)  /* malloc for UT_hash_bucket's */
-#define uthash_bkt_free(ptr) my_free(ptr)    /* free for UT_hash_bucket's   */
-#define uthash_tbl_malloc(sz) my_malloc(sz)  /* malloc for UT_hash_table    */
-#define uthash_tbl_free(ptr) my_free(ptr)    /* free for UT_hash_table      */
+/* re-define, specifying alternate functions */
+#define uthash_bkt_malloc(sz) my_malloc(sz)  /* for UT_hash_bucket */
+#define uthash_bkt_free(ptr) my_free(ptr)
+#define uthash_tbl_malloc(sz) my_malloc(sz)  /* for UT_hash_table  */
+#define uthash_tbl_free(ptr) my_free(ptr)
 
 ...</tt></pre>
 </div></div>
@@ -1134,7 +1167,8 @@ result_ptr
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 02-Jun-2006 02:52:26 CDT
+Version 1.0<br />
+Last updated 05-Jun-2006 01:24:33 CDT
 </div>
 </div>
 </body>
