@@ -30,7 +30,7 @@ int main(int argc,char *argv[]) {
     while (fgets(linebuf,BUFLEN,file) != NULL) {
         i++;
         if ( (name = malloc(sizeof(name_rec))) == NULL) exit(-1);
-        strcpy(name->boy_name,linebuf);
+        strncpy(name->boy_name,linebuf,BUFLEN);
         HASH_ADD_STR(names,boy_name,name);
     }
 

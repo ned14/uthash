@@ -37,7 +37,7 @@ void alt_tbl_free(void *ptr) {
 
 int main(int argc,char *argv[]) {
     int i;
-    example_user_t *user, *tmp, *tmp2, *users=NULL;
+    example_user_t *user, *tmp, *users=NULL;
 
     /* create elements */
     for(i=0;i<10;i++) {
@@ -49,7 +49,7 @@ int main(int argc,char *argv[]) {
 
     /* delete each ID */
     for(i=0;i<10;i++) {
-        HASH_FIND_INT(users,tmp,id,&i);
+        HASH_FIND_INT(users,&i,tmp);
         if (tmp) {
             HASH_DEL(users,tmp);
             free(tmp);

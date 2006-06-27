@@ -11,28 +11,28 @@ uthash - C macros to add, find and delete items from a hash
 SYNOPSIS
 --------
     HASH_ADD        (hh_name, head, keyfield_name, key_len, item_ptr)
-    HASH_FIND       (hh_name, head, result_ptr, keyfield_name, key_ptr, key_len)
+    HASH_ADD_KEYPTR (hh_name, head, key_ptr, key_len, item_ptr)
+    HASH_FIND       (hh_name, head, key_ptr, key_len, item_ptr)
     HASH_DELETE     (hh_name, head, item_ptr)
+
     HASH_ADD_INT    (head, keyfield_name, item_ptr)
-    HASH_FIND_INT   (head, result_ptr, keyfield_name, key_ptr)
+    HASH_FIND_INT   (head, key_ptr, item_ptr)
     HASH_ADD_STR    (head, keyfield_name, item_ptr)
-    HASH_FIND_STR   (head, result_ptr, keyfield_name, key_ptr)
-    HASH_DEL        (hh_name, head, item_ptr)
+    HASH_FIND_STR   (head, key_ptr, item_ptr)
+    HASH_DEL        (head, item_ptr)
 
 DESCRIPTION
 -----------
 These macros add, find and delete items from a hash.  
 
-The first three are the generalized macros, while the latter five are 
-convenience macros which do the same thing as the generalized macros, but
-require fewer arguments.  They have key and naming restrictions.
+The first four generalized macros work with keys of any data type and fields
+of any name. The latter five convenience macros do the same thing, but take
+fewer arguments.  
 
-In order to use the convenience macros, the structure's `UT_hash_handle` field
-must be named `hh`.  The key field must be of type `int` or pointer to `char`,
-except for `HASH_DEL`.
+In order to use the convenience macros, 
 
-See the http://uthash.sourceforge.net/[uthash web site] for the complete User's
-Guide.
+1. the structure's `UT_hash_handle` field must be named `hh`, and
+2. the key field must be of type `int` or `char[]`
 
 ARGUMENTS
 ---------
@@ -41,23 +41,31 @@ hh_name::
     `hh`.
 head::
     the structure pointer variable which acts as the "head" of the hash. So
-    named because this hash can also be iterated over as a doubly-linked list.
+    named because it points to the first item which is added to the hash.
 keyfield_name::
-    the name of the structure field which is the key (or in the case of an
-    aggregate key, the first field of the key).
+    the name of the key field in the structure. (In the case of a multi-field
+    key, this is the first field of the key).
 key_len::
     the length of the key field in bytes. E.g. for an integer key, this is
-    `sizeof(int)`, while for a string key it's `strlen(key)`. For an aggregate
-    key, see the notes in this guide on calculating aggregate key length.
+    `sizeof(int)`, while for a string key it's `strlen(key)`. (For a
+    multi-field key, see the notes in this guide on calculating key length).
 key_ptr::
-    pointer to the key being sought using `HASH_FIND`. I.e. this cannot be a
-    literal value, it must be a pointer to a place in memory where the sought
-    key is stored.
+    for `HASH_FIND`, this is a pointer to the key to look up in the hash
+    (since it's a pointer, you can't directly pass a literal value here). For
+    `HASH_ADD_KEYPTR`, this is the address of the key of the item being added.
 item_ptr::
-    pointer to the structure being added or deleted
-result_ptr::
-    output pointer where `HASH_FIND` stores the address of the found item, or
-    NULL if the item was not found
+    pointer to the structure being added, deleted or looked up. This is an
+    input parameter for HASH_ADD and HASH_DELETE macros, and an output
+    parameter for HASH_FIND.
+
+
+NOTES
+------
+`HASH_ADD_KEYPTR` is used when the structure contains a pointer to the
+key, rather than the key itself. 
+
+`HASH_DEL` is a convenience macro but doesn't share the requirement that the
+key be of type `int` or `char[]`.
 
 
 AUTHOR
@@ -67,6 +75,8 @@ Written by Troy D. Hanson, <mailto:thanson@users.sourceforge.net[]>
 
 RESOURCES
 ---------
-uthash web site: http://uthash.sourceforge.net/[]
+See the http://uthash.sourceforge.net/[uthash web site] for the complete User's
+Guide.
+
 include::sflogo.txt[]
 

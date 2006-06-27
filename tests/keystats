@@ -1,0 +1,31 @@
+#!/usr/bin/perl
+
+use strict;
+
+use FindBin;
+
+die "no input file specified\n" unless @ARGV;
+
+my $keyfile = shift @ARGV;
+die "no such file: $keyfile\n" unless -f $keyfile;
+
+my @exes = glob "$FindBin::Bin/keystat.???";
+my %stats;
+for my $exe (@exes) {
+    $stats{$exe} = `$exe $keyfile`;
+}
+
+printf("fcn     hash_q     #items   #buckets      #dups      flags   add_usec  find_usec\n");
+printf("--- ---------- ---------- ---------- ---------- ---------- ---------- ----------\n");
+for my $exe (sort statsort keys %stats) {
+    my ($hq,$items,$bkts,$dups,$ok,$add,$find) = split /,/, $stats{$exe}; 
+    printf("%3s %10f %10d %10d %10d %10s %10d %10d\n", substr($exe,-3,3), 
+        $hq,$items,$bkts,$dups,$ok,$add,$find); 
+}
+
+# sort on hash_q (desc) then by find_usec (asc)
+sub statsort {
+    my @a_stats = split /,/, $stats{$a};
+    my @b_stats = split /,/, $stats{$b};
+    return ($b_stats[0] <=> $a_stats[0]) || ($a_stats[-1] <=> $b_stats[-1]);
+}

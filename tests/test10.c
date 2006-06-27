@@ -26,19 +26,17 @@ int main(int argc,char *argv[]) {
             users->hh.tbl->num_items, users->alth.tbl->num_items);
     printf("hh buckets: %d, alth buckets: %d\n", 
             users->hh.tbl->num_buckets, users->alth.tbl->num_buckets);
-    printf("hh hash_q: %f, alth hash_q: %f\n", 
-            users->hh.tbl->hash_q, users->alth.tbl->hash_q);
 
     i=9;
-    HASH_FIND_INT(users,tmp,id,&i);
+    HASH_FIND_INT(users,&i,tmp);
     printf("%d %s in hh\n", i, (tmp ? "found" : "not found"));
-    HASH_FIND(alth,altusers,tmp,id,&i,sizeof(int));
+    HASH_FIND(alth,altusers,&i,sizeof(int),tmp);
     printf("%d %s in alth\n", i, (tmp ? "found" : "not found"));
 
     i=10;
-    HASH_FIND_INT(users,tmp,id,&i);
+    HASH_FIND_INT(users,&i,tmp);
     printf("%d %s in hh\n", i, (tmp ? "found" : "not found"));
-    HASH_FIND(alth,altusers,tmp,id,&i,sizeof(int));
+    HASH_FIND(alth,altusers,&i,sizeof(int),tmp);
     printf("%d %s in alth\n", i, (tmp ? "found" : "not found"));
 
 }

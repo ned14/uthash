@@ -17,14 +17,11 @@ int main(int argc, char *argv[]) {
 
     for (n = names; *n != NULL; n++) {
         s = malloc(sizeof(struct my_struct));
-        strcpy(s->name, *n);
+        strncpy(s->name, *n,10);
         s->id = i++;
-        HASH_ADD_STR( users, name, s );  /* hash, key field name, item */
+        HASH_ADD_STR( users, name, s );  
     }
 
-    /* args are hash, output pointer, key field name, key sought */
-    HASH_FIND_STR( users, s, name, "betty");
-    if (s) {
-        printf("betty's id is %d\n", s->id);
-    }
+    HASH_FIND_STR( users, "betty", s);
+    if (s) printf("betty's id is %d\n", s->id);
 }
