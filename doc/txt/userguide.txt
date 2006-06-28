@@ -1,5 +1,5 @@
-uthash User's Guide
-===================
+uthash User Guide
+=================
 Troy D. Hanson <thanson@users.sourceforge.net>
 v1.1, June 2006
 
@@ -303,11 +303,12 @@ This is almost the same as using integer keys except the macros are named
 `HASH_ADD_STR` and `HASH_FIND_STR`.
 
 [NOTE]
-.char[] vs. char* 
+.char[ ] vs. char* 
 ================================================================================
 The string is 'within' the structure in this example-- `name` is a `char[10]`
 field.  If instead our structure merely 'pointed' to the key (i.e., `name` was
-declared `char *`), we'd use `HASH_ADD_KEYPTR`, described in Appendix F.
+declared `char *`), we'd use `HASH_ADD_KEYPTR`, described in
+<<Appendix_F,Appendix F>>.
 ================================================================================
 
 .A string-keyed hash
@@ -570,21 +571,21 @@ keystats column reference
 fcn::
     symbolic name of hash function
 hash_q::
-    a number between 0 and 1 that measures how even the items are distributed
-    among the buckets (1 is best)
+    a number between 0 and 1 that measures how evenly the items are
+    distributed among the buckets (1 is best)
 #items::
     the number of keys that were read in from the emitted key file
 #buckets::
     the number of buckets in the hash after all the keys were added
 #dups::
-    duplicate keys encounted in the emitted key file. Duplicates keys are
-    filtered out. (Duplicates can be normal. For example, if the application
-    added an item to a hash, deleted it, then re-added it, the key would be
-    present twice in the emitted file.)  
+    the number of duplicate keys encounted in the emitted key file. Duplicates
+    keys are filtered out to maintain key uniqueness. (Duplicates are normal.
+    For example, if the application adds an item to a hash, deletes it, then
+    re-adds it, the key is written twice to the emitted file.)  
 flags::
     this is either `ok`, or `noexpand` if the 'expansion inhibited' flag is
     set, described in Appendix C.  It is not recommended to use a hash
-    function if `noexpand` is set.
+    function that has the `noexpand` flag set.
 add_usec::
     the clock time in microseconds required to add all the keys to a hash
 find_usec::

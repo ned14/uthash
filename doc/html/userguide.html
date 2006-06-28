@@ -254,11 +254,11 @@ div.exampleblock-content {
   padding-left: 0.5em;
 }
 </style>
-<title>uthash User's Guide</title>
+<title>uthash User Guide</title>
 </head>
 <body>
 <div id="header">
-<h1>uthash User's Guide</h1>
+<h1>uthash User Guide</h1>
 <span id="author">Troy D. Hanson</span><br />
 <span id="email"><tt>&lt;<a href="mailto:thanson@users.sourceforge.net">thanson@users.sourceforge.net</a>&gt;</tt></span><br />
 <span id="revision">version 1.1,</span>
@@ -583,10 +583,11 @@ int main(int argc, char *argv[]) {
 <div class="title">Note</div>
 </td>
 <td class="content">
-<div class="title">char[] vs. char*</div>
+<div class="title">char[ ] vs. char*</div>
 <p>The string is <em>within</em> the structure in this example&#8212; <tt>name</tt> is a <tt>char[10]</tt>
 field.  If instead our structure merely <em>pointed</em> to the key (i.e., <tt>name</tt> was
-declared <tt>char *</tt>), we'd use <tt>HASH_ADD_KEYPTR</tt>, described in Appendix F.</p>
+declared <tt>char *</tt>), we'd use <tt>HASH_ADD_KEYPTR</tt>, described in
+<a href="#Appendix_F">Appendix F</a>.</p>
 </td>
 </tr></table>
 </div>
@@ -926,8 +927,8 @@ hash_q
 </dt>
 <dd>
 <p>
-    a number between 0 and 1 that measures how even the items are distributed
-    among the buckets (1 is best)
+    a number between 0 and 1 that measures how evenly the items are
+    distributed among the buckets (1 is best)
 </p>
 </dd>
 <dt>
@@ -951,10 +952,10 @@ hash_q
 </dt>
 <dd>
 <p>
-    duplicate keys encounted in the emitted key file. Duplicates keys are
-    filtered out. (Duplicates can be normal. For example, if the application
-    added an item to a hash, deleted it, then re-added it, the key would be
-    present twice in the emitted file.)
+    the number of duplicate keys encounted in the emitted key file. Duplicates
+    keys are filtered out to maintain key uniqueness. (Duplicates are normal.
+    For example, if the application adds an item to a hash, deletes it, then
+    re-adds it, the key is written twice to the emitted file.)
 </p>
 </dd>
 <dt>
@@ -964,7 +965,7 @@ flags
 <p>
     this is either <tt>ok</tt>, or <tt>noexpand</tt> if the <em>expansion inhibited</em> flag is
     set, described in Appendix C.  It is not recommended to use a hash
-    function if <tt>noexpand</tt> is set.
+    function that has the <tt>noexpand</tt> flag set.
 </p>
 </dd>
 <dt>
@@ -1387,7 +1388,7 @@ item_ptr
 <div id="footer">
 <div id="footer-text">
 Version 1.1<br />
-Last updated 27-Jun-2006 01:47:41 CDT
+Last updated 27-Jun-2006 23:46:20 CDT
 </div>
 </div>
 </body>
