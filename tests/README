@@ -21,29 +21,15 @@ test14: read dat file of names into hash, read file again and lookup each one
 test15: build string-keyed hash of 3 items, lookup one item 
 test16: hash on aggregate key, iterate, lookup, using generalized macros
 
-keystats utility
-================================================================================
- keystats takes a filename argument, containing a key dump obtained by 
-          compiling application using -DHASH_EMIT_KEYS=3 and then running 
-          application with 3>keyfile (any unused file descriptor can be used 
-          instead of 3). keystats processes this key dump file, adding each
-          key to a hash, and repeats the process for each built-in hash 
-          function. Finally, statistics are printed for each hash function.
-          The better hash functions are listed first. Example:
-
-        % cc -I../src -DHASH_EMIT_KEYS=3 -o test14 test14.c
-        % ./test14 1>test14.out 3>test14.keys
-        % ./keystats test14.keys
-fcn     hash_q     #items   #buckets      #dups      flags   add_usec  find_usec
---- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-BER   1.000000       1219        512          0         ok       1206        550
-FNV   1.000000       1219        512          0         ok       1734        660
-JEN   1.000000       1219        512          0         ok       2008        845
-OAT   0.998897       1219        512          0         ok       1941        833
-SAX   0.997514       1219       1024          0         ok       2217        674
-JSW   0.994652       1219        512          0         ok       1369        608
-
 Other files
 ================================================================================
-bkt:    prints bucket number for input keys. Run without args for help.
+bkt:       prints bucket number for input keys. Run without args for help.
+keystats:  key statistics analyzer. See the User Guide (http://uthash.sf.net)
+
+
+-------------------------------------------------------------------------------
+Note for Cygwin:
+The script "do_tests.cygwin" must be used instead of "do_tests". The Makefile
+does not detect Cygwin currently, so you'll have to run "do_tests.cygwin" by
+hand after running "make" to compile the tests.
 

@@ -44,11 +44,13 @@ head::
     named because it points to the first item which is added to the hash.
 keyfield_name::
     the name of the key field in the structure. (In the case of a multi-field
-    key, this is the first field of the key).
+    key, this is the first field of the key). If you're new to macros, it
+    might seem strange to pass the name of a structure field as a parameter.
+    Rest assured the macros expand to valid C code.
 key_len::
     the length of the key field in bytes. E.g. for an integer key, this is
     `sizeof(int)`, while for a string key it's `strlen(key)`. (For a
-    multi-field key, see the notes in this guide on calculating key length).
+    multi-field key, see the notes in the User Guide on calculating key length).
 key_ptr::
     for `HASH_FIND`, this is a pointer to the key to look up in the hash
     (since it's a pointer, you can't directly pass a literal value here). For
@@ -64,8 +66,8 @@ NOTES
 `HASH_ADD_KEYPTR` is used when the structure contains a pointer to the
 key, rather than the key itself. 
 
-`HASH_DEL` is a convenience macro but doesn't share the requirement that the
-key be of type `int` or `char[]`.
+Unlike the other convenience macros, `HASH_DEL` doesn't require that the key
+be of type `int` or `char[]`.
 
 
 AUTHOR
@@ -75,7 +77,7 @@ Written by Troy D. Hanson, <mailto:thanson@users.sourceforge.net[]>
 
 RESOURCES
 ---------
-See the http://uthash.sourceforge.net/[uthash web site] for the complete User's
+See the http://uthash.sourceforge.net/[uthash web site] for the complete User
 Guide.
 
 include::sflogo.txt[]

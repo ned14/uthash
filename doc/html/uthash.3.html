@@ -334,7 +334,9 @@ keyfield_name
 <dd>
 <p>
     the name of the key field in the structure. (In the case of a multi-field
-    key, this is the first field of the key).
+    key, this is the first field of the key). If you're new to macros, it
+    might seem strange to pass the name of a structure field as a parameter.
+    Rest assured the macros expand to valid C code.
 </p>
 </dd>
 <dt>
@@ -344,7 +346,7 @@ key_len
 <p>
     the length of the key field in bytes. E.g. for an integer key, this is
     <tt>sizeof(int)</tt>, while for a string key it's <tt>strlen(key)</tt>. (For a
-    multi-field key, see the notes in this guide on calculating key length).
+    multi-field key, see the notes in the User Guide on calculating key length).
 </p>
 </dd>
 <dt>
@@ -373,8 +375,8 @@ item_ptr
 <div class="sectionbody">
 <p><tt>HASH_ADD_KEYPTR</tt> is used when the structure contains a pointer to the
 key, rather than the key itself.</p>
-<p><tt>HASH_DEL</tt> is a convenience macro but doesn't share the requirement that the
-key be of type <tt>int</tt> or <tt>char[]</tt>.</p>
+<p>Unlike the other convenience macros, <tt>HASH_DEL</tt> doesn't require that the key
+be of type <tt>int</tt> or <tt>char[]</tt>.</p>
 </div>
 <h2>AUTHOR</h2>
 <div class="sectionbody">
@@ -382,13 +384,13 @@ key be of type <tt>int</tt> or <tt>char[]</tt>.</p>
 </div>
 <h2>RESOURCES</h2>
 <div class="sectionbody">
-<p>See the <a href="http://uthash.sourceforge.net/">uthash web site</a> for the complete User's
+<p>See the <a href="http://uthash.sourceforge.net/">uthash web site</a> for the complete User
 Guide.</p>
 <a style="float: right;" href="http://sourceforge.net"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=163879&amp;type=1" width="88" height="31" border="0" alt="SourceForge.net Logo" /></a>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 27-Jun-2006 23:46:24 CDT
+Last updated 30-Sep-2006 20:20:22 CDT
 </div>
 </div>
 </body>

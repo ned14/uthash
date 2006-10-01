@@ -4,256 +4,8 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="generator" content="AsciiDoc 7.0.4" />
-<style type="text/css">
-/* Debug borders */
-p, li, dt, dd, div, pre, h1, h2, h3, h4, h5, h6 {
-/*
-  border: 1px solid red;
-*/
-}
-
-body {
-  margin: 1em 5% 1em 5%;
-}
-
-a { color: blue; }
-a:visited { color: fuchsia; }
-
-em {
-  font-style: italic;
-}
-
-strong {
-  font-weight: bold;
-}
-
-tt {
-  color: navy;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  color: #527bbd;
-  font-family: sans-serif;
-  margin-top: 1.2em;
-  margin-bottom: 0.5em;
-  line-height: 1.3;
-}
-
-h1 {
-  border-bottom: 2px solid silver;
-}
-h2 {
-  border-bottom: 2px solid silver;
-  padding-top: 0.5em;
-}
-
-div.sectionbody {
-  font-family: serif;
-  margin-left: 0;
-}
-
-hr {
-  border: 1px solid silver;
-}
-
-p {
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
-}
-
-pre {
-  padding: 0;
-  margin: 0;
-}
-
-span#author {
-  color: #527bbd;
-  font-family: sans-serif;
-  font-weight: bold;
-  font-size: 1.2em;
-}
-span#email {
-}
-span#revision {
-  font-family: sans-serif;
-}
-
-div#footer {
-  font-family: sans-serif;
-  font-size: small;
-  border-top: 2px solid silver;
-  padding-top: 0.5em;
-  margin-top: 4.0em;
-}
-div#footer-text {
-  float: left;
-  padding-bottom: 0.5em;
-}
-div#footer-badges {
-  float: right;
-  padding-bottom: 0.5em;
-}
-
-div#preamble,
-div.tableblock, div.imageblock, div.exampleblock, div.verseblock,
-div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
-div.admonitionblock {
-  margin-right: 10%;
-  margin-top: 1.5em;
-  margin-bottom: 1.5em;
-}
-div.admonitionblock {
-  margin-top: 2.5em;
-  margin-bottom: 2.5em;
-}
-
-div.content { /* Block element content. */
-  padding: 0;
-}
-
-/* Block element titles. */
-div.title, caption.title {
-  font-family: sans-serif;
-  font-weight: bold;
-  text-align: left;
-  margin-top: 1.0em;
-  margin-bottom: 0.5em;
-}
-div.title + * {
-  margin-top: 0;
-}
-
-td div.title:first-child {
-  margin-top: 0.0em;
-}
-div.content div.title:first-child {
-  margin-top: 0.0em;
-}
-div.content + div.title {
-  margin-top: 0.0em;
-}
-
-div.sidebarblock > div.content {
-  background: #ffffee;
-  border: 1px solid silver;
-  padding: 0.5em;
-}
-
-div.listingblock > div.content {
-  border: 1px solid silver;
-  background: #f4f4f4;
-  padding: 0.5em;
-}
-
-div.quoteblock > div.content {
-  padding-left: 2.0em;
-}
-div.quoteblock .attribution {
-  text-align: right;
-}
-
-div.admonitionblock .icon {
-  vertical-align: top;
-  font-size: 1.1em;
-  font-weight: bold;
-  text-decoration: underline;
-  color: #527bbd;
-  padding-right: 0.5em;
-}
-div.admonitionblock td.content {
-  padding-left: 0.5em;
-  border-left: 2px solid silver;
-}
-
-div.exampleblock > div.content {
-  border-left: 2px solid silver;
-  padding: 0.5em;
-}
-
-div.verseblock div.content {
-  white-space: pre;
-}
-
-div.imageblock div.content { padding-left: 0; }
-div.imageblock img { border: 1px solid silver; }
-span.image img { border-style: none; }
-
-dl {
-  margin-top: 0.8em;
-  margin-bottom: 0.8em;
-}
-dt {
-  margin-top: 0.5em;
-  margin-bottom: 0;
-  font-style: italic;
-}
-dd > *:first-child {
-  margin-top: 0;
-}
-
-ul, ol {
-    list-style-position: outside;
-}
-ol.olist2 {
-  list-style-type: lower-alpha;
-}
-
-div.tableblock > table {
-  border: 3px solid #527bbd;
-}
-thead {
-  font-family: sans-serif;
-  font-weight: bold;
-}
-tfoot {
-  font-weight: bold;
-}
-
-div.hlist {
-  margin-top: 0.8em;
-  margin-bottom: 0.8em;
-}
-td.hlist1 {
-  vertical-align: top;
-  font-style: italic;
-  padding-right: 0.8em;
-}
-td.hlist2 {
-  vertical-align: top;
-}
-
-@media print {
-  div#footer-badges { display: none; }
-}
-/* Workarounds for IE6's broken and incomplete CSS2. */
-
-div.sidebar-content {
-  background: #ffffee;
-  border: 1px solid silver;
-  padding: 0.5em;
-}
-div.sidebar-title, div.image-title {
-  font-family: sans-serif;
-  font-weight: bold;
-  margin-top: 0.0em;
-  margin-bottom: 0.5em;
-}
-
-div.listingblock div.content {
-  border: 1px solid silver;
-  background: #f4f4f4;
-  padding: 0.5em;
-}
-
-div.quoteblock-content {
-  padding-left: 2.0em;
-}
-
-div.exampleblock-content {
-  border-left: 2px solid silver;
-  padding-left: 0.5em;
-}
-</style>
+<link rel="stylesheet" href="./tdh.css" type="text/css" />
+<link rel="stylesheet" href="./tdh-quirks.css" type="text/css" />
 <title>uthash User Guide</title>
 </head>
 <body>
@@ -261,8 +13,8 @@ div.exampleblock-content {
 <h1>uthash User Guide</h1>
 <span id="author">Troy D. Hanson</span><br />
 <span id="email"><tt>&lt;<a href="mailto:thanson@users.sourceforge.net">thanson@users.sourceforge.net</a>&gt;</tt></span><br />
-<span id="revision">version 1.1,</span>
-June 2006
+<span id="revision">version 1.2,</span>
+September 2006
 </div>
 <div id="preamble">
 <div class="sectionbody">
@@ -277,6 +29,85 @@ June 2006
 </div>
 <h2>A hash in C</h2>
 <div class="sectionbody">
+<div id="toc"></div>
+<script>
+window.onload=generate_TOC
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+
+function H_getText(el) {
+  var text = "";
+  for (var i = el.firstChild; i != null; i = i.nextSibling) {
+    if (i.nodeType == 3 /* Node.TEXT_NODE, IE doesn't speak constants */)
+      text += i.data;
+    else if (i.firstChild != null)
+      text += H_getText(i);
+  }
+  return text;
+}
+
+function TOC_EL(el, text, level) {
+  this.element = el;
+  this.text = text;
+  this.level = level;
+}
+
+function getHeadlines(el) {
+  var l = new Array;
+  var rx = /[hH]([2-3])/;
+  // internal recursive function that scans the DOM tree
+  var rec = function (el) {
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+        if (rx.exec(i.tagName))
+          l[l.length] = new TOC_EL(i, H_getText(i), parseInt(RegExp.$1));
+        rec(i);
+      }
+    }
+  }
+  rec(el);
+  return l;
+}
+
+function generate_TOC() {
+  var parent = document.getElementById("toc");
+  var toc_hdr = document.createElement("div");
+  var toc_hdr_txt = document.createTextNode("CONTENTS");
+  toc_hdr.appendChild(toc_hdr_txt);
+  /* toc_hdr.setAttribute("id","hdr"); */
+  toc_hdr.id = "hdr";
+  parent.appendChild(toc_hdr);
+  var hs = getHeadlines(document.getElementsByTagName("body")[0]);
+  for (var i = 0; i < hs.length; ++i) {
+    var hi = hs[i];
+    var d = document.createElement("div");
+    if (hi.element.id == "") hi.element.id = "gen" + i;
+    var a = document.createElement("a");
+    a.href = "#" + hi.element.id;
+    a.appendChild(document.createTextNode(hi.text));
+    d.appendChild(a);
+    d.className = "level" + hi.level;
+    parent.appendChild(d);
+    if (hi.level == 3) {
+        var dvtop = document.createElement("div");
+        dvtop.className = "toplink";
+        dvtop.appendChild(document.createTextNode("^top^"));
+        dvtop.onclick=function(){scrollTo(0,0);};
+        hi.element.appendChild(dvtop);
+    }
+  }
+}
+</script>
 <p>This document is geared towards C programmers of UNIX systems. Since you're
 reading this, chances are that you know a hash is used for looking up items
 using a key. In scripting languages like Perl, hashes are used all the time.
@@ -389,30 +220,40 @@ the convenience macro <tt>HASH_ADD_INT</tt>, which is for keys of type <tt>int</
 <div class="content">
 <pre><tt>struct my_struct *users = NULL;    /* declare the hash */
 
-int add_user(int id, char *name) {
+int add_user(int user_id, char *name) {
     struct my_struct *s;
 
     s = malloc(sizeof(struct my_struct));
-    s-&gt;id = id;
+    s-&gt;id = user_id;
     strcpy(s-&gt;name, name);
     HASH_ADD_INT( users, id, s );  /* id: name of key field */
 }</tt></pre>
 </div></div>
+<p>The second parameter to <tt>HASH_ADD_INT</tt> is the <em>name</em> of the key field. Here,
+this is <tt>id</tt>.</p>
+<div class="sidebarblock">
+<a id="validc"></a>
+<div class="sidebar-content">
+<div class="sidebar-title">Uhh.. the field <em>name</em> is a parameter?</div>
+<p>Does it look strange to you that <tt>id</tt>, which is the <em>name of a field</em> in the
+structure, can be passed as a standalone parameter to <tt>HASH_ADD_INT</tt>? It <em>is</em>
+strange!  Welcome to the world of macros. Rest assured that the C preprocessor
+expands this macro to valid C code.</p>
+</div></div>
+<p>Once an item has been added to the hash, do not change the value of its key.
+Instead, delete the item from the hash, change the key, and then re-add it.</p>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
-<div class="title">Note</div>
+<div class="title">Important</div>
 </td>
-<td class="content">Once an item has been added to the hash, do not change the value of its key.
-Instead, delete the item from the hash, change the key, and then re-add it.</td>
-</tr></table>
-</div>
-<div class="sidebarblock">
-<div class="sidebar-content">
-<div class="sidebar-title">Key uniqueness</div>
+<td class="content">
+<div class="title">Key uniqueness</div>
 <p>Your application must enforce key uniqueness. In other words, do not add the
 same key to the hash more than once. If you do, hash behavior will be undefined.</p>
-</div></div>
+</td>
+</tr></table>
+</div>
 <p>You can test whether a key already exists in the hash using <tt>HASH_FIND</tt>.</p>
 <h3>Finding an item in the hash</h3>
 <p>To look up an item in a hash, you must have its key.  Then call <tt>HASH_FIND</tt>.
@@ -485,7 +326,7 @@ doubly-linked list. The items are in the order that they were added.</p>
 </div></div>
 <h3>Putting it all together: A complete Example</h3>
 <p>We'll repeat all the code and embellish it with a <tt>main()</tt> function
-so that you can try the code. If you place it in a file called <tt>example.c</tt> you
+so that you can try the code. If you place it in a file called <tt>example.c</tt>
 in the same directory as <tt>uthash.h</tt>, you can compile and run it like this:</p>
 <div class="literalblock">
 <div class="content">
@@ -509,11 +350,11 @@ struct my_struct {
 
 struct my_struct *users = NULL;
 
-int add_user(int id, char *name) {
+int add_user(int user_id, char *name) {
     struct my_struct *s;
 
     s = malloc(sizeof(struct my_struct));
-    s-&gt;id = id;
+    s-&gt;id = user_id;
     strcpy(s-&gt;name, name);
     HASH_ADD_INT( users, id, s );  /* id: name of key field */
 }
@@ -717,10 +558,8 @@ fields and their intervening padding).</p>
 </div>
 <h2>Participating in multiple hashes</h2>
 <div class="sectionbody">
-<h3>Can my structure participate in more than one hash at the same time?</h3>
-<p>Yes, your structure can participate in <em>n</em> hashes simultaneously, and each one
-can have a different key field. For example, you might want to hash a
-structure on both an ID field and on a unique username.</p>
+<p>A structure can be in multiple hashes simultaneously.  For example, you might
+want to hash a structure on both an ID field and on a unique username.</p>
 <div class="listingblock">
 <div class="title">Example: A structure with two keys</div>
 <div class="content">
@@ -730,6 +569,10 @@ structure on both an ID field and on a unique username.</p>
     UT_hash_handle hh1,hh2;    /* makes this structure hashable */
 };</tt></pre>
 </div></div>
+<p>In the example above, the structure can now be added to two separate hashes;
+in one hash, <tt>id</tt> is its key, while in the other hash, <tt>username</tt> is the key.
+(There is no requirement that the two hashes have different key fields. They
+could both use the same key, such as <tt>id</tt>).</p>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
@@ -1350,7 +1193,9 @@ keyfield_name
 <dd>
 <p>
     the name of the key field in the structure. (In the case of a multi-field
-    key, this is the first field of the key).
+    key, this is the first field of the key). If you're new to macros, it
+    might seem strange to pass the name of a field as a parameter. See
+    <a href="#validc">note</a>.
 </p>
 </dd>
 <dt>
@@ -1387,8 +1232,8 @@ item_ptr
 </div>
 <div id="footer">
 <div id="footer-text">
-Version 1.1<br />
-Last updated 27-Jun-2006 23:46:20 CDT
+Version 1.2<br />
+Last updated 30-Sep-2006 20:28:27 CDT
 </div>
 </div>
 </body>

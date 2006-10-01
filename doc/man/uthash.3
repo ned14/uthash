@@ -68,11 +68,11 @@ the structure pointer variable which acts as the "head" of the hash\&. So named 
 
 .TP
 keyfield_name
-the name of the key field in the structure\&. (In the case of a multi\-field key, this is the first field of the key)\&.
+the name of the key field in the structure\&. (In the case of a multi\-field key, this is the first field of the key)\&. If you're new to macros, it might seem strange to pass the name of a structure field as a parameter\&. Rest assured the macros expand to valid C code\&.
 
 .TP
 key_len
-the length of the key field in bytes\&. E\&.g\&. for an integer key, this is sizeof(int), while for a string key it's strlen(key)\&. (For a multi\-field key, see the notes in this guide on calculating key length)\&.
+the length of the key field in bytes\&. E\&.g\&. for an integer key, this is sizeof(int), while for a string key it's strlen(key)\&. (For a multi\-field key, see the notes in the User Guide on calculating key length)\&.
 
 .TP
 key_ptr
@@ -88,7 +88,7 @@ pointer to the structure being added, deleted or looked up\&. This is an input p
 HASH_ADD_KEYPTR is used when the structure contains a pointer to the key, rather than the key itself\&.
 
 
-HASH_DEL is a convenience macro but doesn't share the requirement that the key be of type int or char[]\&.
+Unlike the other convenience macros, HASH_DEL doesn't require that the key be of type int or char[]\&.
 
 .SH "AUTHOR"
 
@@ -98,5 +98,5 @@ Written by Troy D\&. Hanson, <thanson@users\&.sourceforge\&.net: \fImailto:thans
 .SH "RESOURCES"
 
 
-See the uthash web site: \fIhttp://uthash.sourceforge.net/\fR for the complete User's Guide\&.
+See the uthash web site: \fIhttp://uthash.sourceforge.net/\fR for the complete User Guide\&.
 
