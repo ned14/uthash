@@ -14,7 +14,7 @@
 <span id="author">Troy D. Hanson</span><br />
 <span id="email"><tt>&lt;<a href="mailto:thanson@users.sourceforge.net">thanson@users.sourceforge.net</a>&gt;</tt></span><br />
 <span id="revision">version 1.2,</span>
-September 2006
+November 2006
 </div>
 <div id="preamble">
 <div class="sectionbody">
@@ -133,7 +133,7 @@ delete
 </li>
 <li>
 <p>
-iterate
+iterate/sort
 </p>
 </li>
 </ol>
@@ -211,14 +211,14 @@ simplify matters by naming it <tt>hh</tt>. This allows you to use the easier
 see <a href="#Appendix_F">Appendix F: Macro Reference</a>.</td>
 </tr></table>
 </div>
-<h3>Adding an item to the hash</h3>
+<h3>Adding an item</h3>
 <p>Your hash must be declared as a <tt>NULL</tt>-initialized pointer to your structure.
 Then allocate and initialize your structure and call <tt>HASH_ADD</tt>. (Here we use
 the convenience macro <tt>HASH_ADD_INT</tt>, which is for keys of type <tt>int</tt>.)</p>
 <div class="listingblock">
 <div class="title">Example: Adding an item to a hash</div>
 <div class="content">
-<pre><tt>struct my_struct *users = NULL;    /* declare the hash */
+<pre><tt>struct my_struct *users = NULL;    /* important! initialize to NULL */
 
 int add_user(int user_id, char *name) {
     struct my_struct *s;
@@ -255,7 +255,7 @@ same key to the hash more than once. If you do, hash behavior will be undefined.
 </tr></table>
 </div>
 <p>You can test whether a key already exists in the hash using <tt>HASH_FIND</tt>.</p>
-<h3>Finding an item in the hash</h3>
+<h3>Finding an item</h3>
 <p>To look up an item in a hash, you must have its key.  Then call <tt>HASH_FIND</tt>.
 (Here we use the convenience macro <tt>HASH_FIND_INT</tt> for keys of type <tt>int</tt>).</p>
 <div class="listingblock">
@@ -281,7 +281,7 @@ a pointer to the variable.</td>
 </div>
 <p>Here, <tt>s</tt> is the output variable of <tt>HASH_FIND_INT</tt>. It's a pointer to the
 sought item, or <tt>NULL</tt> if the key wasn't found in the hash.</p>
-<h3>Deleting an item from the hash</h3>
+<h3>Deleting an item</h3>
 <p>To delete an item from a hash, you must have a pointer to the item.</p>
 <div class="listingblock">
 <div class="title">Example: Deleting an item from a hash</div>
@@ -299,7 +299,7 @@ void delete_user(struct my_struct *user) {
 <td class="content">Deleting an item from a hash just removes it&#8212; it does not free it.</td>
 </tr></table>
 </div>
-<h3>Iterating over the items in the hash</h3>
+<h3>Iterating and sorting</h3>
 <p>You can loop over the items in the hash by starting from the beginning and
 following the <tt>hh.next</tt> pointer.</p>
 <div class="listingblock">
@@ -322,12 +322,54 @@ the hash, starting from any known item.</p>
 <p>Iterating backward and forward through the items in the hash is possible
 because of the <tt>hh.prev</tt> and <tt>hh.next</tt> fields. All the items in the hash can
 be reached by repeatedly following these pointers, thus the hash is also a
-doubly-linked list. The items are in the order that they were added.</p>
+doubly-linked list.</p>
 </div></div>
+<h4>Sorted iteration</h4>
+<p>Iteration normally traverses the items in "insertion order", but you can sort
+the items into a new order using <tt>HASH_SORT</tt>.</p>
+<div class="literalblock">
+<div class="content">
+<pre><tt>HASH_SORT( head, cmp );</tt></pre>
+</div></div>
+<p>The <tt>cmp</tt> argument is a pointer to a comparison function. It must accept two
+arguments which are pointers to two items to compare. Its return value should
+be less than zero, zero, or greater than zero, if the first item sorts before,
+equal to, or after the second item, respectively. (Just like <tt>strcmp()</tt>).</p>
+<div class="listingblock">
+<div class="title">Example: Sorting the items in the hash</div>
+<div class="content">
+<pre><tt>
+int name_sort(struct my_struct *a, struct my_struct *b) {
+    return strcmp(a-&gt;name,b-&gt;name);
+}
+
+int id_sort(struct my_struct *a, struct my_struct *b) {
+    return (a-&gt;id - b-&gt;id);
+}
+
+void sort_by_name() {
+    HASH_SORT(users, name_sort);
+}
+
+void sort_by_id() {
+    HASH_SORT(users, id_sort);
+}
+</tt></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">The list head may point to a different item after sorting. (The old head may
+sort into a different position).</td>
+</tr></table>
+</div>
 <h3>Putting it all together: A complete Example</h3>
-<p>We'll repeat all the code and embellish it with a <tt>main()</tt> function
-so that you can try the code. If you place it in a file called <tt>example.c</tt>
-in the same directory as <tt>uthash.h</tt>, you can compile and run it like this:</p>
+<p>We'll repeat all the code and embellish it with a <tt>main()</tt> function to form a
+working example.</p>
+<p>If this code was placed in a file called <tt>example.c</tt> in the same directory as
+<tt>uthash.h</tt>, it could be compiled and run like this:</p>
 <div class="literalblock">
 <div class="content">
 <pre><tt>cc -o example example.c
@@ -378,6 +420,22 @@ void print_users() {
     }
 }
 
+int name_sort(struct my_struct *a, struct my_struct *b) {
+    return strcmp(a-&gt;name,b-&gt;name);
+}
+
+int id_sort(struct my_struct *a, struct my_struct *b) {
+    return (a-&gt;id - b-&gt;id);
+}
+
+void sort_by_name() {
+    HASH_SORT(users, name_sort);
+}
+
+void sort_by_id() {
+    HASH_SORT(users, id_sort);
+}
+
 int main(int argc, char *argv[]) {
     char in[10];
     int id=1;
@@ -387,7 +445,9 @@ int main(int argc, char *argv[]) {
         printf("1. add user\n");
         printf("2. find user\n");
         printf("3. delete user\n");
-        printf("4. print users\n");
+        printf("4. sort items by name\n");
+        printf("5. sort items by id\n");
+        printf("6. print users\n");
         gets(in);
         switch(atoi(in)) {
             case 1:
@@ -406,12 +466,20 @@ int main(int argc, char *argv[]) {
                 else printf("id unknown\n");
                 break;
             case 4:
+                sort_by_name();
+                break;
+            case 5:
+                sort_by_id();
+                break;
+            case 6:
                 print_users();
                 break;
         }
     }
 }</tt></pre>
 </div></div>
+<p>This program is included in the distribution in <tt>tests/example.c</tt>. You can run
+<tt>make example</tt> in the <tt>tests/</tt> directory to compile it easily.</p>
 </div>
 <h2>Arbitrary keys</h2>
 <div class="sectionbody">
@@ -1025,7 +1093,7 @@ this mode.</p>
 <h2><a id="Appendix_F"></a>Appendix F: Macro reference</h2>
 <div class="sectionbody">
 <h3>Generalized macros</h3>
-<p>These macros add, find and delete items from a hash.</p>
+<p>These macros add, find, delete and sort the items in a hash.</p>
 <div class="tableblock">
 <table rules="none"
 frame="hsides"
@@ -1074,6 +1142,14 @@ cellspacing="0" cellpadding="4">
     </td>
     <td align="left">
     (hh_name, head, item_ptr)
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    HASH_SORT
+    </td>
+    <td align="left">
+    (head, cmp)
     </td>
   </tr>
 </tbody>
@@ -1228,12 +1304,22 @@ item_ptr
     parameter for HASH_FIND.
 </p>
 </dd>
+<dt>
+cmp
+</dt>
+<dd>
+<p>
+    pointer to comparison function which accepts two arguments (pointers to
+    items to compare) and returns an int specifying whether the first item
+    should sort before, equal to, or after the second item (like <tt>strcmp()</tt>).
+</p>
+</dd>
 </dl>
 </div>
 <div id="footer">
 <div id="footer-text">
 Version 1.2<br />
-Last updated 30-Sep-2006 20:28:27 CDT
+Last updated 20-Nov-2006 00:56:28 CDT
 </div>
 </div>
 </body>

@@ -481,6 +481,83 @@ while (out) {                                                        \
     uthash_expand_fyi(tbl);                                         
 
 
+/* This is an adaptation of Simon Tatham's O(n log(n)) mergesort */
+#define HASH_SORT(head,cmpfcn)                                                 \
+  if (head) {                                                                  \
+      (head)->hh.tbl->insize = 1;                                              \
+      (head)->hh.tbl->looping = 1;                                             \
+      (head)->hh.tbl->list = &((head)->hh);                                    \
+      while ((head)->hh.tbl->looping) {                                        \
+          (head)->hh.tbl->p = (head)->hh.tbl->list;                            \
+          (head)->hh.tbl->list = NULL;                                         \
+          (head)->hh.tbl->tale = NULL;                                         \
+          (head)->hh.tbl->nmerges = 0;                                         \
+          while ((head)->hh.tbl->p) {                                          \
+              (head)->hh.tbl->nmerges++;                                       \
+              (head)->hh.tbl->q = (head)->hh.tbl->p;                           \
+              (head)->hh.tbl->psize = 0;                                       \
+              for ( (head)->hh.tbl->i = 0;                                     \
+                    (head)->hh.tbl->i  < (head)->hh.tbl->insize;               \
+                    (head)->hh.tbl->i++ ) {                                    \
+                  (head)->hh.tbl->psize++;                                     \
+                  (head)->hh.tbl->q = (((head)->hh.tbl->q->next) ?             \
+                      ((void*)(((long)((head)->hh.tbl->q->next)) +             \
+                      (head)->hh.tbl->hho)) : NULL);                           \
+                  if (! ((head)->hh.tbl->q) ) break;                           \
+              }                                                                \
+              (head)->hh.tbl->qsize = (head)->hh.tbl->insize;                  \
+              while (((head)->hh.tbl->psize > 0) ||                            \
+                      (((head)->hh.tbl->qsize > 0) && (head)->hh.tbl->q )) {   \
+                  if ((head)->hh.tbl->psize == 0) {                            \
+                      (head)->hh.tbl->e = (head)->hh.tbl->q;                   \
+                      (head)->hh.tbl->q = (((head)->hh.tbl->q->next) ?         \
+                          ((void*)(((long)((head)->hh.tbl->q->next)) +         \
+                          (head)->hh.tbl->hho)) : NULL);                       \
+                      (head)->hh.tbl->qsize--;                                 \
+                  } else if ( ((head)->hh.tbl->qsize == 0) ||                  \
+                             !((head)->hh.tbl->q) ) {                          \
+                      (head)->hh.tbl->e = (head)->hh.tbl->p;                   \
+                      (head)->hh.tbl->p = (((head)->hh.tbl->p->next) ?         \
+                          ((void*)(((long)((head)->hh.tbl->p->next)) +         \
+                          (head)->hh.tbl->hho)) : NULL);                       \
+                      (head)->hh.tbl->psize--;                                 \
+                  } else if ((                                                 \
+                      cmpfcn((head)->hh.tbl->p->elmt,(head)->hh.tbl->q->elmt)) \
+                          <= 0) {                                              \
+                      (head)->hh.tbl->e = (head)->hh.tbl->p;                   \
+                      (head)->hh.tbl->p = (((head)->hh.tbl->p->next) ?         \
+                          ((void*)(((long)((head)->hh.tbl->p->next)) +         \
+                          (head)->hh.tbl->hho)) : NULL);                       \
+                      (head)->hh.tbl->psize--;                                 \
+                  } else {                                                     \
+                      (head)->hh.tbl->e = (head)->hh.tbl->q;                   \
+                      (head)->hh.tbl->q = (((head)->hh.tbl->q->next) ?         \
+                          ((void*)(((long)((head)->hh.tbl->q->next)) +         \
+                                   (head)->hh.tbl->hho)) : NULL);              \
+                      (head)->hh.tbl->qsize--;                                 \
+                  }                                                            \
+                  if ( (head)->hh.tbl->tale ) {                                \
+                      (head)->hh.tbl->tale->next = (((head)->hh.tbl->e) ?      \
+                               ((head)->hh.tbl->e->elmt) : NULL);              \
+                  } else {                                                     \
+                      (head)->hh.tbl->list = (head)->hh.tbl->e;                \
+                  }                                                            \
+                  (head)->hh.tbl->e->prev = (((head)->hh.tbl->tale) ?          \
+                                 ((head)->hh.tbl->tale->elmt) : NULL);         \
+                  (head)->hh.tbl->tale = (head)->hh.tbl->e;                    \
+              }                                                                \
+              (head)->hh.tbl->p = (head)->hh.tbl->q;                           \
+          }                                                                    \
+          (head)->hh.tbl->tale->next = NULL;                                   \
+          if ( (head)->hh.tbl->nmerges <= 1 ) {                                \
+              (head)->hh.tbl->looping=0;                                       \
+              (head) = (head)->hh.tbl->list->elmt;                             \
+          }                                                                    \
+          (head)->hh.tbl->insize *= 2;                                         \
+      }                                                                        \
+      HASH_FSCK(head)                                                          \
+ }
+
 typedef struct UT_hash_bucket {
    struct UT_hash_handle *hh_head;
    unsigned count;  
@@ -506,6 +583,9 @@ typedef struct UT_hash_table {
    struct UT_hash_handle *hh, *hh_nxt;
    unsigned bkt_i, bkt_ideal, sum_of_deltas;
    double new_hash_q;
+   /* scratch for sort */
+   int looping,nmerges,insize,psize,qsize;
+   struct UT_hash_handle *p, *q, *e, *list, *tale;
    
 } UT_hash_table;
 

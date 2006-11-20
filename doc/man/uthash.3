@@ -27,6 +27,7 @@ HASH_ADD        (hh_name, head, keyfield_name, key_len, item_ptr)
 HASH_ADD_KEYPTR (hh_name, head, key_ptr, key_len, item_ptr)
 HASH_FIND       (hh_name, head, key_ptr, key_len, item_ptr)
 HASH_DELETE     (hh_name, head, item_ptr)
+HASH_SORT       (head, cmp)
 .fi
 
 .nf
@@ -81,6 +82,10 @@ for HASH_FIND, this is a pointer to the key to look up in the hash (since it's a
 .TP
 item_ptr
 pointer to the structure being added, deleted or looked up\&. This is an input parameter for HASH_ADD and HASH_DELETE macros, and an output parameter for HASH_FIND\&.
+
+.TP
+cmp
+pointer to comparison function which accepts two arguments (pointers to items to compare) and returns an int specifying whether the first item should sort before, equal to, or after the second item (like strcmp())\&.
 
 .SH "NOTES"
 

@@ -276,7 +276,8 @@ UTHASH(3) Manual Page
 <pre><tt>HASH_ADD        (hh_name, head, keyfield_name, key_len, item_ptr)
 HASH_ADD_KEYPTR (hh_name, head, key_ptr, key_len, item_ptr)
 HASH_FIND       (hh_name, head, key_ptr, key_len, item_ptr)
-HASH_DELETE     (hh_name, head, item_ptr)</tt></pre>
+HASH_DELETE     (hh_name, head, item_ptr)
+HASH_SORT       (head, cmp)</tt></pre>
 </div></div>
 <div class="literalblock">
 <div class="content">
@@ -369,6 +370,16 @@ item_ptr
     parameter for HASH_FIND.
 </p>
 </dd>
+<dt>
+cmp
+</dt>
+<dd>
+<p>
+    pointer to comparison function which accepts two arguments (pointers to
+    items to compare) and returns an int specifying whether the first item
+    should sort before, equal to, or after the second item (like <tt>strcmp()</tt>).
+</p>
+</dd>
 </dl>
 </div>
 <h2>NOTES</h2>
@@ -390,7 +401,7 @@ Guide.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 30-Sep-2006 20:20:22 CDT
+Last updated 20-Nov-2006 00:56:32 CDT
 </div>
 </div>
 </body>

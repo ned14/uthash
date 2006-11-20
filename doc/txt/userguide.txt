@@ -1,7 +1,7 @@
 uthash User Guide
 =================
 Troy D. Hanson <thanson@users.sourceforge.net>
-v1.2, September 2006
+v1.2, November 2006
 
 include::sflogo.txt[]
 include::topnav.txt[]
@@ -23,7 +23,7 @@ This software supports four basic operations on hashes.
 1. add
 2. find
 3. delete
-4. iterate 
+4. iterate/sort
 
 Is it fast?
 ~~~~~~~~~~~
@@ -103,15 +103,15 @@ This section introduces the `HASH_ADD`, `HASH_FIND` and `HASH_DELETE` macros.
 This section demonstrates the macros by example. For a more succinct listing,
 see <<Appendix_F,Appendix F: Macro Reference>>. 
 
-Adding an item to the hash
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Adding an item
+~~~~~~~~~~~~~~
 Your hash must be declared as a `NULL`-initialized pointer to your structure.
 Then allocate and initialize your structure and call `HASH_ADD`. (Here we use
 the convenience macro `HASH_ADD_INT`, which is for keys of type `int`.)
 
 .Adding an item to a hash
 ----------------------------------------------------------------------
-struct my_struct *users = NULL;    /* declare the hash */
+struct my_struct *users = NULL;    /* important! initialize to NULL */
 
 int add_user(int user_id, char *name) {
     struct my_struct *s;
@@ -147,8 +147,8 @@ same key to the hash more than once. If you do, hash behavior will be undefined.
 
 You can test whether a key already exists in the hash using `HASH_FIND`.
 
-Finding an item in the hash
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Finding an item 
+~~~~~~~~~~~~~~~
 
 To look up an item in a hash, you must have its key.  Then call `HASH_FIND`.
 (Here we use the convenience macro `HASH_FIND_INT` for keys of type `int`).
@@ -172,8 +172,8 @@ a pointer to the variable.
 Here, `s` is the output variable of `HASH_FIND_INT`. It's a pointer to the
 sought item, or `NULL` if the key wasn't found in the hash.
 
-Deleting an item from the hash
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Deleting an item
+~~~~~~~~~~~~~~~~
 
 To delete an item from a hash, you must have a pointer to the item.
 
@@ -188,8 +188,8 @@ void delete_user(struct my_struct *user) {
 [NOTE]
 Deleting an item from a hash just removes it-- it does not free it. 
 
-Iterating over the items in the hash
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Iterating and sorting 
+~~~~~~~~~~~~~~~~~~~~~
 
 You can loop over the items in the hash by starting from the beginning and
 following the `hh.next` pointer.
@@ -214,15 +214,54 @@ the hash, starting from any known item.
 Iterating backward and forward through the items in the hash is possible
 because of the `hh.prev` and `hh.next` fields. All the items in the hash can
 be reached by repeatedly following these pointers, thus the hash is also a
-doubly-linked list. The items are in the order that they were added.
+doubly-linked list. 
 *******************************************************************************
+
+Sorted iteration
+^^^^^^^^^^^^^^^^
+Iteration normally traverses the items in "insertion order", but you can sort
+the items into a new order using `HASH_SORT`.
+
+    HASH_SORT( head, cmp );
+
+The `cmp` argument is a pointer to a comparison function. It must accept two
+arguments which are pointers to two items to compare. Its return value should
+be less than zero, zero, or greater than zero, if the first item sorts before,
+equal to, or after the second item, respectively. (Just like `strcmp()`).
+
+.Sorting the items in the hash
+----------------------------------------------------------------------
+
+int name_sort(struct my_struct *a, struct my_struct *b) {
+    return strcmp(a->name,b->name);
+}
+
+int id_sort(struct my_struct *a, struct my_struct *b) {
+    return (a->id - b->id);
+}
+
+void sort_by_name() {
+    HASH_SORT(users, name_sort);
+}
+
+void sort_by_id() {
+    HASH_SORT(users, id_sort);
+}
+
+----------------------------------------------------------------------
+
+[NOTE]
+The list head may point to a different item after sorting. (The old head may
+sort into a different position).
 
 Putting it all together: A complete Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-We'll repeat all the code and embellish it with a `main()` function
-so that you can try the code. If you place it in a file called `example.c` 
-in the same directory as `uthash.h`, you can compile and run it like this:
+We'll repeat all the code and embellish it with a `main()` function to form a
+working example. 
+
+If this code was placed in a file called `example.c` in the same directory as
+`uthash.h`, it could be compiled and run like this:
 
     cc -o example example.c
     ./example
@@ -272,6 +311,22 @@ void print_users() {
     }
 }
 
+int name_sort(struct my_struct *a, struct my_struct *b) {
+    return strcmp(a->name,b->name);
+}
+
+int id_sort(struct my_struct *a, struct my_struct *b) {
+    return (a->id - b->id);
+}
+
+void sort_by_name() {
+    HASH_SORT(users, name_sort);
+}
+
+void sort_by_id() {
+    HASH_SORT(users, id_sort);
+}
+
 int main(int argc, char *argv[]) {
     char in[10];
     int id=1;
@@ -281,7 +336,9 @@ int main(int argc, char *argv[]) {
         printf("1. add user\n");
         printf("2. find user\n");
         printf("3. delete user\n");
-        printf("4. print users\n");
+        printf("4. sort items by name\n");
+        printf("5. sort items by id\n");
+        printf("6. print users\n");
         gets(in);
         switch(atoi(in)) {
             case 1:
@@ -300,12 +357,21 @@ int main(int argc, char *argv[]) {
                 else printf("id unknown\n");
                 break;
             case 4:
+                sort_by_name();
+                break;
+            case 5:
+                sort_by_id();
+                break;
+            case 6:
                 print_users();
                 break;
         }
     }
 }
 ----------------------------------------------------------------------
+
+This program is included in the distribution in `tests/example.c`. You can run
+`make example` in the `tests/` directory to compile it easily.
 
 Arbitrary keys
 --------------
@@ -807,7 +873,7 @@ Appendix F: Macro reference
 Generalized macros
 ~~~~~~~~~~~~~~~~~~
 
-These macros add, find and delete items from a hash.  
+These macros add, find, delete and sort the items in a hash.  
 
 .Generalized macros
 `---------------`-----------------------------------------------------------
@@ -817,6 +883,7 @@ HASH_ADD        (hh_name, head, keyfield_name, key_len, item_ptr)
 HASH_ADD_KEYPTR (hh_name, head, key_ptr, key_len, item_ptr)
 HASH_FIND       (hh_name, head, key_ptr, key_len, item_ptr)
 HASH_DELETE     (hh_name, head, item_ptr)
+HASH_SORT       (head, cmp)
 ----------------------------------------------------------------------------
 
 [NOTE]
@@ -874,4 +941,7 @@ item_ptr::
     pointer to the structure being added, deleted or looked up. This is an
     input parameter for HASH_ADD and HASH_DELETE macros, and an output
     parameter for HASH_FIND.
-
+cmp::
+    pointer to comparison function which accepts two arguments (pointers to
+    items to compare) and returns an int specifying whether the first item
+    should sort before, equal to, or after the second item (like `strcmp()`).
