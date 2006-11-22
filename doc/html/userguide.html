@@ -152,12 +152,18 @@ the header file into your project, and:</p>
 <pre><tt>#include "uthash.h"</tt></pre>
 </div></div>
 <p>You may then utilize the hash macros as explained below.</p>
+<h3>Supported platforms</h3>
+<p>This software has been tested on Linux, Solaris and Cygwin. It probably runs
+on other Unix or Unix-like platforms too.</p>
 <h3>BSD licensed</h3>
 <p>This software is made available under the BSD license. It is free and
 open source.</p>
 <h3>Obtaining uthash</h3>
 <p>Please follow the link to download on the
 <a href="http://uthash.sourceforge.net">uthash website</a>.</p>
+<h3>Getting help</h3>
+<p>You can email the author at <a href="mailto:thanson@users.sourceforge.net">thanson@users.sourceforge.net</a> if you have
+questions not answered by this document.</p>
 </div>
 <h2>Keys and values</h2>
 <div class="sectionbody">
@@ -201,20 +207,21 @@ simplify matters by naming it <tt>hh</tt>. This allows you to use the easier
 </div>
 <h2>Adding, finding, deleting and iterating</h2>
 <div class="sectionbody">
-<p>This section introduces the <tt>HASH_ADD</tt>, <tt>HASH_FIND</tt> and <tt>HASH_DELETE</tt> macros.</p>
-<div class="admonitionblock">
-<table><tr>
-<td class="icon">
-<div class="title">Tip</div>
-</td>
-<td class="content">This section demonstrates the macros by example. For a more succinct listing,
-see <a href="#Appendix_F">Appendix F: Macro Reference</a>.</td>
-</tr></table>
-</div>
+<p>This section introduces the <tt>HASH_ADD</tt>, <tt>HASH_FIND</tt>, <tt>HASH_DELETE</tt>, and
+<tt>HASH_SORT</tt> macros. This section demonstrates the macros by example. For a
+more succinct listing, see <a href="#Appendix_F">Appendix F: Macro Reference</a>.</p>
 <h3>Adding an item</h3>
 <p>Your hash must be declared as a <tt>NULL</tt>-initialized pointer to your structure.
 Then allocate and initialize your structure and call <tt>HASH_ADD</tt>. (Here we use
 the convenience macro <tt>HASH_ADD_INT</tt>, which is for keys of type <tt>int</tt>.)</p>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">The hash must be initialized to <tt>NULL</tt>!</td>
+</tr></table>
+</div>
 <div class="listingblock">
 <div class="title">Example: Adding an item to a hash</div>
 <div class="content">
@@ -236,9 +243,9 @@ this is <tt>id</tt>.</p>
 <div class="sidebar-content">
 <div class="sidebar-title">Uhh.. the field <em>name</em> is a parameter?</div>
 <p>Does it look strange to you that <tt>id</tt>, which is the <em>name of a field</em> in the
-structure, can be passed as a standalone parameter to <tt>HASH_ADD_INT</tt>? It <em>is</em>
-strange!  Welcome to the world of macros. Rest assured that the C preprocessor
-expands this macro to valid C code.</p>
+structure, can be passed as a standalone parameter to <tt>HASH_ADD_INT</tt>?  Welcome
+to the world of macros. Rest assured that the C preprocessor expands this
+macro to valid C code.</p>
 </div></div>
 <p>Once an item has been added to the hash, do not change the value of its key.
 Instead, delete the item from the hash, change the key, and then re-add it.</p>
@@ -325,16 +332,17 @@ be reached by repeatedly following these pointers, thus the hash is also a
 doubly-linked list.</p>
 </div></div>
 <h4>Sorted iteration</h4>
-<p>Iteration normally traverses the items in "insertion order", but you can sort
-the items into a new order using <tt>HASH_SORT</tt>.</p>
+<p>The items in the hash are, by default, traversed in the order they were added
+("insertion order") when you follow the <tt>hh.next</tt> pointer. But you can sort
+the items into a new order using <tt>HASH_SORT</tt>. E.g.,</p>
 <div class="literalblock">
 <div class="content">
-<pre><tt>HASH_SORT( head, cmp );</tt></pre>
+<pre><tt>HASH_SORT( users, name_sort );</tt></pre>
 </div></div>
-<p>The <tt>cmp</tt> argument is a pointer to a comparison function. It must accept two
+<p>The second argument is a pointer to a comparison function. It must accept two
 arguments which are pointers to two items to compare. Its return value should
 be less than zero, zero, or greater than zero, if the first item sorts before,
-equal to, or after the second item, respectively. (Just like <tt>strcmp()</tt>).</p>
+equal to, or after the second item, respectively. (Just like <tt>strcmp</tt>).</p>
 <div class="listingblock">
 <div class="title">Example: Sorting the items in the hash</div>
 <div class="content">
@@ -356,15 +364,9 @@ void sort_by_id() {
 }
 </tt></pre>
 </div></div>
-<div class="admonitionblock">
-<table><tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">The list head may point to a different item after sorting. (The old head may
-sort into a different position).</td>
-</tr></table>
-</div>
+<p>When the items in the hash are sorted, the first item may also change
+position; so in the example above, <tt>users</tt> may point to a different item after
+calling <tt>HASH_SORT</tt>.</p>
 <h3>Putting it all together: A complete Example</h3>
 <p>We'll repeat all the code and embellish it with a <tt>main()</tt> function to form a
 working example.</p>
@@ -479,7 +481,7 @@ int main(int argc, char *argv[]) {
 }</tt></pre>
 </div></div>
 <p>This program is included in the distribution in <tt>tests/example.c</tt>. You can run
-<tt>make example</tt> in the <tt>tests/</tt> directory to compile it easily.</p>
+<tt>make example</tt> in that directory to compile it easily.</p>
 </div>
 <h2>Arbitrary keys</h2>
 <div class="sectionbody">
@@ -677,6 +679,17 @@ will participate in simultaneously. These are <tt>hh1</tt> and <tt>hh2</tt> in t
 <p>When participating in two or more hashes simultaneously, always use the same
 key field with the same hash handle.  E.g., in this example, <tt>hh1</tt> is always
 used with the <tt>id</tt> key, and <tt>hh2</tt> is always used with the <tt>username</tt> key.</p>
+</div>
+<h2>Threaded programs</h2>
+<div class="sectionbody">
+<p>You can use this hash in a threaded program. But, the locking is up to you.
+You must protect the hash against concurrent modification. For every hash that
+you create in a threaded program, you should create a lock to protect it.</p>
+<p>Concurrent hash lookups (<tt>HASH_FIND</tt>) are permitted, but modifications
+(<tt>HASH_ADD</tt>, <tt>HASH_DEL</tt>, and <tt>HASH_SORT</tt>) cannot be concurrent. Therefore, you
+can use a read/write lock which provides concurrent-read/exclusive-write
+semantics. Or you can use a mutex-style lock to prevent any concurrent access
+to the hash, but this is less efficient.</p>
 </div>
 <h2><a id="Appendix_A"></a>Appendix A: Choosing the hash function</h2>
 <div class="sectionbody">
@@ -1038,6 +1051,17 @@ default is just to use <tt>malloc</tt> and <tt>free</tt> anyway), having them se
 permits easy integration with pool-type allocators. (In these allocators,
 there is a pool for each data structure.)</p>
 </div></div>
+<h3>Out of memory handling</h3>
+<p>If memory allocation fails (i.e., the malloc function returned <tt>NULL</tt>), the
+default behavior is to terminate the process by calling <tt>exit(-1)</tt>. This can
+be modified by re-defining the <tt>uthash_fatal</tt> macro.</p>
+<div class="literalblock">
+<div class="content">
+<pre><tt>#undef uthash_fatal
+#define uthash_fatal(msg) my_fatal_function(msg);</tt></pre>
+</div></div>
+<p>The fatal function should terminate the process; uthash does not support
+"returning a failure" if memory cannot be allocated.</p>
 </div>
 <h2>Appendix E: Internal implementation notes</h2>
 <div class="sectionbody">
@@ -1311,7 +1335,7 @@ cmp
 <p>
     pointer to comparison function which accepts two arguments (pointers to
     items to compare) and returns an int specifying whether the first item
-    should sort before, equal to, or after the second item (like <tt>strcmp()</tt>).
+    should sort before, equal to, or after the second item (like <tt>strcmp</tt>).
 </p>
 </dd>
 </dl>
@@ -1319,7 +1343,7 @@ cmp
 <div id="footer">
 <div id="footer-text">
 Version 1.2<br />
-Last updated 20-Nov-2006 00:56:28 CDT
+Last updated 21-Nov-2006 15:05:25 CDT
 </div>
 </div>
 </body>

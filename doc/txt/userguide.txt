@@ -44,6 +44,11 @@ the header file into your project, and:
 
 You may then utilize the hash macros as explained below.
 
+Supported platforms
+~~~~~~~~~~~~~~~~~~~
+This software has been tested on Linux, Solaris and Cygwin. It probably runs
+on other Unix or Unix-like platforms too.
+
 BSD licensed
 ~~~~~~~~~~~~
 This software is made available under the BSD license. It is free and
@@ -53,6 +58,11 @@ Obtaining uthash
 ~~~~~~~~~~~~~~~~
 Please follow the link to download on the 
 http://uthash.sourceforge.net[uthash website].
+
+Getting help
+~~~~~~~~~~~~
+You can email the author at mailto:thanson@users.sourceforge.net[] if you have
+questions not answered by this document.
 
 Keys and values
 ---------------
@@ -97,17 +107,18 @@ simplify matters by naming it `hh`. This allows you to use the easier
 Adding, finding, deleting and iterating
 ---------------------------------------
 
-This section introduces the `HASH_ADD`, `HASH_FIND` and `HASH_DELETE` macros.
-
-[TIP]
-This section demonstrates the macros by example. For a more succinct listing,
-see <<Appendix_F,Appendix F: Macro Reference>>. 
+This section introduces the `HASH_ADD`, `HASH_FIND`, `HASH_DELETE`, and
+`HASH_SORT` macros. This section demonstrates the macros by example. For a
+more succinct listing, see <<Appendix_F,Appendix F: Macro Reference>>. 
 
 Adding an item
 ~~~~~~~~~~~~~~
 Your hash must be declared as a `NULL`-initialized pointer to your structure.
 Then allocate and initialize your structure and call `HASH_ADD`. (Here we use
 the convenience macro `HASH_ADD_INT`, which is for keys of type `int`.)
+
+[IMPORTANT]
+The hash must be initialized to `NULL`!
 
 .Adding an item to a hash
 ----------------------------------------------------------------------
@@ -130,9 +141,9 @@ this is `id`.
 .Uhh.. the field 'name' is a parameter?
 *******************************************************************************
 Does it look strange to you that `id`, which is the 'name of a field' in the
-structure, can be passed as a standalone parameter to `HASH_ADD_INT`? It 'is'
-strange!  Welcome to the world of macros. Rest assured that the C preprocessor
-expands this macro to valid C code. 
+structure, can be passed as a standalone parameter to `HASH_ADD_INT`?  Welcome
+to the world of macros. Rest assured that the C preprocessor expands this
+macro to valid C code. 
 *******************************************************************************
 
 Once an item has been added to the hash, do not change the value of its key.
@@ -219,15 +230,16 @@ doubly-linked list.
 
 Sorted iteration
 ^^^^^^^^^^^^^^^^
-Iteration normally traverses the items in "insertion order", but you can sort
-the items into a new order using `HASH_SORT`.
+The items in the hash are, by default, traversed in the order they were added
+("insertion order") when you follow the `hh.next` pointer. But you can sort
+the items into a new order using `HASH_SORT`. E.g.,
 
-    HASH_SORT( head, cmp );
+    HASH_SORT( users, name_sort );
 
-The `cmp` argument is a pointer to a comparison function. It must accept two
+The second argument is a pointer to a comparison function. It must accept two
 arguments which are pointers to two items to compare. Its return value should
 be less than zero, zero, or greater than zero, if the first item sorts before,
-equal to, or after the second item, respectively. (Just like `strcmp()`).
+equal to, or after the second item, respectively. (Just like `strcmp`).
 
 .Sorting the items in the hash
 ----------------------------------------------------------------------
@@ -250,9 +262,9 @@ void sort_by_id() {
 
 ----------------------------------------------------------------------
 
-[NOTE]
-The list head may point to a different item after sorting. (The old head may
-sort into a different position).
+When the items in the hash are sorted, the first item may also change
+position; so in the example above, `users` may point to a different item after
+calling `HASH_SORT`.
 
 Putting it all together: A complete Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -371,7 +383,7 @@ int main(int argc, char *argv[]) {
 ----------------------------------------------------------------------
 
 This program is included in the distribution in `tests/example.c`. You can run
-`make example` in the `tests/` directory to compile it easily.
+`make example` in that directory to compile it easily.
 
 Arbitrary keys
 --------------
@@ -565,6 +577,18 @@ will participate in simultaneously. These are `hh1` and `hh2` in this example.
 When participating in two or more hashes simultaneously, always use the same
 key field with the same hash handle.  E.g., in this example, `hh1` is always
 used with the `id` key, and `hh2` is always used with the `username` key.
+
+Threaded programs
+-----------------
+You can use this hash in a threaded program. But, the locking is up to you.
+You must protect the hash against concurrent modification. For every hash that
+you create in a threaded program, you should create a lock to protect it.
+
+Concurrent hash lookups (`HASH_FIND`) are permitted, but modifications
+(`HASH_ADD`, `HASH_DEL`, and `HASH_SORT`) cannot be concurrent. Therefore, you
+can use a read/write lock which provides concurrent-read/exclusive-write
+semantics. Or you can use a mutex-style lock to prevent any concurrent access
+to the hash, but this is less efficient.
 
 [[Appendix_A]]
 Appendix A: Choosing the hash function
@@ -829,6 +853,17 @@ permits easy integration with pool-type allocators. (In these allocators,
 there is a pool for each data structure.)
 *******************************************************************************
 
+Out of memory handling
+~~~~~~~~~~~~~~~~~~~~~~
+If memory allocation fails (i.e., the malloc function returned `NULL`), the
+default behavior is to terminate the process by calling `exit(-1)`. This can
+be modified by re-defining the `uthash_fatal` macro.
+ 
+    #undef uthash_fatal
+    #define uthash_fatal(msg) my_fatal_function(msg);
+
+The fatal function should terminate the process; uthash does not support
+"returning a failure" if memory cannot be allocated.
 
 Appendix E: Internal implementation notes
 -----------------------------------------
@@ -944,4 +979,4 @@ item_ptr::
 cmp::
     pointer to comparison function which accepts two arguments (pointers to
     items to compare) and returns an int specifying whether the first item
-    should sort before, equal to, or after the second item (like `strcmp()`).
+    should sort before, equal to, or after the second item (like `strcmp`).

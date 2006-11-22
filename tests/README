@@ -20,6 +20,7 @@ test13: make 10-item hash, delete items with even keys, reverse print others
 test14: read dat file of names into hash, read file again and lookup each one
 test15: build string-keyed hash of 3 items, lookup one item 
 test16: hash on aggregate key, iterate, lookup, using generalized macros
+test17: sort, add more items, sort again
 
 Other files
 ================================================================================

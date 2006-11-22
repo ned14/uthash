@@ -551,11 +551,12 @@ while (out) {                                                        \
           (head)->hh.tbl->tale->next = NULL;                                   \
           if ( (head)->hh.tbl->nmerges <= 1 ) {                                \
               (head)->hh.tbl->looping=0;                                       \
+              (head)->hh.tbl->tail = (head)->hh.tbl->tale;                     \
               (head) = (head)->hh.tbl->list->elmt;                             \
           }                                                                    \
           (head)->hh.tbl->insize *= 2;                                         \
       }                                                                        \
-      HASH_FSCK(head)                                                          \
+      HASH_FSCK(head);                                                         \
  }
 
 typedef struct UT_hash_bucket {
