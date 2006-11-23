@@ -41,21 +41,13 @@ HASH_DEL        (head, item_ptr)
 .SH "DESCRIPTION"
 
 
-These macros add, find and delete items from a hash\&.
+These macros add, find, delete and sort items in a hash\&.
 
 
-The first four generalized macros work with keys of any data type and fields of any name\&. The latter five convenience macros do the same thing, but take fewer arguments\&.
+The first five generalized macros work with keys of any data type and fields of any name\&. The latter five convenience macros do the same thing, but take fewer arguments\&. (In order to use the convenience macros, the structure's UT_hash_handle field must be named hh, and the key field must be of type int or char[])\&.
 
 
-In order to use the convenience macros,
-
-.TP 3
-1.
-the structure's UT_hash_handle field must be named hh, and
-.TP
-2.
-the key field must be of type int or char[] 
-.LP
+The arguments are summarized below\&. Refer to the User Guide: \fIhttp://uthash.sourceforge.net/userguide.html\fR for a full explanation of the usage of these macros\&.
 
 .SH "ARGUMENTS"
 
@@ -91,9 +83,6 @@ pointer to comparison function which accepts two arguments (pointers to items to
 
 
 HASH_ADD_KEYPTR is used when the structure contains a pointer to the key, rather than the key itself\&.
-
-
-Unlike the other convenience macros, HASH_DEL doesn't require that the key be of type int or char[]\&.
 
 .SH "AUTHOR"
 

@@ -24,16 +24,17 @@ SYNOPSIS
 
 DESCRIPTION
 -----------
-These macros add, find and delete items from a hash.  
+These macros add, find, delete and sort items in a hash.  
 
-The first four generalized macros work with keys of any data type and fields
+The first five generalized macros work with keys of any data type and fields
 of any name. The latter five convenience macros do the same thing, but take
-fewer arguments.  
+fewer arguments. (In order to use the convenience macros, the structure's
+`UT_hash_handle` field must be named `hh`, and the key field must be of type
+`int` or `char[]`).
 
-In order to use the convenience macros, 
-
-1. the structure's `UT_hash_handle` field must be named `hh`, and
-2. the key field must be of type `int` or `char[]`
+The arguments are summarized below. Refer to the
+http://uthash.sourceforge.net/userguide.html[User Guide] for a full
+explanation of the usage of these macros.
 
 ARGUMENTS
 ---------
@@ -70,10 +71,6 @@ NOTES
 ------
 `HASH_ADD_KEYPTR` is used when the structure contains a pointer to the
 key, rather than the key itself. 
-
-Unlike the other convenience macros, `HASH_DEL` doesn't require that the key
-be of type `int` or `char[]`.
-
 
 AUTHOR
 ------

@@ -46,8 +46,8 @@ You may then utilize the hash macros as explained below.
 
 Supported platforms
 ~~~~~~~~~~~~~~~~~~~
-This software has been tested on Linux, Solaris and Cygwin. It probably runs
-on other Unix or Unix-like platforms too.
+This software has been tested on Linux, Solaris, OpenBSD, Mac OSX and Cygwin.
+It probably runs on other Unix or Unix-like platforms too.
 
 BSD licensed
 ~~~~~~~~~~~~

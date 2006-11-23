@@ -290,23 +290,15 @@ HASH_DEL        (head, item_ptr)</tt></pre>
 </div>
 <h2>DESCRIPTION</h2>
 <div class="sectionbody">
-<p>These macros add, find and delete items from a hash.</p>
-<p>The first four generalized macros work with keys of any data type and fields
+<p>These macros add, find, delete and sort items in a hash.</p>
+<p>The first five generalized macros work with keys of any data type and fields
 of any name. The latter five convenience macros do the same thing, but take
-fewer arguments.</p>
-<p>In order to use the convenience macros,</p>
-<ol>
-<li>
-<p>
-the structure's <tt>UT_hash_handle</tt> field must be named <tt>hh</tt>, and
-</p>
-</li>
-<li>
-<p>
-the key field must be of type <tt>int</tt> or <tt>char[]</tt>
-</p>
-</li>
-</ol>
+fewer arguments. (In order to use the convenience macros, the structure's
+<tt>UT_hash_handle</tt> field must be named <tt>hh</tt>, and the key field must be of type
+<tt>int</tt> or <tt>char[]</tt>).</p>
+<p>The arguments are summarized below. Refer to the
+<a href="http://uthash.sourceforge.net/userguide.html">User Guide</a> for a full
+explanation of the usage of these macros.</p>
 </div>
 <h2>ARGUMENTS</h2>
 <div class="sectionbody">
@@ -386,8 +378,6 @@ cmp
 <div class="sectionbody">
 <p><tt>HASH_ADD_KEYPTR</tt> is used when the structure contains a pointer to the
 key, rather than the key itself.</p>
-<p>Unlike the other convenience macros, <tt>HASH_DEL</tt> doesn't require that the key
-be of type <tt>int</tt> or <tt>char[]</tt>.</p>
 </div>
 <h2>AUTHOR</h2>
 <div class="sectionbody">
@@ -401,7 +391,7 @@ Guide.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 21-Nov-2006 14:49:48 CDT
+Last updated 22-Nov-2006 21:43:15 CDT
 </div>
 </div>
 </body>
