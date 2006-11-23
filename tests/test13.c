@@ -10,7 +10,7 @@ typedef struct example_user_t {
 
 int main(int argc,char *argv[]) {
     int i;
-    example_user_t *user, *tmp, *tmp2, *users=NULL;
+    example_user_t *user, *tmp, *users=NULL;
 
     /* create elements */
     for(i=0;i<10;i++) {
@@ -22,7 +22,7 @@ int main(int argc,char *argv[]) {
 
     /* delete each even ID */
     for(i=0;i<10;i+=2) {
-        HASH_FIND_INT(users,tmp,id,&i);
+        HASH_FIND_INT(users,&i,tmp);
         if (tmp) {
             HASH_DEL(users,tmp);
             free(tmp);
@@ -30,7 +30,7 @@ int main(int argc,char *argv[]) {
     }
 
     i=9;
-    HASH_FIND_INT(users,tmp,id,&i);
+    HASH_FIND_INT(users,&i,tmp);
     if (tmp) {
         while(tmp) {
             printf("id %d, following prev...\n", tmp->id);

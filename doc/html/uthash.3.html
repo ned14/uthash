@@ -274,24 +274,31 @@ UTHASH(3) Manual Page
 <div class="literalblock">
 <div class="content">
 <pre><tt>HASH_ADD        (hh_name, head, keyfield_name, key_len, item_ptr)
-HASH_FIND       (hh_name, head, result_ptr, keyfield_name, key_ptr, key_len)
+HASH_ADD_KEYPTR (hh_name, head, key_ptr, key_len, item_ptr)
+HASH_FIND       (hh_name, head, key_ptr, key_len, item_ptr)
 HASH_DELETE     (hh_name, head, item_ptr)
-HASH_ADD_INT    (head, keyfield_name, item_ptr)
-HASH_FIND_INT   (head, result_ptr, keyfield_name, key_ptr)
+HASH_SORT       (head, cmp)</tt></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>HASH_ADD_INT    (head, keyfield_name, item_ptr)
+HASH_FIND_INT   (head, key_ptr, item_ptr)
 HASH_ADD_STR    (head, keyfield_name, item_ptr)
-HASH_FIND_STR   (head, result_ptr, keyfield_name, key_ptr)
-HASH_DEL        (hh_name, head, item_ptr)</tt></pre>
+HASH_FIND_STR   (head, key_ptr, item_ptr)
+HASH_DEL        (head, item_ptr)</tt></pre>
 </div></div>
 </div>
 <h2>DESCRIPTION</h2>
 <div class="sectionbody">
-<p>These macros add, find and delete items from a hash.</p>
-<p>The first three are the generalized macros, while the latter five are
-convenience macros which do the same thing as the generalized macros, but
-require fewer arguments.  They have key and naming restrictions.</p>
-<p>In order to use the convenience macros, the structure's <tt>UT_hash_handle</tt> field
-must be named <tt>hh</tt>.  The key field must be of type <tt>int</tt> or pointer to <tt>char</tt>.
-(For <tt>HASH_DEL</tt> the key field restriction does not apply.)</p>
+<p>These macros add, find, delete and sort items in a hash.</p>
+<p>The first five generalized macros work with keys of any data type and fields
+of any name. The latter five convenience macros do the same thing, but take
+fewer arguments. (In order to use the convenience macros, the structure's
+<tt>UT_hash_handle</tt> field must be named <tt>hh</tt>, and the key field must be of type
+<tt>int</tt> or <tt>char[]</tt>).</p>
+<p>The arguments are summarized below. Refer to the
+<a href="http://uthash.sourceforge.net/userguide.html">User Guide</a> for a full
+explanation of the usage of these macros.</p>
 </div>
 <h2>ARGUMENTS</h2>
 <div class="sectionbody">
@@ -311,7 +318,7 @@ head
 <dd>
 <p>
     the structure pointer variable which acts as the "head" of the hash. So
-    named because this hash can also be iterated over as a doubly-linked list.
+    named because it points to the first item which is added to the hash.
 </p>
 </dd>
 <dt>
@@ -319,8 +326,10 @@ keyfield_name
 </dt>
 <dd>
 <p>
-    the name of the structure field which is the key (or in the case of an
-    aggregate key, the first field of the key).
+    the name of the key field in the structure. (In the case of a multi-field
+    key, this is the first field of the key). If you're new to macros, it
+    might seem strange to pass the name of a structure field as a parameter.
+    Rest assured the macros expand to valid C code.
 </p>
 </dd>
 <dt>
@@ -329,8 +338,8 @@ key_len
 <dd>
 <p>
     the length of the key field in bytes. E.g. for an integer key, this is
-    <tt>sizeof(int)</tt>, while for a string key it's <tt>strlen(key)</tt>. For an aggregate
-    key, see the notes in this guide on calculating aggregate key length.
+    <tt>sizeof(int)</tt>, while for a string key it's <tt>strlen(key)</tt>. (For a
+    multi-field key, see the notes in the User Guide on calculating key length).
 </p>
 </dd>
 <dt>
@@ -338,9 +347,9 @@ key_ptr
 </dt>
 <dd>
 <p>
-    pointer to the key being sought using <tt>HASH_FIND</tt>. I.e. this cannot be a
-    literal value, it must be a pointer to a place in memory where the sought
-    key is stored.
+    for <tt>HASH_FIND</tt>, this is a pointer to the key to look up in the hash
+    (since it's a pointer, you can't directly pass a literal value here). For
+    <tt>HASH_ADD_KEYPTR</tt>, this is the address of the key of the item being added.
 </p>
 </dd>
 <dt>
@@ -348,19 +357,27 @@ item_ptr
 </dt>
 <dd>
 <p>
-    pointer to the structure being added or deleted
+    pointer to the structure being added, deleted or looked up. This is an
+    input parameter for HASH_ADD and HASH_DELETE macros, and an output
+    parameter for HASH_FIND.
 </p>
 </dd>
 <dt>
-result_ptr
+cmp
 </dt>
 <dd>
 <p>
-    output pointer where <tt>HASH_FIND</tt> stores the address of the found item, or
-    NULL if the item was not found
+    pointer to comparison function which accepts two arguments (pointers to
+    items to compare) and returns an int specifying whether the first item
+    should sort before, equal to, or after the second item (like <tt>strcmp()</tt>).
 </p>
 </dd>
 </dl>
+</div>
+<h2>NOTES</h2>
+<div class="sectionbody">
+<p><tt>HASH_ADD_KEYPTR</tt> is used when the structure contains a pointer to the
+key, rather than the key itself.</p>
 </div>
 <h2>AUTHOR</h2>
 <div class="sectionbody">
@@ -368,12 +385,13 @@ result_ptr
 </div>
 <h2>RESOURCES</h2>
 <div class="sectionbody">
-<p>Main web site: <a href="http://uthash.sourceforge.net/">http://uthash.sourceforge.net/</a></p>
-<a href="http://sourceforge.net"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=163879&amp;type=1" width="88" height="31" border="0" alt="SourceForge.net Logo" /></a>
+<p>See the <a href="http://uthash.sourceforge.net/">uthash web site</a> for the complete User
+Guide.</p>
+<a style="float: right;" href="http://sourceforge.net"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=163879&amp;type=1" width="88" height="31" border="0" alt="SourceForge.net Logo" /></a>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 02-Jun-2006 02:52:30 CDT
+Last updated 22-Nov-2006 21:43:15 CDT
 </div>
 </div>
 </body>

@@ -1,6 +1,5 @@
 hh items: 10, alth items: 1000
-hh buckets: 32, alth buckets: 128
-hh hash_q: 1.000000, alth hash_q: 1.000000
+hh buckets: 32, alth buckets: 512
 9 found in hh
 9 found in alth
 10 not found in hh

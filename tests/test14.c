@@ -26,14 +26,14 @@ int main(int argc,char *argv[]) {
     while (fgets(linebuf,BUFLEN,file) != NULL) {
         i++;
         if ( (name = malloc(sizeof(name_rec))) == NULL) exit(-1);
-        strcpy(name->boy_name,linebuf);
+        strncpy(name->boy_name,linebuf,BUFLEN);
         HASH_ADD_STR(names,boy_name,name);
     }
 
     fseek(file,0,SEEK_SET);
 
     while (fgets(linebuf,BUFLEN,file) != NULL) {
-        HASH_FIND_STR(names,name,boy_name,linebuf);
+        HASH_FIND_STR(names,linebuf,name);
         if (!name) printf("failed to find: %s", linebuf);
         else j++;
     }

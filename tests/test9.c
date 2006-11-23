@@ -42,7 +42,7 @@ void alt_tbl_free(void *ptr) {
 
 int main(int argc,char *argv[]) {
     int i;
-    example_user_t *user, *tmp, *tmp2, *users=NULL;
+    example_user_t *user, *tmp, *users=NULL;
 
     /* create elements */
     for(i=0;i<1000;i++) {
@@ -54,7 +54,7 @@ int main(int argc,char *argv[]) {
 
     /* delete each ID */
     for(i=0;i<1000;i+=2) {
-        HASH_FIND_INT(users,tmp,id,&i);
+        HASH_FIND_INT(users,&i,tmp);
         if (tmp) {
             printf("user %d, cookie %d\n", tmp->id, tmp->cookie);
         } else printf("user id %d not found\n", i);

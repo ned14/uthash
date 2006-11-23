@@ -16,11 +16,14 @@ typedef struct name_rec {
     UT_hash_handle hh;
 } name_rec;
 
+int namecmp(name_rec *a, name_rec *b) {
+    return strcmp(a->boy_name,b->boy_name);
+}
+
 int main(int argc,char *argv[]) {
     name_rec *name, *names=NULL;
     char linebuf[BUFLEN];
     FILE *file;
-    int i=0;
 
     if ( (file = fopen( "test11.dat", "r" )) == NULL ) {
         perror("can't open: "); 
@@ -28,12 +31,13 @@ int main(int argc,char *argv[]) {
     }
 
     while (fgets(linebuf,BUFLEN,file) != NULL) {
-        i++;
         if ( (name = malloc(sizeof(name_rec))) == NULL) exit(-1);
-        strcpy(name->boy_name,linebuf);
+        strncpy(name->boy_name,linebuf,BUFLEN);
         HASH_ADD_STR(names,boy_name,name);
     }
 
     fclose(file);
+    HASH_SORT(names,namecmp);
+    for(name=names;name;name=name->hh.next) printf("%s",name->boy_name);
 }
 
