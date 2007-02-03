@@ -581,14 +581,12 @@ used with the `id` key, and `hh2` is always used with the `username` key.
 Threaded programs
 -----------------
 You can use this hash in a threaded program. But, the locking is up to you.
-You must protect the hash against concurrent modification. For every hash that
-you create in a threaded program, you should create a lock to protect it.
+You must protect the hash against concurrent usage. For every hash that
+you create in a threaded program, you should create a mutex lock to protect it.
 
-Concurrent hash lookups (`HASH_FIND`) are permitted, but modifications
-(`HASH_ADD`, `HASH_DEL`, and `HASH_SORT`) cannot be concurrent. Therefore, you
-can use a read/write lock which provides concurrent-read/exclusive-write
-semantics. Or you can use a mutex-style lock to prevent any concurrent access
-to the hash, but this is less efficient.
+(A prior version of this document erroneously suggested a read-write lock was
+adequate, however that is incorrect. A mutex lock must be acquired for any use
+of the hash.)
 
 [[Appendix_A]]
 Appendix A: Choosing the hash function

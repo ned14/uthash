@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 7.0.4" />
+<meta name="generator" content="AsciiDoc 8.1.0" />
 <link rel="stylesheet" href="./tdh.css" type="text/css" />
 <link rel="stylesheet" href="./tdh-quirks.css" type="text/css" />
 <title>uthash User Guide</title>
@@ -683,13 +683,11 @@ used with the <tt>id</tt> key, and <tt>hh2</tt> is always used with the <tt>user
 <h2>Threaded programs</h2>
 <div class="sectionbody">
 <p>You can use this hash in a threaded program. But, the locking is up to you.
-You must protect the hash against concurrent modification. For every hash that
-you create in a threaded program, you should create a lock to protect it.</p>
-<p>Concurrent hash lookups (<tt>HASH_FIND</tt>) are permitted, but modifications
-(<tt>HASH_ADD</tt>, <tt>HASH_DEL</tt>, and <tt>HASH_SORT</tt>) cannot be concurrent. Therefore, you
-can use a read/write lock which provides concurrent-read/exclusive-write
-semantics. Or you can use a mutex-style lock to prevent any concurrent access
-to the hash, but this is less efficient.</p>
+You must protect the hash against concurrent usage. For every hash that
+you create in a threaded program, you should create a mutex lock to protect it.</p>
+<p>(A prior version of this document erroneously suggested a read-write lock was
+adequate, however that is incorrect. A mutex lock must be acquired for any use
+of the hash.)</p>
 </div>
 <h2><a id="Appendix_A"></a>Appendix A: Choosing the hash function</h2>
 <div class="sectionbody">
@@ -1343,7 +1341,7 @@ cmp
 <div id="footer">
 <div id="footer-text">
 Version 1.2<br />
-Last updated 22-Nov-2006 21:43:10 CDT
+Last updated 03-Feb-2007 15:47:49 CDT
 </div>
 </div>
 </body>
