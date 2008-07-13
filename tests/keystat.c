@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
 
     if (!err) {
         printf("%f,%d,%d,%d,%s,%ld,%ld\n",
-        keys->hh.tbl->hash_q, 
+        1-(1.0*keys->hh.tbl->nonideal_items/keys->hh.tbl->num_items), 
         keys->hh.tbl->num_items, 
         keys->hh.tbl->num_buckets, 
         dups,

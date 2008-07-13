@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2003-2006, Troy Hanson     http://uthash.sourceforge.net
+Copyright (c) 2003-2008, Troy D. Hanson     http://uthash.sourceforge.net
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -43,8 +43,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define uthash_expand_fyi(tbl)            /* can be defined to log expands   */
 
 /* initial number of buckets */
-#define HASH_INITIAL_NUM_BUCKETS 32  /* initial number of buckets        */
-#define HASH_BKT_CAPACITY_THRESH 10  /* expand when bucket count reaches */
+#define HASH_INITIAL_NUM_BUCKETS 32      /* initial number of buckets        */
+#define HASH_INITIAL_NUM_BUCKETS_LOG2 5  /* lg2 of initial number of buckets */
+#define HASH_BKT_CAPACITY_THRESH 10      /* expand when bucket count reaches */
 
 #define HASH_FIND(hh,head,keyptr,keylen_in,out)                          \
 do {                                                                     \
@@ -75,12 +76,10 @@ do {                                                                     \
     (head)->hh.tbl = (UT_hash_table*)uthash_tbl_malloc(                  \
                     sizeof(UT_hash_table));                              \
     if (!((head)->hh.tbl))  { uthash_fatal( "out of memory"); }          \
-    (head)->hh.tbl->name = #head;                                        \
+    memset((head)->hh.tbl, 0, sizeof(UT_hash_table));                    \
     (head)->hh.tbl->tail = &(add->hh);                                   \
-    (head)->hh.tbl->noexpand = 0;                                        \
-    (head)->hh.tbl->hash_q = 1;                                          \
     (head)->hh.tbl->num_buckets = HASH_INITIAL_NUM_BUCKETS;              \
-    (head)->hh.tbl->num_items = 0;                                       \
+    (head)->hh.tbl->log2_num_buckets = HASH_INITIAL_NUM_BUCKETS_LOG2;    \
     (head)->hh.tbl->hho = ((long)(&add->hh) - (long)(add));              \
     (head)->hh.tbl->buckets = (UT_hash_bucket*)uthash_bkt_malloc(        \
             HASH_INITIAL_NUM_BUCKETS*sizeof(struct UT_hash_bucket));     \
@@ -165,7 +164,7 @@ do {                                                                     \
                 (head)->hh.tbl->bkt_i < (head)->hh.tbl->num_buckets;     \
                 (head)->hh.tbl->bkt_i++)                                 \
         {                                                                \
-            (head)->hh.tbl->bkt_ideal = 0; /* bkt item counter */        \
+            (head)->hh.tbl->ideal_chain_maxlen = 0; /*bkt item counter*/ \
             (head)->hh.tbl->hh =                                         \
             (head)->hh.tbl->buckets[(head)->hh.tbl->bkt_i].hh_head;      \
             (head)->hh.tbl->key = NULL;  /* hh_prev */                   \
@@ -176,16 +175,17 @@ do {                                                                     \
                     (head)->hh.tbl->hh->hh_prev,                         \
                     (head)->hh.tbl->key );                               \
                }                                                         \
-               (head)->hh.tbl->bkt_ideal++;                              \
+               (head)->hh.tbl->ideal_chain_maxlen++;                     \
                (head)->hh.tbl->key = (char*)((head)->hh.tbl->hh);        \
                (head)->hh.tbl->hh = (head)->hh.tbl->hh->hh_next;         \
             }                                                            \
-            (head)->hh.tbl->keylen +=  (head)->hh.tbl->bkt_ideal;        \
+            (head)->hh.tbl->keylen +=                                    \
+               (head)->hh.tbl->ideal_chain_maxlen;                       \
             if ((head)->hh.tbl->buckets[(head)->hh.tbl->bkt_i].count     \
-               !=  (head)->hh.tbl->bkt_ideal) {                          \
+               !=  (head)->hh.tbl->ideal_chain_maxlen) {                 \
                HASH_OOPS("invalid bucket count %d, actual %d\n",         \
                 (head)->hh.tbl->buckets[(head)->hh.tbl->bkt_i].count,    \
-                (head)->hh.tbl->bkt_ideal);                              \
+                (head)->hh.tbl->ideal_chain_maxlen);                     \
             }                                                            \
         }                                                                \
         if ((head)->hh.tbl->keylen != (head)->hh.tbl->num_items) {       \
@@ -360,15 +360,47 @@ while (out) {                                                        \
         delptr->hh.hh_next->hh_prev = delptr->hh.hh_prev;            \
     }                                                                
 
+/* Bucket expansion has the effect of doubling the number of buckets
+ * and redistributing the items into the new buckets. Ideally the
+ * items will distribute more or less evenly into the new buckets
+ * (the extent to which this is true is a measure of the quality of
+ * the hash function as it applies to the key domain). 
+ * 
+ * With the items distributed into more buckets, the chain length
+ * (item count) in each bucket is reduced. Thus by expanding buckets
+ * the hash keeps a bound on the chain length. This bounded chain 
+ * length is the essence of how a hash provides constant time lookup.
+ * 
+ * The calculation of tbl->ideal_chain_maxlen below deserves some
+ * explanation. First, keep in mind that we're calculating the ideal
+ * maximum chain length based on the *new* (doubled) bucket count.
+ * In fractions this is just n/b (n=number of items,b=new num buckets).
+ * Since the ideal chain length is integral, we want to calculate 
+ * ceil(n/b). We don't introduce floating point dependencies in this
+ * hash, so to calculate ceil(n/b) with integers we could write
+ * 
+ *      ceil(n/b) = (n/b) + ((n%b)?1:0)
+ * 
+ * and in fact a previous version of this hash did just that.
+ * But now we have improved things a bit by recognizing that b is
+ * always a power of two. We keep its base 2 log handy (call it lb),
+ * so now we can write this with a bit shift and logical AND:
+ * 
+ *      ceil(n/b) = (n>>lb) + ( (n & (b-1)) ? 1:0)
+ * 
+ * Actually bucket expansion is so expensive that this is a micro-
+ * optimization. But it is more optimal, and more elegant this way. :-)
+ */
 #define HASH_EXPAND_BUCKETS(tbl)                                     \
     tbl->new_buckets = (UT_hash_bucket*)uthash_bkt_malloc(           \
              2 * tbl->num_buckets * sizeof(struct UT_hash_bucket));  \
     if (!tbl->new_buckets) { uthash_fatal( "out of memory"); }       \
     memset(tbl->new_buckets, 0,                                      \
             2 * tbl->num_buckets * sizeof(struct UT_hash_bucket));   \
-    tbl->bkt_ideal= (tbl->num_items /  tbl->num_buckets*2) +         \
-                   ((tbl->num_items % (tbl->num_buckets*2)) ? 1 : 0);\
-    tbl->sum_of_deltas = 0;                                          \
+    tbl->ideal_chain_maxlen =                                        \
+       (tbl->num_items >> (tbl->log2_num_buckets+1)) +               \
+       ((tbl->num_items & ((tbl->num_buckets*2)-1)) ? 1 : 0);        \
+    tbl->nonideal_items = 0;                                         \
     for(tbl->bkt_i = 0; tbl->bkt_i < tbl->num_buckets; tbl->bkt_i++) \
     {                                                                \
         tbl->hh = tbl->buckets[ tbl->bkt_i ].hh_head;                \
@@ -379,10 +411,10 @@ while (out) {                                                        \
            HASH_FCN(tbl->key,tbl->keylen,tbl->num_buckets*2,tbl->bkt,\
                    tbl->i,tbl->j,tbl->k);                            \
            tbl->newbkt = &(tbl->new_buckets[ tbl->bkt ]);            \
-           if (++(tbl->newbkt->count) > tbl->bkt_ideal) {            \
-             tbl->sum_of_deltas++;                                   \
+           if (++(tbl->newbkt->count) > tbl->ideal_chain_maxlen) {   \
+             tbl->nonideal_items++;                                  \
              tbl->newbkt->expand_mult = tbl->newbkt->count /         \
-                                        tbl->bkt_ideal;              \
+                                        tbl->ideal_chain_maxlen;     \
            }                                                         \
            tbl->hh->hh_prev = NULL;                                  \
            tbl->hh->hh_next = tbl->newbkt->hh_head;                  \
@@ -393,14 +425,15 @@ while (out) {                                                        \
         }                                                            \
     }                                                                \
     tbl->num_buckets *= 2;                                           \
+    tbl->log2_num_buckets++;                                         \
     uthash_bkt_free( tbl->buckets );                                 \
     tbl->buckets = tbl->new_buckets;                                 \
-    tbl->new_hash_q = 1-(tbl->sum_of_deltas * 1.0 / tbl->num_items); \
-    if (tbl->hash_q < 0.5 && tbl->new_hash_q < 0.5) {                \
+    tbl->ineff_expands = (tbl->nonideal_items > (tbl->num_items >> 1)) \
+      ? (tbl->ineff_expands+1) : 0;     \
+    if (tbl->ineff_expands > 1) {       \
         tbl->noexpand=1;                                             \
         uthash_noexpand_fyi(tbl);                                    \
     }                                                                \
-    tbl->hash_q = tbl->new_hash_q;                                   \
     uthash_expand_fyi(tbl);                                         
 
 
@@ -490,27 +523,40 @@ typedef struct UT_hash_bucket {
 
 typedef struct UT_hash_table {
    UT_hash_bucket *buckets;
-   unsigned num_buckets;
+   unsigned num_buckets, log2_num_buckets;
    unsigned num_items;
-   int noexpand;  /* when set, inhibits expansion of buckets for this hash  */
-   double hash_q; /* measures the evenness of the items among buckets (0-1) */
    struct UT_hash_handle *tail; /* tail hh in app order, for fast append    */
-   char *name;    /* macro-stringified name of list head, used by libut     */
-   int hho;
+   size_t hho; /* hash handle offset (byte pos of hash handle in item struct */
+
+   /* in an ideal situation (all buckets used equally), no bucket would have
+    * more than ceil(#items/#buckets) items. that's the ideal chain length. */
+   unsigned ideal_chain_maxlen;
+
+   /* nonideal_items is the number of items in the hash whose chain position
+    * exceeds the ideal chain maxlen. these items pay the penalty for an uneven
+    * hash distribution; reaching them in a chain traversal takes >ideal steps */
+   unsigned nonideal_items;
+
+   /* ineffective expands occur when a bucket doubling was performed, but 
+    * afterward, more than half the items in the hash had nonideal chain
+    * positions. If this happens on two consecutive expansions we inhibit any
+    * further expansion, as it's not helping; this happens when the hash
+    * function isn't a good fit for the key domain. When expansion is inhibited
+    * the hash will still work, albeit no longer in constant time. */
+   unsigned ineff_expands, noexpand;
+
    /* scratch */
-   unsigned bkt;
+   unsigned bkt, bkt_i, keylen, i, j, k;
    char *key;
-   int keylen;
-   unsigned i,j,k;
+   struct UT_hash_handle *hh, *hh_nxt;
+
    /* scratch for bucket expansion */
    UT_hash_bucket *new_buckets, *newbkt;
-   struct UT_hash_handle *hh, *hh_nxt;
-   unsigned bkt_i, bkt_ideal, sum_of_deltas;
-   double new_hash_q;
+
    /* scratch for sort */
    int looping,nmerges,insize,psize,qsize;
    struct UT_hash_handle *p, *q, *e, *list, *tale;
-   
+
 } UT_hash_table;
 
 

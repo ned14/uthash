@@ -9,7 +9,7 @@
 #undef uthash_noexpand_fyi 
 #undef uthash_expand_fyi 
 #define uthash_noexpand_fyi printf("noexpand set\n");
-#define uthash_expand_fyi(tbl) printf("hash expanded (hash_q: %f)\n", ((UT_hash_table*)tbl)->hash_q);
+#define uthash_expand_fyi(tbl) printf("hash expanded\n");
 
 typedef struct name_rec {
     char boy_name[BUFLEN];

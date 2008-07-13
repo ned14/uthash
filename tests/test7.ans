@@ -9,8 +9,5 @@ hash expanded
 alt_bkt_malloc
 alt_bkt_free
 hash expanded
-alt_bkt_malloc
-alt_bkt_free
-hash expanded
 alt_bkt_free
 alt_tbl_free
