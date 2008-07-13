@@ -517,8 +517,22 @@ while (out) {                                                        \
 
 typedef struct UT_hash_bucket {
    struct UT_hash_handle *hh_head;
-   unsigned count;  
-   unsigned expand_mult;  
+   unsigned count;
+
+   /* expand_mult is normally set to 0. In this situation, the max chain length
+    * threshold is enforced at its default value, HASH_BKT_CAPACITY_THRESH. (If
+    * the bucket's chain exceeds this length, bucket expansion is triggered). 
+    * However, setting expand_mult to a non-zero value delays bucket expansion
+    * (that would be triggered by additions to this particular bucket)
+    * until its chain length reaches a *multiple* of HASH_BKT_CAPACITY_THRESH.
+    * (The multiplier is simply expand_mult+1). The whole idea of this
+    * multiplier is to reduce bucket expansions, since they are expensive, in
+    * situations where we know that a particular bucket tends to be overused.
+    * It is better to let its chain length grow to a longer yet-still-bounded
+    * value, than to do an O(n) bucket expansion too often. 
+    */
+   unsigned expand_mult;
+
 } UT_hash_bucket;
 
 typedef struct UT_hash_table {
