@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <string.h> /* memcmp,strlen */
+#include <stddef.h> /* ptrdiff_t */
 
 #ifndef UTHASH_H
 #define UTHASH_H 
@@ -80,7 +81,7 @@ do {                                                                     \
     (head)->hh.tbl->tail = &(add->hh);                                   \
     (head)->hh.tbl->num_buckets = HASH_INITIAL_NUM_BUCKETS;              \
     (head)->hh.tbl->log2_num_buckets = HASH_INITIAL_NUM_BUCKETS_LOG2;    \
-    (head)->hh.tbl->hho = ((long)(&add->hh) - (long)(add));              \
+    (head)->hh.tbl->hho = (void*)(&add->hh) - (void*)(add);              \
     (head)->hh.tbl->buckets = (UT_hash_bucket*)uthash_bkt_malloc(        \
             HASH_INITIAL_NUM_BUCKETS*sizeof(struct UT_hash_bucket));     \
     if (! (head)->hh.tbl->buckets) { uthash_fatal( "out of memory"); }   \
@@ -112,17 +113,17 @@ do {                                                                     \
         head = NULL;                                                     \
     } else {                                                             \
         if ((delptr) == (head)->hh.tbl->tail->elmt) {                    \
-            (head)->hh.tbl->tail = (void*)(((long)((delptr)->hh.prev)) + \
+            (head)->hh.tbl->tail = (void*)(((delptr)->hh.prev) +         \
                                            (head)->hh.tbl->hho);         \
         }                                                                \
         if ((delptr)->hh.prev) {                                         \
-            ((UT_hash_handle*)(((long)((delptr)->hh.prev)) +             \
+            ((UT_hash_handle*)(((delptr)->hh.prev) +                     \
                     (head)->hh.tbl->hho))->next = (delptr)->hh.next;     \
         } else {                                                         \
             head = (delptr)->hh.next;                                    \
         }                                                                \
         if ((delptr)->hh.next) {                                         \
-            ((UT_hash_handle*)(((long)((delptr)->hh.next)) +             \
+            ((UT_hash_handle*)(((delptr)->hh.next) +                     \
                     (head)->hh.tbl->hho))->prev = (delptr)->hh.prev;     \
         }                                                                \
         (head)->hh.tbl->key = (char*)((delptr)->hh.key);                 \
@@ -205,7 +206,7 @@ do {                                                                     \
            }                                                             \
            (head)->hh.tbl->key = (head)->hh.tbl->hh->elmt;               \
            (head)->hh.tbl->hh = ( (head)->hh.tbl->hh->next ?             \
-             (UT_hash_handle*)((long)((head)->hh.tbl->hh->next) +        \
+             (UT_hash_handle*)(((head)->hh.tbl->hh->next) +              \
                                (head)->hh.tbl->hho)                      \
                                  : NULL );                               \
         }                                                                \
@@ -457,7 +458,7 @@ while (out) {                                                        \
                     (head)->hh.tbl->i++ ) {                                    \
                   (head)->hh.tbl->psize++;                                     \
                   (head)->hh.tbl->q = (((head)->hh.tbl->q->next) ?             \
-                      ((void*)(((long)((head)->hh.tbl->q->next)) +             \
+                      ((void*)(((head)->hh.tbl->q->next) +                     \
                       (head)->hh.tbl->hho)) : NULL);                           \
                   if (! ((head)->hh.tbl->q) ) break;                           \
               }                                                                \
@@ -467,14 +468,14 @@ while (out) {                                                        \
                   if ((head)->hh.tbl->psize == 0) {                            \
                       (head)->hh.tbl->e = (head)->hh.tbl->q;                   \
                       (head)->hh.tbl->q = (((head)->hh.tbl->q->next) ?         \
-                          ((void*)(((long)((head)->hh.tbl->q->next)) +         \
+                          ((void*)(((head)->hh.tbl->q->next) +                 \
                           (head)->hh.tbl->hho)) : NULL);                       \
                       (head)->hh.tbl->qsize--;                                 \
                   } else if ( ((head)->hh.tbl->qsize == 0) ||                  \
                              !((head)->hh.tbl->q) ) {                          \
                       (head)->hh.tbl->e = (head)->hh.tbl->p;                   \
                       (head)->hh.tbl->p = (((head)->hh.tbl->p->next) ?         \
-                          ((void*)(((long)((head)->hh.tbl->p->next)) +         \
+                          ((void*)(((head)->hh.tbl->p->next) +                 \
                           (head)->hh.tbl->hho)) : NULL);                       \
                       (head)->hh.tbl->psize--;                                 \
                   } else if ((                                                 \
@@ -482,13 +483,13 @@ while (out) {                                                        \
                           <= 0) {                                              \
                       (head)->hh.tbl->e = (head)->hh.tbl->p;                   \
                       (head)->hh.tbl->p = (((head)->hh.tbl->p->next) ?         \
-                          ((void*)(((long)((head)->hh.tbl->p->next)) +         \
+                          ((void*)(((head)->hh.tbl->p->next) +                 \
                           (head)->hh.tbl->hho)) : NULL);                       \
                       (head)->hh.tbl->psize--;                                 \
                   } else {                                                     \
                       (head)->hh.tbl->e = (head)->hh.tbl->q;                   \
                       (head)->hh.tbl->q = (((head)->hh.tbl->q->next) ?         \
-                          ((void*)(((long)((head)->hh.tbl->q->next)) +         \
+                          ((void*)(((head)->hh.tbl->q->next) +                 \
                                    (head)->hh.tbl->hho)) : NULL);              \
                       (head)->hh.tbl->qsize--;                                 \
                   }                                                            \
@@ -540,7 +541,7 @@ typedef struct UT_hash_table {
    unsigned num_buckets, log2_num_buckets;
    unsigned num_items;
    struct UT_hash_handle *tail; /* tail hh in app order, for fast append    */
-   size_t hho; /* hash handle offset (byte pos of hash handle in item struct */
+   ptrdiff_t hho; /* hash handle offset (byte pos of hash handle in item struct */
 
    /* in an ideal situation (all buckets used equally), no bucket would have
     * more than ceil(#items/#buckets) items. that's the ideal chain length. */
