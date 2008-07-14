@@ -375,8 +375,8 @@ while (out) {                                                        \
  * explanation. First, keep in mind that we're calculating the ideal
  * maximum chain length based on the *new* (doubled) bucket count.
  * In fractions this is just n/b (n=number of items,b=new num buckets).
- * Since the ideal chain length is integral, we want to calculate 
- * ceil(n/b). We don't introduce floating point dependencies in this
+ * Since the ideal chain length is an integer, we want to calculate 
+ * ceil(n/b). We don't depend on floating point arithmetic in this
  * hash, so to calculate ceil(n/b) with integers we could write
  * 
  *      ceil(n/b) = (n/b) + ((n%b)?1:0)
