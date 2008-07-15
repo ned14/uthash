@@ -1,16 +1,12 @@
-all: css userguide manpage 
+PREFIX=/opt/local
+all: css userguide 
 
 userguide:	txt/userguide.txt
 	asciidoc --unsafe --out-file=html/userguide.html -a linkcss=1 -a theme=tdh txt/userguide.txt 
 
 css: html/toc.css
-	cat /etc/asciidoc/stylesheets/xhtml11.css html/toc.css > html/tdh.css
-	cp /etc/asciidoc/stylesheets/xhtml11-quirks.css html/tdh-quirks.css 
-
-manpage: txt/uthash.3.txt
-	asciidoc --unsafe -d manpage --out-file=html/uthash.3.html txt/uthash.3.txt
-	asciidoc -d manpage -b docbook --out-file=/tmp/uthash.3.xml txt/uthash.3.txt
-	xmlto -o man man /tmp/uthash.3.xml 
+	cat $(PREFIX)/etc/asciidoc/stylesheets/xhtml11.css html/toc.css > html/tdh.css
+	cp $(PREFIX)/etc/asciidoc/stylesheets/xhtml11-quirks.css html/tdh-quirks.css 
 
 docbook: txt/userguide.txt
 	asciidoc -b docbook --out-file=/tmp/userguide.xml txt/userguide.txt 
