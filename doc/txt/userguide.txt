@@ -1,8 +1,9 @@
 uthash User Guide
 =================
 Troy D. Hanson <thanson@users.sourceforge.net>
-v1.2, November 2006
+v1.3, July 2008
 
+include::donate.txt[]
 include::sflogo.txt[]
 include::topnav.txt[]
 

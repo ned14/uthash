@@ -1,10 +1,11 @@
 ifdef::backend-xhtml11[]
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   <div id="topnav" style="font-size: 9pt; font-family: sans-serif;">
-  <a style="padding-right: 8px;" href="http://sourceforge.net">sourceforge.net</a> &gt;
-  <a style="padding: 8px;" href="http://sourceforge.net/projects/uthash/">uthash project</a> &gt;
-  <a style="padding: 8px;" href="index.html">uthash home</a> &gt;
-  uthash user guide
+  Quick links:
+  <a style="padding-left: 8px;" href="index.html">uthash Home Page</a>
+  <a style="padding-left: 8px;" href="http://sourceforge.net/projects/uthash/">SourceForge Summary</a> 
+  <a style="padding-left: 8px;" href="http://sourceforge.net/forum/forum.php?forum_id=556410">Help Forum</a>
+  <a style="padding-left: 8px;" href="http://prdownloads.sourceforge.net/uthash/uthash-1.3.tar.bz2?download">Download</a>
   </div>
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 endif::backend-xhtml11[]
