@@ -32,6 +32,16 @@ void delete_user(struct my_struct *user) {
     free(user);
 }
 
+void delete_all() {
+  struct my_struct *current_user; 
+
+  while(users) { 
+    current_user = users;          /* grab pointer to first item */
+    HASH_DEL(users,current_user);  /* delete it (users advances to next) */
+    free(current_user);            /* free it */
+  } 
+}
+
 void print_users() {
     struct my_struct *s;
 
@@ -65,9 +75,10 @@ int main(int argc, char *argv[]) {
         printf("1. add user\n");
         printf("2. find user\n");
         printf("3. delete user\n");
-        printf("4. sort items by name\n");
-        printf("5. sort items by id\n");
-        printf("6. print users\n");
+        printf("4. delete all users\n");
+        printf("5. sort items by name\n");
+        printf("6. sort items by id\n");
+        printf("7. print users\n");
         gets(in);
         switch(atoi(in)) {
             case 1:
@@ -86,12 +97,15 @@ int main(int argc, char *argv[]) {
                 else printf("id unknown\n");
                 break;
             case 4:
-                sort_by_name();
+                delete_all();
                 break;
             case 5:
-                sort_by_id();
+                sort_by_name();
                 break;
             case 6:
+                sort_by_id();
+                break;
+            case 7:
                 print_users();
                 break;
         }
