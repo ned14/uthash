@@ -29,6 +29,7 @@ struct my_struct *find_user(int user_id) {
 
 void delete_user(struct my_struct *user) {
     HASH_DEL( users, user);  /* user: pointer to deletee */
+    free(user);
 }
 
 void print_users() {
