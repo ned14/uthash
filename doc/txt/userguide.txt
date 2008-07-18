@@ -231,7 +231,7 @@ Delete all items
 To delete all the structures in a hash table, you need to iteratively delete.
 
 It's easy: just keep deleting the first item. If you plan to free it, copy the
-pointer beforehand since the delete will advance the "first item" to the next).
+pointer beforehand since the delete will advance the "first item" to the next.
 
 .Delete all items from a hash
 ----------------------------------------------------------------------
@@ -504,10 +504,6 @@ int main(int argc, char *argv[]) {
 This example is included in the distribution in `tests/test15.c`. It prints:
 
     betty's id is 2
-
-[NOTE]
-Remember, don't change an item's key after adding it to the hash. (Instead,
-delete the item from the hash, change the key and then re-add it to the hash).
 
 An example with a multi-field, binary key
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
