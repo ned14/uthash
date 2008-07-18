@@ -128,13 +128,23 @@ Declare the hash
 ~~~~~~~~~~~~~~~~
 Your hash must be declared as a `NULL`-initialized pointer to your structure.
 
-[IMPORTANT]
-The hash must be initialized to `NULL`!
-
 .Adding an item to a hash
 ----------------------------------------------------------------------
 struct my_struct *users = NULL;    /* important! initialize to NULL */
 ----------------------------------------------------------------------
+
+[NOTE]
+.Why must the hash table be initialized to `NULL`?
+================================================================================
+Uthash needs to recognize when it's adding the first item to a hash table. It 
+uses the NULL pointer to recognize this. In more detail, the first item that is
+added to a hash table induces the behind-the-scenes creation of an internal
+management structure. Every item that is subsequently added to the hash obtains
+an internal pointer to this structure, within the `UT_hash_handle`. 
+
+Similarly, when the last item is deleted from a hash table, uthash deallocates
+this internal management structure, and sets the hash pointer back to NULL.
+================================================================================
 
 Add an item
 ~~~~~~~~~~~
@@ -217,7 +227,7 @@ void delete_user(struct my_struct *user) {
 Here again, `users` is the hash table, and `user` is a pointer to the
 structure we want to remove from the hash.
 
-[NOTE]
+[IMPORTANT]
 .uthash never frees your structure
 ================================================================================
 Deleting a structure just removes it from the hash table-- it doesn't `free`
@@ -247,11 +257,15 @@ void delete_all() {
 ----------------------------------------------------------------------
 
 [NOTE]
-.The head pointer can change
-================================================================================
+.Deleting can change the head pointer
 As this example demonstrates, the pointer to the "first" item in the hash 
 is not fixed! `HASH_DEL` and `HASH_SORT` can both update this pointer.
-================================================================================
+
+[NOTE]
+.What happens when the last item is deleted?
+uthash recognizes when the last item in a hash table is being deleted, and 
+deallocates the internal management structure for this hash table. This 
+happens behind the scenes. Lastly it changes the hash pointer to NULL.
 
 
 Iterating and sorting 
