@@ -47,13 +47,13 @@ You may then utilize the hash macros as explained below.
 
 Supported platforms
 ~~~~~~~~~~~~~~~~~~~
-This software has been tested on Linux, Solaris, OpenBSD, Mac OSX and Cygwin.
-It probably runs on other Unix or Unix-like platforms too.
+This software has been tested on Linux, Mac OS X, Solaris, OpenBSD, Cygwin, and
+MinGW. It probably works on other similar platforms.
 
 BSD licensed
 ~~~~~~~~~~~~
 This software is made available under the BSD license. It is free and
-open source. 
+open source. You can use it in your projects, commercial or otherwise.
 
 Obtaining uthash
 ~~~~~~~~~~~~~~~~
@@ -62,15 +62,18 @@ http://uthash.sourceforge.net[uthash website].
 
 Getting help
 ~~~~~~~~~~~~
-You can email the author at mailto:thanson@users.sourceforge.net[] if you have
-questions not answered by this document.
+Feel free to email the author at thanson@users.sourceforge.net. You can also
+post a message on the
+http://sourceforge.net/forum/forum.php?forum_id=556410[Help forum].  
 
 Keys and values
 ---------------
 
-A hash is comprised of structures. Each structure represents a key-value
-association. One or more fields act as the key; the structure itself is the
-value.
+Structures
+~~~~~~~~~~
+In uthash, a hash table is comprised of structures. Each structure represents a
+key-value association. One or more of the structure fields constitute the key;
+the structure itself is the value.
 
 .Defining a structure that can be hashed
 ----------------------------------------------------------------------
@@ -83,40 +86,47 @@ struct my_struct {
 };
 ----------------------------------------------------------------------
 
-There are no restrictions on the data type or name of the key field(s).
+Key field
+~~~~~~~~~
+There are no restrictions on the data type or name of the key field. The key
+can also be comprised of multiple contiguous fields, having any names and data
+types.
 
-.Data type independence
+.Any data type?
 ******************************************************************************
-It may be a surprise that this hash does not require your structure or your
-key field to have a particular datatype.  How is it possible to implement a
-type-independent hash in a strongly-typed language?  In a word, macros. All
-the hash code is in the form of macros, whose arguments are typeless. 
+Yes, your key field-- and your whole structure-- can have any data type.
+How does uthash achieve this generality? In a word, by using macros.
+Unlike function calls, macro calls don't have typed arguments. Uthash is 
+entirely implemented as macros. The C preprocessor expands these macro
+calls into inline C code.
 ******************************************************************************
 
-[NOTE]
-Just remember that, as with any hash, the keys have to be unique.
+Keys uniqueness
+^^^^^^^^^^^^^^^
+As with any hash, every item must have a unique key.  Your application must
+enforce key uniqueness. In other words, don't add more than one structure with
+the same key to the hash table. If you do, hash behavior will be undefined. 
+
+You can test whether a key already exists in the hash table using `HASH_FIND`.
 
 The UT_hash_handle field
 ~~~~~~~~~~~~~~~~~~~~~~~~
-The `UT_hash_handle` field must be present in your structure in order to hash
-it.  It is used for the internal bookkeeping that makes the hash work.  It
-does not require initialization. It can be named anything, but you can
-simplify matters by naming it `hh`. This allows you to use the easier
-"convenience" macros to add, find and delete items.
+The `UT_hash_handle` field must be present in your structure.  It is used for
+the internal bookkeeping that makes the hash work.  It does not require
+initialization. It can be named anything, but you can simplify matters by
+naming it `hh`. This allows you to use the easier "convenience" macros to add,
+find and delete items.
 
-
-Adding, finding, deleting and iterating
----------------------------------------
+Hash table operations
+---------------------
 
 This section introduces the `HASH_ADD`, `HASH_FIND`, `HASH_DELETE`, and
 `HASH_SORT` macros. This section demonstrates the macros by example. For a
 more succinct listing, see <<Appendix_F,Appendix F: Macro Reference>>. 
 
-Adding an item
-~~~~~~~~~~~~~~
+Declare the hash
+~~~~~~~~~~~~~~~~
 Your hash must be declared as a `NULL`-initialized pointer to your structure.
-Then allocate and initialize your structure and call `HASH_ADD`. (Here we use
-the convenience macro `HASH_ADD_INT`, which is for keys of type `int`.)
 
 [IMPORTANT]
 The hash must be initialized to `NULL`!
@@ -124,7 +134,17 @@ The hash must be initialized to `NULL`!
 .Adding an item to a hash
 ----------------------------------------------------------------------
 struct my_struct *users = NULL;    /* important! initialize to NULL */
+----------------------------------------------------------------------
 
+Add an item
+~~~~~~~~~~~
+Allocate and initialize your structure as you see fit. The only aspect
+of this that matters to uthash is that your key must be initialized to
+a unique value. Then call `HASH_ADD`. (Here we use the convenience macro
+`HASH_ADD_INT`, which offers simplified usage for keys of type `int`.)
+
+.Add an item to a hash
+----------------------------------------------------------------------
 int add_user(int user_id, char *name) {
     struct my_struct *s;
 
@@ -135,39 +155,32 @@ int add_user(int user_id, char *name) {
 }
 ----------------------------------------------------------------------
 
-The second parameter to `HASH_ADD_INT` is the 'name' of the key field. Here,
-this is `id`. 
+The first parameter to `HASH_ADD_INT` is the hash table, and the
+second parameter is the 'name' of the key field. Here, this is `id`. The
+last parameter is a pointer to the structure being added.
 
 [[validc]]
 .Uhh.. the field 'name' is a parameter?
 *******************************************************************************
 Does it look strange to you that `id`, which is the 'name of a field' in the
-structure, can be passed as a standalone parameter to `HASH_ADD_INT`?  Welcome
-to the world of macros. Rest assured that the C preprocessor expands this
-macro to valid C code. 
+structure, can be passed as a parameter?  Welcome to the world of macros.  Rest
+assured that the C preprocessor expands this to valid C code. 
 *******************************************************************************
 
-Once an item has been added to the hash, do not change the value of its key.
+Don't modify a key
+^^^^^^^^^^^^^^^^^^
+Once a structure has been added to the hash, do not change the value of its key.
 Instead, delete the item from the hash, change the key, and then re-add it.
 
-[IMPORTANT]
-.Key uniqueness
-================================================================================
-Your application must enforce key uniqueness. In other words, do not add the
-same key to the hash more than once. If you do, hash behavior will be undefined. 
-================================================================================
 
-You can test whether a key already exists in the hash using `HASH_FIND`.
+Find an item 
+~~~~~~~~~~~~
 
-Finding an item 
-~~~~~~~~~~~~~~~
-
-To look up an item in a hash, you must have its key.  Then call `HASH_FIND`.
+To look up a structure in a hash, you need its key.  Then call `HASH_FIND`.
 (Here we use the convenience macro `HASH_FIND_INT` for keys of type `int`).
 
-.Looking up an item in a hash by its key
+.Find a structure using its key
 ----------------------------------------------------------------------
-
 struct my_struct *find_user(int user_id) {
     struct my_struct *s;
 
@@ -176,29 +189,70 @@ struct my_struct *find_user(int user_id) {
 }
 ----------------------------------------------------------------------
 
+Here, the hash table is `users`, and `&user_id` points to the key (an integer
+in this case).  Last, `s` is the 'output' variable of `HASH_FIND_INT`. The 
+final result is that `s` points to the structure with the given key, or
+is `NULL` if the key wasn't found in the hash.
+
 [NOTE]
 The middle argument is a 'pointer' to the key. You can't pass a literal key
 value to `HASH_FIND`. Instead assign the literal value to a variable, and pass
 a pointer to the variable.
 
-Here, `s` is the output variable of `HASH_FIND_INT`. It's a pointer to the
-sought item, or `NULL` if the key wasn't found in the hash.
 
-Deleting an item
-~~~~~~~~~~~~~~~~
+Delete an item
+~~~~~~~~~~~~~~
 
-To delete an item from a hash, you must have a pointer to the item.
+To delete a structure from a hash, you must have a pointer to it. (If you only
+have the key, first do a `HASH_FIND` to get the structure pointer itself).
 
-.Deleting an item from a hash
+.Delete an item from a hash
 ----------------------------------------------------------------------
-
 void delete_user(struct my_struct *user) {
     HASH_DEL( users, user);  /* user: pointer to deletee */
+    free(user);              /* optional; it's up to you! */
+}
+----------------------------------------------------------------------
+
+Here again, `users` is the hash table, and `user` is a pointer to the
+structure we want to remove from the hash.
+
+[NOTE]
+.uthash never frees your structure
+================================================================================
+Deleting a structure just removes it from the hash table-- it doesn't `free`
+it.  The choice of when to free your structure is entirely up to you; uthash
+will never free your structure.
+================================================================================
+
+Delete all items
+^^^^^^^^^^^^^^^^
+
+To delete all the structures in a hash table, you need to iteratively delete.
+
+It's easy: just keep deleting the first item. If you plan to free it, copy the
+pointer beforehand since the delete will advance the "first item" to the next).
+
+.Delete all items from a hash
+----------------------------------------------------------------------
+void delete_all() {
+  user_struct *current_user; 
+
+  while(users) { 
+    current_user = users;          /* grab pointer to first item */
+    HASH_DEL(users,current_user);  /* delete it (users advances to next) */
+    free(current_user);            /* free it */
+  } 
 }
 ----------------------------------------------------------------------
 
 [NOTE]
-Deleting an item from a hash just removes it-- it does not free it. 
+.The head pointer can change
+================================================================================
+As this example demonstrates, the pointer to the "first" item in the hash 
+is not fixed! `HASH_DEL` and `HASH_SORT` can both update this pointer.
+================================================================================
+
 
 Iterating and sorting 
 ~~~~~~~~~~~~~~~~~~~~~
@@ -208,7 +262,6 @@ following the `hh.next` pointer.
 
 .Iterating over all the items in a hash
 ----------------------------------------------------------------------
-
 void print_users() {
     struct my_struct *s;
 
@@ -244,7 +297,6 @@ equal to, or after the second item, respectively. (Just like `strcmp`).
 
 .Sorting the items in the hash
 ----------------------------------------------------------------------
-
 int name_sort(struct my_struct *a, struct my_struct *b) {
     return strcmp(a->name,b->name);
 }
@@ -260,7 +312,6 @@ void sort_by_name() {
 void sort_by_id() {
     HASH_SORT(users, id_sort);
 }
-
 ----------------------------------------------------------------------
 
 When the items in the hash are sorted, the first item may also change
@@ -314,6 +365,17 @@ struct my_struct *find_user(int user_id) {
 
 void delete_user(struct my_struct *user) {
     HASH_DEL( users, user);  /* user: pointer to deletee */
+    free(user);
+}
+
+void delete_all() {
+  struct my_struct *current_user; 
+
+  while(users) { 
+    current_user = users;          /* grab pointer to first item */
+    HASH_DEL(users,current_user);  /* delete it (users advances to next) */
+    free(current_user);            /* free it */
+  } 
 }
 
 void print_users() {
@@ -349,9 +411,10 @@ int main(int argc, char *argv[]) {
         printf("1. add user\n");
         printf("2. find user\n");
         printf("3. delete user\n");
-        printf("4. sort items by name\n");
-        printf("5. sort items by id\n");
-        printf("6. print users\n");
+        printf("4. delete all users\n");
+        printf("5. sort items by name\n");
+        printf("6. sort items by id\n");
+        printf("7. print users\n");
         gets(in);
         switch(atoi(in)) {
             case 1:
@@ -370,12 +433,15 @@ int main(int argc, char *argv[]) {
                 else printf("id unknown\n");
                 break;
             case 4:
-                sort_by_name();
+                delete_all();
                 break;
             case 5:
-                sort_by_id();
+                sort_by_name();
                 break;
             case 6:
+                sort_by_id();
+                break;
+            case 7:
                 print_users();
                 break;
         }
