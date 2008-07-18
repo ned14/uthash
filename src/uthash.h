@@ -105,6 +105,18 @@ do {                                                                     \
  HASH_FSCK(head);                                                        \
 } while(0)
 
+/* delete "delptr" from the hash table.
+ * "the usual" patch-up process for the app-order doubly-linked-list.
+ * The use of tbl->hh_del below deserves special explanation.
+ * These used to be expressed using (delptr) but that led to a bug
+ * if someone used the same symbol for the head and deletee, like
+ *  HASH_DELETE(hh,users,users);
+ * We want that to work, but by changing the head (users) below
+ * we were forfeiting our ability to further refer to the deletee (users)
+ * in the patch-up process. Solution: use scratch space in the table to
+ * copy the deletee pointer, then the latter references are via that
+ * scratch pointer rather than through the repointed (users) symbol.
+ */
 #define HASH_DELETE(hh,head,delptr)                                      \
 do {                                                                     \
     if ( ((delptr)->hh.prev == NULL) && ((delptr)->hh.next == NULL) )  { \
@@ -112,6 +124,7 @@ do {                                                                     \
         uthash_tbl_free((head)->hh.tbl);                                 \
         head = NULL;                                                     \
     } else {                                                             \
+        (head)->hh.tbl->hh_del = &((delptr)->hh);                        \
         if ((delptr) == (head)->hh.tbl->tail->elmt) {                    \
             (head)->hh.tbl->tail = (void*)(((delptr)->hh.prev) +         \
                                            (head)->hh.tbl->hho);         \
@@ -122,17 +135,18 @@ do {                                                                     \
         } else {                                                         \
             head = (delptr)->hh.next;                                    \
         }                                                                \
-        if ((delptr)->hh.next) {                                         \
-            ((UT_hash_handle*)(((delptr)->hh.next) +                     \
-                    (head)->hh.tbl->hho))->prev = (delptr)->hh.prev;     \
+        if ((head)->hh.tbl->hh_del->next) {                              \
+            ((UT_hash_handle*)((head)->hh.tbl->hh_del->next +            \
+                    (head)->hh.tbl->hho))->prev =                        \
+                    (head)->hh.tbl->hh_del->prev;                        \
         }                                                                \
-        (head)->hh.tbl->key = (char*)((delptr)->hh.key);                 \
-        (head)->hh.tbl->keylen = (delptr)->hh.keylen;                    \
+        (head)->hh.tbl->key = (char*)(((head)->hh.tbl->hh_del->key));    \
+        (head)->hh.tbl->keylen = (head)->hh.tbl->hh_del->keylen;         \
         HASH_FCN((head)->hh.tbl->key,(head)->hh.tbl->keylen,             \
                 (head)->hh.tbl->num_buckets,(head)->hh.tbl->bkt,         \
                 (head)->hh.tbl->i,(head)->hh.tbl->j,(head)->hh.tbl->k ); \
         HASH_DEL_IN_BKT(hh,(head)->hh.tbl->buckets[(head)->hh.tbl->bkt], \
-                delptr);                                                 \
+                (head)->hh.tbl->hh_del);                                 \
         (head)->hh.tbl->num_items--;                                     \
     }                                                                    \
     HASH_FSCK(head);                                                     \
@@ -349,16 +363,16 @@ while (out) {                                                        \
  }
 
 /* remove an item from a given bucket */
-#define HASH_DEL_IN_BKT(hh,head,delptr)                              \
+#define HASH_DEL_IN_BKT(hh,head,hh_del)                              \
     (head).count--;                                                  \
-    if ((head).hh_head->elmt == delptr) {                            \
-      (head).hh_head = delptr->hh.hh_next;                           \
+    if ((head).hh_head->elmt == hh_del->elmt) {                      \
+      (head).hh_head = hh_del->hh_next;                              \
     }                                                                \
-    if (delptr->hh.hh_prev) {                                        \
-        delptr->hh.hh_prev->hh_next = delptr->hh.hh_next;            \
+    if (hh_del->hh_prev) {                                           \
+        hh_del->hh_prev->hh_next = hh_del->hh_next;                  \
     }                                                                \
-    if (delptr->hh.hh_next) {                                        \
-        delptr->hh.hh_next->hh_prev = delptr->hh.hh_prev;            \
+    if (hh_del->hh_next) {                                           \
+        hh_del->hh_next->hh_prev = hh_del->hh_prev;                  \
     }                                                                
 
 /* Bucket expansion has the effect of doubling the number of buckets
@@ -563,7 +577,7 @@ typedef struct UT_hash_table {
    /* scratch */
    unsigned bkt, bkt_i, keylen, i, j, k;
    char *key;
-   struct UT_hash_handle *hh, *hh_nxt;
+   struct UT_hash_handle *hh, *hh_nxt, *hh_del;
 
    /* scratch for bucket expansion */
    UT_hash_bucket *new_buckets, *newbkt;
