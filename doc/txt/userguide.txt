@@ -48,7 +48,7 @@ You may then utilize the hash macros as explained below.
 Supported platforms
 ~~~~~~~~~~~~~~~~~~~
 This software has been tested on Linux, Mac OS X, Solaris, OpenBSD, Cygwin, and
-MinGW. It probably works on other similar platforms.
+MinGW. FPU-less platforms can also use uthash, as it uses no floating point math.
 
 BSD licensed
 ~~~~~~~~~~~~
@@ -92,15 +92,6 @@ There are no restrictions on the data type or name of the key field. The key
 can also be comprised of multiple contiguous fields, having any names and data
 types.
 
-.Any data type?
-******************************************************************************
-Yes, your key field-- and your whole structure-- can have any data type.
-How does uthash achieve this generality? In a word, by using macros.
-Unlike function calls, macro calls don't have typed arguments. Uthash is 
-entirely implemented as macros. The C preprocessor expands these macro
-calls into inline C code.
-******************************************************************************
-
 Keys uniqueness
 ^^^^^^^^^^^^^^^
 As with any hash, every item must have a unique key.  Your application must
@@ -124,11 +115,25 @@ This section introduces the `HASH_ADD`, `HASH_FIND`, `HASH_DELETE`, and
 `HASH_SORT` macros. This section demonstrates the macros by example. For a
 more succinct listing, see <<Appendix_F,Appendix F: Macro Reference>>. 
 
+.Convenience macros and general macros
+*****************************************************************************
+There are two general categories of macros provided by uthash. The
+"convenience" macros can be used with integer or string keys (and require
+that you chose the conventional name "hh" for the `UT_hash_handle` field).
+The convenience macros take fewer arguments than the general macros, making
+usage a little simpler for these common types of keys. 
+
+The general macros can be used for any types of keys, or for multi-field keys,
+or when the `UT_hash_handle` has been named something other than "hh". These
+macros take more arguments and offer greater flexibility in return. But if the
+convenience macros suit your needs, use them-- your code will be more readable.
+*****************************************************************************
+
 Declare the hash
 ~~~~~~~~~~~~~~~~
 Your hash must be declared as a `NULL`-initialized pointer to your structure.
 
-.Adding an item to a hash
+.Declare the hash table
 ----------------------------------------------------------------------
 struct my_struct *users = NULL;    /* important! initialize to NULL */
 ----------------------------------------------------------------------
@@ -214,7 +219,7 @@ Delete an item
 ~~~~~~~~~~~~~~
 
 To delete a structure from a hash, you must have a pointer to it. (If you only
-have the key, first do a `HASH_FIND` to get the structure pointer itself).
+have the key, first do a `HASH_FIND` to get the structure pointer).
 
 .Delete an item from a hash
 ----------------------------------------------------------------------
@@ -259,7 +264,7 @@ void delete_all() {
 [NOTE]
 .Deleting can change the head pointer
 As this example demonstrates, the pointer to the "first" item in the hash 
-is not fixed! `HASH_DEL` and `HASH_SORT` can both update this pointer.
+is not fixed! `HASH_DEL` (and `HASH_SORT`) can update it.
 
 [NOTE]
 .What happens when the last item is deleted?
@@ -328,12 +333,12 @@ void sort_by_id() {
 }
 ----------------------------------------------------------------------
 
-When the items in the hash are sorted, the first item may also change
-position; so in the example above, `users` may point to a different item after
-calling `HASH_SORT`.
+When the items in the hash are sorted, the first item may change position.  In
+the example above, `users` may point to a different structure after calling
+`HASH_SORT`.
 
-Putting it all together: A complete Example
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+A complete example
+~~~~~~~~~~~~~~~~~~
 
 We'll repeat all the code and embellish it with a `main()` function to form a
 working example. 
@@ -469,8 +474,11 @@ This program is included in the distribution in `tests/example.c`. You can run
 Arbitrary keys
 --------------
 
-An example with a string key
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+First let's look at the convenience macros for dealing with string keys. Then
+we'll look at handling arbitrary binary keys.
+
+A string key
+~~~~~~~~~~~~
 
 This is almost the same as using integer keys except the macros are named
 `HASH_ADD_STR` and `HASH_FIND_STR`.
@@ -519,8 +527,8 @@ This example is included in the distribution in `tests/test15.c`. It prints:
 
     betty's id is 2
 
-An example with a multi-field, binary key
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+A multi-field binary key
+~~~~~~~~~~~~~~~~~~~~~~~~
 Your key field can have any data type, and it can even be an aggregate of
 multiple contiguous fields. 
 
@@ -543,7 +551,7 @@ An easy way to calculate the key length is to use the `offsetof` macro from
 In the example below, the `keylen` variable is set using this technique.
 *******************************************************************************
 
-.A hash with a multi-field binary key
+.A multi-field binary key
 ----------------------------------------------------------------------
 #include <stdlib.h>    /* malloc       */
 #include <stddef.h>    /* offsetof     */
@@ -603,11 +611,13 @@ fields and their intervening padding).
 *******************************************************************************
 
 
-Participating in multiple hashes
---------------------------------
+Structures in multiple hash tables
+----------------------------------
 
-A structure can be in multiple hashes simultaneously.  For example, you might
-want to hash a structure on both an ID field and on a unique username.
+A structure can be in multiple hash tables simultaneously.  For example, you
+might create one hash table keyed on an ID field, and another keyed on
+username (if they are unique). You can add the same user structure to both hash
+tables, and then look it up by either unique ID or username.
 
 .A structure with two keys
 ----------------------------------------------------------------------
@@ -627,7 +637,7 @@ could both use the same key, such as `id`).
 You need to have a separate `UT_hash_handle` for each hash that your structure
 will participate in simultaneously. These are `hh1` and `hh2` in this example.
 
-.A structure participating in two hashes
+.A structure in two hash tables
 ----------------------------------------------------------------------
     struct my_struct *users_by_id = NULL, *users_by_name = NULL, *s;
     int i;
@@ -637,33 +647,37 @@ will participate in simultaneously. These are `hh1` and `hh2` in this example.
     s->id = 1;
     strcpy(s->username, "thanson");
 
+    /* add the structure to both hash tables */
     HASH_ADD(hh1, users_by_id, id, sizeof(int), s);
     HASH_ADD(hh2, users_by_name, username, strlen(s->username), s);
 
-    /* lookup user by ID */
+    /* lookup user by ID in the "users_by_id" hash table */
     i=1;
     HASH_FIND(hh1, users_by_id, &i, sizeof(int), s);
     if (s) printf("found id %d: %s\n", i, s->username);
 
-    /* lookup user by username */
+    /* lookup user by username in the "users_by_name" hash table */
     name = "thanson";
     HASH_FIND(hh2, users_by_name, name, strlen(name), s);
     if (s) printf("found user %s: %d\n", name, s->id);
 ----------------------------------------------------------------------
 
-When participating in two or more hashes simultaneously, always use the same
-key field with the same hash handle.  E.g., in this example, `hh1` is always
-used with the `id` key, and `hh2` is always used with the `username` key.
+Note that each hash handle is used exclusively with a particular hash table.
+In this example, `hh1` is always used with the `users_by_id` hash,, and `hh2`
+is always used with the `users_by_name` hash table.
 
 Threaded programs
 -----------------
 You can use this hash in a threaded program. But, the locking is up to you.
 You must protect the hash against concurrent usage. For every hash that
-you create in a threaded program, you should create a mutex lock to protect it.
+you create in a threaded program, you should create a mutex lock to provide 
+exclusive access to one thread at a time.
 
-(A prior version of this document erroneously suggested a read-write lock was
-adequate, however that is incorrect. A mutex lock must be acquired for any use
-of the hash.)
+A read-write lock is not adequate. It is tempting to think that a hash lookup
+(`HASH_FIND`) could be carried out by multiple concurrent threads but that's not
+the case. Even a hash lookup conducts some writes to the internal hash structures
+as the key-to-hash-bucket calculation is performed. Therefore a mutex lock must be
+acquired for any use of the hash.
 
 [[Appendix_A]]
 Appendix A: Choosing the hash function
