@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
     int dups=0, rc, fd, done=0, err=0, keylen;
     char *key, *filename = "/dev/stdin"; 
     stat_key *keyt, *keytmp, *keys=NULL, *keys2=NULL;
-    struct timeval start_tm, end_tm, elapsed_tm, elapsed_tm2;
+    struct timeval start_tm, end_tm, elapsed_tm, elapsed_tm2, elapsed_tm3;
 
     if (argc > 1) filename=argv[1];
     fd=open(filename,O_RDONLY);
@@ -118,16 +118,25 @@ int main(int argc, char *argv[]) {
     gettimeofday(&end_tm,NULL);
     timersub(&end_tm, &start_tm, &elapsed_tm2);
 
+    /* now delete all items in the new hash, measuring elapsed time */
+    gettimeofday(&start_tm,NULL);
+    while (keys2) {
+        keytmp = keys2;
+        HASH_DELETE(hh2,keys2,keytmp);
+    }
+    gettimeofday(&end_tm,NULL);
+    timersub(&end_tm, &start_tm, &elapsed_tm3);
 
     if (!err) {
-        printf("%f,%d,%d,%d,%s,%ld,%ld\n",
+        printf("%.3f,%d,%d,%d,%s,%ld,%ld,%ld\n",
         1-(1.0*keys->hh.tbl->nonideal_items/keys->hh.tbl->num_items), 
         keys->hh.tbl->num_items, 
         keys->hh.tbl->num_buckets, 
         dups,
-        (keys->hh.tbl->noexpand ? "noexpand" : "ok"),
+        (keys->hh.tbl->noexpand ? "nx" : "ok"),
         (elapsed_tm.tv_sec * 1000000) + elapsed_tm.tv_usec,
-        (elapsed_tm2.tv_sec * 1000000) + elapsed_tm2.tv_usec );
+        (elapsed_tm2.tv_sec * 1000000) + elapsed_tm2.tv_usec,
+        (elapsed_tm3.tv_sec * 1000000) + elapsed_tm3.tv_usec );
     }
 }
 

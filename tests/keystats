@@ -15,12 +15,17 @@ for my $exe (@exes) {
     $stats{$exe} = `$exe $keyfile`;
 }
 
-printf("fcn     hash_q     #items   #buckets      #dups      flags   add_usec  find_usec\n");
-printf("--- ---------- ---------- ---------- ---------- ---------- ---------- ----------\n");
+print( "fcn  ideal%     #items   #buckets  dup%  fl   add_usec  find_usec  del-all usec\n");
+printf("---  ------ ---------- ---------- -----  -- ---------- ----------  ------------\n");
 for my $exe (sort statsort keys %stats) {
-    my ($hq,$items,$bkts,$dups,$ok,$add,$find) = split /,/, $stats{$exe}; 
-    printf("%3s %10f %10d %10d %10d %10s %10d %10d\n", substr($exe,-3,3), 
-        $hq,$items,$bkts,$dups,$ok,$add,$find); 
+    my ($ideal,$items,$bkts,$dups,$ok,$add,$find,$del) = split /,/, $stats{$exe}; 
+
+    # convert 0-1 values to percentages
+    $dups = $items ? (100.0 * $dups / $items) : 0.0;
+    $ideal = 100.0 * $ideal;
+
+    printf("%3s  %5.1f%% %10d %10d %4.0f%%  %2s %10d %10d  %12d\n", substr($exe,-3,3), 
+        $ideal,$items,$bkts,$dups,$ok,$add,$find,$del); 
 }
 
 # sort on hash_q (desc) then by find_usec (asc)
