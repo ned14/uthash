@@ -52,5 +52,5 @@ run_tests_mingw: $(PROGS)
 .PHONY: clean
 
 clean:	
-	rm -f $(UTILS) $(PROGS) test*.out keystat.??? example
+	rm -f $(UTILS) $(PROGS) test*.out keystat.??? example *.exe
 	rm -rf *.dSYM
