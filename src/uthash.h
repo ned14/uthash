@@ -104,7 +104,7 @@ do {                                                                          \
          (head)->hh.tbl->i, (head)->hh.tbl->j, (head)->hh.tbl->k );           \
  HASH_ADD_TO_BKT(hh,(head)->hh.tbl->buckets[(head)->hh.tbl->bkt],add);        \
  HASH_EMIT_KEY(hh,head,keyptr,keylen_in);                                     \
- HASH_FSCK(head);                                                             \
+ HASH_FSCK(hh,head);                                                          \
 } while(0)
 
 #define HASH_TO_BKT( hashv, num_bkts, bkt ) bkt = ((hashv) & ((num_bkts) - 1))
@@ -151,7 +151,7 @@ do {                                                                          \
                 (head)->hh.tbl->hh_del);                                      \
         (head)->hh.tbl->num_items--;                                          \
     }                                                                         \
-    HASH_FSCK(head);                                                          \
+    HASH_FSCK(hh,head);                                                       \
 } while (0)
 
 
@@ -173,7 +173,7 @@ do {                                                                          \
  */
 #ifdef HASH_DEBUG
 #define HASH_OOPS(...) do { fprintf(stderr,__VA_ARGS__); exit(-1); } while (0)
-#define HASH_FSCK(head)                                                       \
+#define HASH_FSCK(hh,head)                                                    \
 do {                                                                          \
     if (head) {                                                               \
         (head)->hh.tbl->keylen = 0;   /* item counter */                      \
@@ -182,19 +182,19 @@ do {                                                                          \
                 (head)->hh.tbl->bkt_i++)                                      \
         {                                                                     \
             (head)->hh.tbl->ideal_chain_maxlen = 0; /*bkt item counter*/      \
-            (head)->hh.tbl->hh =                                              \
+            (head)->hh.tbl->thh =                                             \
             (head)->hh.tbl->buckets[(head)->hh.tbl->bkt_i].hh_head;           \
             (head)->hh.tbl->key = NULL;  /* hh_prev */                        \
-            while ((head)->hh.tbl->hh) {                                      \
+            while ((head)->hh.tbl->thh) {                                     \
                if ((head)->hh.tbl->key !=                                     \
-                   (char*)((head)->hh.tbl->hh->hh_prev)) {                    \
+                   (char*)((head)->hh.tbl->thh->hh_prev)) {                   \
                    HASH_OOPS("invalid hh_prev %x, actual %x\n",               \
-                    (head)->hh.tbl->hh->hh_prev,                              \
+                    (head)->hh.tbl->thh->hh_prev,                             \
                     (head)->hh.tbl->key );                                    \
                }                                                              \
                (head)->hh.tbl->ideal_chain_maxlen++;                          \
-               (head)->hh.tbl->key = (char*)((head)->hh.tbl->hh);             \
-               (head)->hh.tbl->hh = (head)->hh.tbl->hh->hh_next;              \
+               (head)->hh.tbl->key = (char*)((head)->hh.tbl->thh);            \
+               (head)->hh.tbl->thh = (head)->hh.tbl->thh->hh_next;            \
             }                                                                 \
             (head)->hh.tbl->keylen +=                                         \
                (head)->hh.tbl->ideal_chain_maxlen;                            \
@@ -212,17 +212,17 @@ do {                                                                          \
         /* traverse hh in app order; check next/prev integrity, count */      \
         (head)->hh.tbl->keylen = 0;   /* item counter */                      \
         (head)->hh.tbl->key = NULL;  /* app prev */                           \
-        (head)->hh.tbl->hh =  &(head)->hh;                                    \
-        while ((head)->hh.tbl->hh) {                                          \
+        (head)->hh.tbl->thh =  &(head)->hh;                                   \
+        while ((head)->hh.tbl->thh) {                                         \
            (head)->hh.tbl->keylen++;                                          \
-           if ((head)->hh.tbl->key !=(char*)((head)->hh.tbl->hh->prev)) {     \
+           if ((head)->hh.tbl->key !=(char*)((head)->hh.tbl->thh->prev)) {    \
               HASH_OOPS("invalid prev %x, actual %x\n",                       \
-                    (head)->hh.tbl->hh->prev,                                 \
+                    (head)->hh.tbl->thh->prev,                                \
                     (head)->hh.tbl->key );                                    \
            }                                                                  \
-           (head)->hh.tbl->key = (head)->hh.tbl->hh->elmt;                    \
-           (head)->hh.tbl->hh = ( (head)->hh.tbl->hh->next ?                  \
-             (UT_hash_handle*)(((head)->hh.tbl->hh->next) +                   \
+           (head)->hh.tbl->key = (head)->hh.tbl->thh->elmt;                   \
+           (head)->hh.tbl->thh = ( (head)->hh.tbl->thh->next ?                \
+             (UT_hash_handle*)(((head)->hh.tbl->thh->next) +                  \
                                (head)->hh.tbl->hho)                           \
                                  : NULL );                                    \
         }                                                                     \
@@ -233,7 +233,7 @@ do {                                                                          \
     }                                                                         \
 } while (0)
 #else
-#define HASH_FSCK(head) 
+#define HASH_FSCK(hh,head) 
 #endif
 
 /* When compiled with -DHASH_EMIT_KEYS, length-prefixed keys are emitted to 
@@ -420,22 +420,22 @@ while (out) {                                                                 \
     tbl->nonideal_items = 0;                                                  \
     for(tbl->bkt_i = 0; tbl->bkt_i < tbl->num_buckets; tbl->bkt_i++)          \
     {                                                                         \
-        tbl->hh = tbl->buckets[ tbl->bkt_i ].hh_head;                         \
-        while (tbl->hh) {                                                     \
-           tbl->hh_nxt = tbl->hh->hh_next;                                    \
-           HASH_TO_BKT( tbl->hh->hashv, tbl->num_buckets*2, tbl->bkt);        \
+        tbl->thh = tbl->buckets[ tbl->bkt_i ].hh_head;                        \
+        while (tbl->thh) {                                                    \
+           tbl->hh_nxt = tbl->thh->hh_next;                                   \
+           HASH_TO_BKT( tbl->thh->hashv, tbl->num_buckets*2, tbl->bkt);       \
            tbl->newbkt = &(tbl->new_buckets[ tbl->bkt ]);                     \
            if (++(tbl->newbkt->count) > tbl->ideal_chain_maxlen) {            \
              tbl->nonideal_items++;                                           \
              tbl->newbkt->expand_mult = tbl->newbkt->count /                  \
                                         tbl->ideal_chain_maxlen;              \
            }                                                                  \
-           tbl->hh->hh_prev = NULL;                                           \
-           tbl->hh->hh_next = tbl->newbkt->hh_head;                           \
+           tbl->thh->hh_prev = NULL;                                          \
+           tbl->thh->hh_next = tbl->newbkt->hh_head;                          \
            if (tbl->newbkt->hh_head) tbl->newbkt->hh_head->hh_prev =          \
-                tbl->hh;                                                      \
-           tbl->newbkt->hh_head = tbl->hh;                                    \
-           tbl->hh = tbl->hh_nxt;                                             \
+                tbl->thh;                                                     \
+           tbl->newbkt->hh_head = tbl->thh;                                   \
+           tbl->thh = tbl->hh_nxt;                                            \
         }                                                                     \
     }                                                                         \
     tbl->num_buckets *= 2;                                                    \
@@ -452,7 +452,10 @@ while (out) {                                                                 \
 
 
 /* This is an adaptation of Simon Tatham's O(n log(n)) mergesort */
-#define HASH_SORT(head,cmpfcn)                                                \
+/* Note that HASH_SORT assumes the hash handle name to be hh. 
+ * HASH_SRT was added to allow the hash handle name to be passed in. */
+#define HASH_SORT(head,cmpfcn) HASH_SRT(hh,head,cmpfcn)
+#define HASH_SRT(hh,head,cmpfcn)                                              \
   if (head) {                                                                 \
       (head)->hh.tbl->insize = 1;                                             \
       (head)->hh.tbl->looping = 1;                                            \
@@ -526,7 +529,7 @@ while (out) {                                                                 \
           }                                                                   \
           (head)->hh.tbl->insize *= 2;                                        \
       }                                                                       \
-      HASH_FSCK(head);                                                        \
+      HASH_FSCK(hh,head);                                                     \
  }
 
 typedef struct UT_hash_bucket {
@@ -576,7 +579,7 @@ typedef struct UT_hash_table {
    /* scratch */
    unsigned hash_scratch, bkt, bkt_i, keylen, i, j, k;
    char *key;
-   struct UT_hash_handle *hh, *hh_nxt, *hh_del;
+   struct UT_hash_handle *thh, *hh_nxt, *hh_del;
 
    /* scratch for bucket expansion */
    UT_hash_bucket *new_buckets, *newbkt;

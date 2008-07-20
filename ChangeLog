@@ -19,6 +19,10 @@ Version 1.3 (2008-00-00)
 		was set to a lower (i.e. expansion-favoring) value than intended.
 	* improved source commenting and improved variable names in structures
 	* remove HASH_JSW. Lengthy random number array made code less readable
+	* add HASH_SRT(hh,hash,cmp) as a generalized HASH_SORT(hash,cmp). 
+	  It was an omission in uthash 1.2 that there was no sort macro for
+		hash handles with names other than hh.
+	* Corrected HASH_FSCK so it works with any name for the hash handle.
 	* behave properly in pathological HASH_DEL(a,a) case where the same
 	  variable references the head and the deletee (advancing the head 
 		then loses the correct reference to the deletee); fix by using 
@@ -46,7 +50,7 @@ Version 1.1 (2006-06-28)
 
 Version 1.0 (2006-06-02)
 ------------------------
- 
+	
 	* Initial release
 
 
