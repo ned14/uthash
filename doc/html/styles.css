@@ -95,7 +95,16 @@ hr {
     margin: 0 10% 0 0;
 }
 
+#footer {
+    width: 80%;
+}
+
 #footer img {
     margin-right: 5px;
+    float: right;
+}
+
+#footer #support {
+    margin-right: 200px;
     float: right;
 }

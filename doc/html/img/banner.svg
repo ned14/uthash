@@ -7,18 +7,19 @@
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:xlink="http://www.w3.org/1999/xlink"
-   xmlns:sodipodi="http://inkscape.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="728px"
    height="90px"
    id="svg1307"
    sodipodi:version="0.32"
-   inkscape:version="0.43"
-   sodipodi:docbase="/home/thanson/code/uthash/doc/html/img"
+   inkscape:version="0.45.1"
+   sodipodi:docbase="/Users/thanson/code/uthash/trunk/doc/html/img"
    sodipodi:docname="banner.svg"
    inkscape:export-filename="/home/thanson/code/uthash/doc/html/img/banner.png"
    inkscape:export-xdpi="90"
-   inkscape:export-ydpi="90">
+   inkscape:export-ydpi="90"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape">
   <defs
      id="defs1309">
     <linearGradient
@@ -245,12 +246,12 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.9793956"
-     inkscape:cx="354.25142"
+     inkscape:cx="372.32157"
      inkscape:cy="45"
      inkscape:document-units="px"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="g2335"
      inkscape:window-width="791"
-     inkscape:window-height="543"
+     inkscape:window-height="581"
      inkscape:window-x="4"
      inkscape:window-y="48" />
   <metadata
@@ -432,35 +433,19 @@
        inkscape:export-xdpi="90"
        inkscape:export-ydpi="90">
       <text
-         id="text2241"
-         y="74.633156"
-         x="475.85117"
-         style="font-size:18.43119621px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-         xml:space="preserve"><tspan
-           y="74.633156"
-           x="475.85117"
-           id="tspan2243"
-           sodipodi:role="line">hash for C structures</tspan></text>
-      <text
          xml:space="preserve"
-         style="font-size:18.43119621px;font-style:normal;font-weight:normal;fill:#f18a00;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-         x="497.85117"
-         y="50.633156"
-         id="text1454"><tspan
-           sodipodi:role="line"
-           id="tspan1456"
-           x="497.85117"
-           y="50.633156">type-independent</tspan></text>
-      <text
-         xml:space="preserve"
-         style="font-size:18.43119621px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-         x="479.85117"
+         style="font-size:18.43119621px;font-style:normal;font-weight:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+         x="565.8512"
          y="50.633156"
          id="text2331"><tspan
            sodipodi:role="line"
            id="tspan2333"
-           x="479.85117"
-           y="50.633156">a</tspan></text>
+           x="565.85119"
+           y="50.633156">a hash table</tspan><tspan
+           sodipodi:role="line"
+           x="565.8512"
+           y="73.672151"
+           id="tspan2361">for C structures</tspan></text>
     </g>
   </g>
 </svg>
