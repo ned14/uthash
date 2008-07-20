@@ -55,7 +55,8 @@ do {                                                                          \
      (head)->hh.tbl->key = (char*)(keyptr);                                   \
      (head)->hh.tbl->keylen = keylen_in;                                      \
      HASH_FCN((head)->hh.tbl->key,(head)->hh.tbl->keylen,                     \
-             (head)->hh.tbl->num_buckets,(head)->hh.tbl->bkt,                 \
+             (head)->hh.tbl->num_buckets,                                     \
+             (head)->hh.tbl->hash_scratch, (head)->hh.tbl->bkt,               \
              (head)->hh.tbl->i, (head)->hh.tbl->j,(head)->hh.tbl->k);         \
      HASH_FIND_IN_BKT(hh, (head)->hh.tbl->buckets[ (head)->hh.tbl->bkt],      \
              keyptr,keylen_in,out);                                           \
@@ -98,12 +99,15 @@ do {                                                                          \
  (head)->hh.tbl->keylen = keylen_in;                                          \
  HASH_FCN((head)->hh.tbl->key,(head)->hh.tbl->keylen,                         \
          (head)->hh.tbl->num_buckets,                                         \
+         (add)->hh.hashv,                                                     \
          (head)->hh.tbl->bkt,                                                 \
          (head)->hh.tbl->i, (head)->hh.tbl->j, (head)->hh.tbl->k );           \
  HASH_ADD_TO_BKT(hh,(head)->hh.tbl->buckets[(head)->hh.tbl->bkt],add);        \
  HASH_EMIT_KEY(hh,head,keyptr,keylen_in);                                     \
  HASH_FSCK(head);                                                             \
 } while(0)
+
+#define HASH_TO_BKT( hashv, num_bkts, bkt ) bkt = ((hashv) & ((num_bkts) - 1))
 
 /* delete "delptr" from the hash table.
  * "the usual" patch-up process for the app-order doubly-linked-list.
@@ -140,11 +144,9 @@ do {                                                                          \
                     (head)->hh.tbl->hho))->prev =                             \
                     (head)->hh.tbl->hh_del->prev;                             \
         }                                                                     \
-        (head)->hh.tbl->key = (char*)(((head)->hh.tbl->hh_del->key));         \
-        (head)->hh.tbl->keylen = (head)->hh.tbl->hh_del->keylen;              \
-        HASH_FCN((head)->hh.tbl->key,(head)->hh.tbl->keylen,                  \
-                (head)->hh.tbl->num_buckets,(head)->hh.tbl->bkt,              \
-                (head)->hh.tbl->i,(head)->hh.tbl->j,(head)->hh.tbl->k );      \
+        HASH_TO_BKT( (head)->hh.tbl->hh_del->hashv,                           \
+                     (head)->hh.tbl->num_buckets,                             \
+                     (head)->hh.tbl->bkt);                                    \
         HASH_DEL_IN_BKT(hh,(head)->hh.tbl->buckets[(head)->hh.tbl->bkt],      \
                 (head)->hh.tbl->hh_del);                                      \
         (head)->hh.tbl->num_items--;                                          \
@@ -254,37 +256,37 @@ do {                                                                          \
 #endif
 
 /* The Bernstein hash function, used in Perl prior to v5.6 */
-#define HASH_BER(key,keylen,num_bkts,bkt,i,j,k)                               \
-  bkt = 0;                                                                    \
-  while (keylen--)  bkt = (bkt * 33) + *key++;                                \
-  bkt &= (num_bkts-1);          
+#define HASH_BER(key,keylen,num_bkts,hash,bkt,i,j,k)                          \
+  hash = 0;                                                                   \
+  while (keylen--)  hash = (hash * 33) + *key++;                              \
+  bkt = hash & (num_bkts-1);          
 
 
 /* SAX/FNV/OAT/JEN hash functions are macro variants of those listed at 
  * http://eternallyconfuzzled.com/tuts/algorithms/jsw_tut_hashing.aspx */
-#define HASH_SAX(key,keylen,num_bkts,bkt,i,j,k)                               \
-  bkt = 0;                                                                    \
+#define HASH_SAX(key,keylen,num_bkts,hash,bkt,i,j,k)                          \
+  hash = 0;                                                                   \
   for(i=0; i < keylen; i++)                                                   \
-      bkt ^= (bkt << 5) + (bkt >> 2) + key[i];                                \
-  bkt &= (num_bkts-1);          
+      hash ^= (hash << 5) + (hash >> 2) + key[i];                             \
+  bkt = hash & (num_bkts-1);          
 
-#define HASH_FNV(key,keylen,num_bkts,bkt,i,j,k)                               \
-  bkt = 2166136261UL;                                                         \
+#define HASH_FNV(key,keylen,num_bkts,hash,bkt,i,j,k)                          \
+  hash = 2166136261UL;                                                        \
   for(i=0; i < keylen; i++)                                                   \
-      bkt = (bkt * 16777619) ^ key[i];                                        \
-  bkt &= (num_bkts-1);
+      hash = (hash * 16777619) ^ key[i];                                      \
+  bkt = hash & (num_bkts-1);          
  
-#define HASH_OAT(key,keylen,num_bkts,bkt,i,j,k)                               \
-  bkt = 0;                                                                    \
+#define HASH_OAT(key,keylen,num_bkts,hash,bkt,i,j,k)                          \
+  hash = 0;                                                                   \
   for(i=0; i < keylen; i++) {                                                 \
-      bkt += key[i];                                                          \
-      bkt += (bkt << 10);                                                     \
-      bkt ^= (bkt >> 6);                                                      \
+      hash += key[i];                                                         \
+      hash += (hash << 10);                                                   \
+      hash ^= (hash >> 6);                                                    \
   }                                                                           \
-  bkt += (bkt << 3);                                                          \
-  bkt ^= (bkt >> 11);                                                         \
-  bkt += (bkt << 15);                                                         \
-  bkt &= (num_bkts-1);
+  hash += (hash << 3);                                                        \
+  hash ^= (hash >> 11);                                                       \
+  hash += (hash << 15);                                                       \
+  bkt = hash & (num_bkts-1);          
 
 #define HASH_JEN_MIX(a,b,c)                                                   \
 {                                                                             \
@@ -299,31 +301,31 @@ do {                                                                          \
   c -= a; c -= b; c ^= ( b >> 15 );                                           \
 }
 
-#define HASH_JEN(key,keylen,num_bkts,bkt,i,j,k)                               \
-  bkt = 0xfeedbeef;                                                           \
+#define HASH_JEN(key,keylen,num_bkts,hash,bkt,i,j,k)                          \
+  hash = 0xfeedbeef;                                                          \
   i = j = 0x9e3779b9;                                                         \
   k = keylen;                                                                 \
   while (k >= 12) {                                                           \
-     i += (key[0] + ( (unsigned)key[1] << 8 )                                 \
-       + ( (unsigned)key[2] << 16 )                                           \
-       + ( (unsigned)key[3] << 24 ) );                                        \
-     j += (key[4] + ( (unsigned)key[5] << 8 )                                 \
-       + ( (unsigned)key[6] << 16 )                                           \
-       + ( (unsigned)key[7] << 24 ) );                                        \
-   bkt += (key[8] + ( (unsigned)key[9] << 8 )                                 \
-       + ( (unsigned)key[10] << 16 )                                          \
-       + ( (unsigned)key[11] << 24 ) );                                       \
+    i +=    (key[0] + ( (unsigned)key[1] << 8 )                               \
+        + ( (unsigned)key[2] << 16 )                                          \
+        + ( (unsigned)key[3] << 24 ) );                                       \
+    j +=    (key[4] + ( (unsigned)key[5] << 8 )                               \
+        + ( (unsigned)key[6] << 16 )                                          \
+        + ( (unsigned)key[7] << 24 ) );                                       \
+    hash += (key[8] + ( (unsigned)key[9] << 8 )                               \
+        + ( (unsigned)key[10] << 16 )                                         \
+        + ( (unsigned)key[11] << 24 ) );                                      \
                                                                               \
-     HASH_JEN_MIX(i, j, bkt);                                                 \
+     HASH_JEN_MIX(i, j, hash);                                                \
                                                                               \
      key += 12;                                                               \
      k -= 12;                                                                 \
   }                                                                           \
-  bkt += keylen;                                                              \
+  hash += keylen;                                                             \
   switch ( k ) {                                                              \
-     case 11: bkt += ( (unsigned)key[10] << 24 );                             \
-     case 10: bkt += ( (unsigned)key[9] << 16 );                              \
-     case 9:  bkt += ( (unsigned)key[8] << 8 );                               \
+     case 11: hash += ( (unsigned)key[10] << 24 );                            \
+     case 10: hash += ( (unsigned)key[9] << 16 );                             \
+     case 9:  hash += ( (unsigned)key[8] << 8 );                              \
      case 8:  j += ( (unsigned)key[7] << 24 );                                \
      case 7:  j += ( (unsigned)key[6] << 16 );                                \
      case 6:  j += ( (unsigned)key[5] << 8 );                                 \
@@ -333,8 +335,8 @@ do {                                                                          \
      case 2:  i += ( (unsigned)key[1] << 8 );                                 \
      case 1:  i += key[0];                                                    \
   }                                                                           \
-  HASH_JEN_MIX(i, j, bkt);                                                    \
-  bkt &= (num_bkts-1);
+  HASH_JEN_MIX(i, j, hash);                                                   \
+  bkt = hash & (num_bkts-1);          
 
 
 /* key comparison function; return 0 if keys equal */
@@ -421,10 +423,7 @@ while (out) {                                                                 \
         tbl->hh = tbl->buckets[ tbl->bkt_i ].hh_head;                         \
         while (tbl->hh) {                                                     \
            tbl->hh_nxt = tbl->hh->hh_next;                                    \
-           tbl->key = tbl->hh->key;                                           \
-           tbl->keylen = tbl->hh->keylen;                                     \
-           HASH_FCN(tbl->key,tbl->keylen,tbl->num_buckets*2,tbl->bkt,         \
-                   tbl->i,tbl->j,tbl->k);                                     \
+           HASH_TO_BKT( tbl->hh->hashv, tbl->num_buckets*2, tbl->bkt);        \
            tbl->newbkt = &(tbl->new_buckets[ tbl->bkt ]);                     \
            if (++(tbl->newbkt->count) > tbl->ideal_chain_maxlen) {            \
              tbl->nonideal_items++;                                           \
@@ -575,7 +574,7 @@ typedef struct UT_hash_table {
    unsigned ineff_expands, noexpand;
 
    /* scratch */
-   unsigned bkt, bkt_i, keylen, i, j, k;
+   unsigned hash_scratch, bkt, bkt_i, keylen, i, j, k;
    char *key;
    struct UT_hash_handle *hh, *hh_nxt, *hh_del;
 
@@ -598,6 +597,7 @@ typedef struct UT_hash_handle {
    struct UT_hash_handle *hh_next;   /* next hh in bucket order        */
    void *key;                        /* ptr to enclosing struct's key  */
    int keylen;                       /* enclosing struct's key len     */
+   unsigned hashv;                   /* result of hash-fcn(key)        */
 } UT_hash_handle;
 
 #endif /* UTHASH_H */
