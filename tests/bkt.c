@@ -12,7 +12,7 @@ void show_usage(void) {
 }
 
 int main(int argc, char *argv[]) {
-    int i=1, j, num_bkts=32, keylen, bkt, n_mode=0, f_mode=0;
+    int i=1, j, hash, num_bkts=32, keylen, bkt, n_mode=0, f_mode=0;
     char line[100], *eol, *kp; 
     int x,y,z;
 
@@ -48,11 +48,11 @@ int main(int argc, char *argv[]) {
                     keylen = sizeof(int);
                     j=atoi(line);
                     kp = (char*)&j;
-                    HASH_FCN(kp, keylen, num_bkts, bkt,x,y,z);
+                    HASH_FCN(kp, keylen, num_bkts, hash, bkt,x,y,z);
                 } else {
                     keylen = strlen(line);
                     kp = line;
-                    HASH_FCN(kp, keylen, num_bkts, bkt,x,y,z);
+                    HASH_FCN(kp, keylen, num_bkts, hash, bkt,x,y,z);
                 }
                 printf("%d\n", bkt);
             }
@@ -67,10 +67,10 @@ int main(int argc, char *argv[]) {
             j = atoi(argv[i]);
             kp = (char*)&j;
             keylen = sizeof(int);
-            HASH_FCN(kp, keylen, num_bkts, bkt,x,y,z);
+            HASH_FCN(kp, keylen, num_bkts, hash, bkt,x,y,z);
         } else {
             keylen = strlen(argv[i]);
-            HASH_FCN(argv[i], keylen, num_bkts, bkt,x,y,z);
+            HASH_FCN(argv[i], keylen, num_bkts, hash, bkt,x,y,z);
         }
         printf("%d\n", bkt);
         i++;
