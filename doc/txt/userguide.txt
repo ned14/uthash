@@ -19,7 +19,7 @@ for C structures.
 
 What can it do?
 ~~~~~~~~~~~~~~~~~
-This software supports four basic operations on hashes.
+This software supports four basic operations on items in a hash table:
 
 1. add
 2. find
@@ -52,7 +52,7 @@ MinGW. FPU-less platforms can also use uthash, as it uses no floating point math
 
 BSD licensed
 ~~~~~~~~~~~~
-This software is made available under the BSD license. It is free and
+This software is made available under the BSD revised license. It is free and
 open source. You can use it in your projects, commercial or otherwise.
 
 Obtaining uthash
@@ -92,13 +92,12 @@ There are no restrictions on the data type or name of the key field. The key
 can also be comprised of multiple contiguous fields, having any names and data
 types.
 
-Keys uniqueness
-^^^^^^^^^^^^^^^
-As with any hash, every item must have a unique key.  Your application must
-enforce key uniqueness. In other words, don't add more than one structure with
-the same key to the hash table. If you do, hash behavior will be undefined. 
-
-You can test whether a key already exists in the hash table using `HASH_FIND`.
+.Any data type... is this really C?
+*****************************************************************************
+Yes, your key and structure can have any data type. The hash macros expand to
+inline code (unlike the typed parameters of a function call). Furthermore the
+hash macros do all their bookkeeping inside the UT_hash_handle in your struct.
+*****************************************************************************
 
 The UT_hash_handle field
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -107,6 +106,18 @@ the internal bookkeeping that makes the hash work.  It does not require
 initialization. It can be named anything, but you can simplify matters by
 naming it `hh`. This allows you to use the easier "convenience" macros to add,
 find and delete items.
+
+Keys uniqueness
+^^^^^^^^^^^^^^^
+As with any hash, every item must have a unique key.  Your application must
+enforce key uniqueness. Before you add an item to the hash table, you must
+first know (or otherwise confirm) that the key is not already in use. 
+
+You can test whether a key already exists in the hash table using `HASH_FIND`.
+
+[IMPORTANT]
+In other words, don't add more than one structure with the same key to the hash
+table. If you do, hash behavior will be undefined. 
 
 Hash table operations
 ---------------------
@@ -138,18 +149,7 @@ Your hash must be declared as a `NULL`-initialized pointer to your structure.
 struct my_struct *users = NULL;    /* important! initialize to NULL */
 ----------------------------------------------------------------------
 
-[NOTE]
-.Why must the hash table be initialized to `NULL`?
-================================================================================
-Uthash needs to recognize when it's adding the first item to a hash table. It 
-uses the NULL pointer to recognize this. In more detail, the first item that is
-added to a hash table induces the behind-the-scenes creation of an internal
-management structure. Every item that is subsequently added to the hash obtains
-an internal pointer to this structure, within the `UT_hash_handle`. 
-
-Similarly, when the last item is deleted from a hash table, uthash deallocates
-this internal management structure, and sets the hash pointer back to NULL.
-================================================================================
+This NULL pointer signifies an empty hash table. 
 
 Add an item
 ~~~~~~~~~~~
@@ -181,6 +181,15 @@ Does it look strange to you that `id`, which is the 'name of a field' in the
 structure, can be passed as a parameter?  Welcome to the world of macros.  Rest
 assured that the C preprocessor expands this to valid C code. 
 *******************************************************************************
+
+[NOTE]
+.What happens when the first item is added to a hash table?
+The hash table pointer is changed from NULL to instead point to your structure.
+Since this is the first item in the table, uthash also allocates an internal
+management structure for this hash table. This all happens behind the scenes.
+(This internal management structure is shared by all items in the hash table, so
+it's only allocated once, and is deallocated automatically when the last item
+is deleted).
 
 Don't modify a key
 ^^^^^^^^^^^^^^^^^^
@@ -263,8 +272,9 @@ void delete_all() {
 
 [NOTE]
 .Deleting can change the head pointer
-As this example demonstrates, the pointer to the "first" item in the hash 
-is not fixed! `HASH_DEL` (and `HASH_SORT`) can update it.
+As this example demonstrates, the hash table pointer (which initially points to
+the first item added to the hash) is not fixed. The two operations which can
+change this pointer are `HASH_DEL` and `HASH_SORT`.
 
 [NOTE]
 .What happens when the last item is deleted?
@@ -474,14 +484,16 @@ This program is included in the distribution in `tests/example.c`. You can run
 Arbitrary keys
 --------------
 
-First let's look at the convenience macros for dealing with string keys. Then
-we'll look at handling arbitrary binary keys.
-
-A string key
+Integer keys
 ~~~~~~~~~~~~
+The preceding examples demonstrated use of integer keys. To recap, use the
+convenience macros `HASH_ADD_INT` and `HASH_FIND_INT` for structures with
+integer keys.
 
-This is almost the same as using integer keys except the macros are named
-`HASH_ADD_STR` and `HASH_FIND_STR`.
+String keys
+~~~~~~~~~~~
+The convenience macros for dealing with string keys are called `HASH_ADD_STR`
+and `HASH_FIND_STR`.
 
 [NOTE]
 .char[ ] vs. char* 
@@ -527,10 +539,13 @@ This example is included in the distribution in `tests/test15.c`. It prints:
 
     betty's id is 2
 
-A multi-field binary key
-~~~~~~~~~~~~~~~~~~~~~~~~
-Your key field can have any data type, and it can even be an aggregate of
-multiple contiguous fields. 
+Arbitrary binary keys
+~~~~~~~~~~~~~~~~~~~~~
+Your key field can have any data type.
+
+A multi-field key
+~~~~~~~~~~~~~~~~~
+Your key field even be an aggregate of multiple contiguous fields. 
 
 The generalized version of the macros (e.g., `HASH_ADD`) must be used. In
 addition to the usual arguments, the generalized macros require the name of
