@@ -1,9 +1,9 @@
 HASHDIR = ../src
 FUNCS = BER SAX FNV OAT JEN 
-UTILS = emit_keys bkt
+UTILS = emit_keys
 PROGS = test1 test2 test3 test4 test5 test6 test7 test8 test9   \
 		    test10 test11 test12 test13 test14 test15 test16 test17 \
-        test18 test19
+        test18 test19 test20 test21
 CFLAGS = -I$(HASHDIR) -O3
 
 ifeq ($(HASH_DEBUG),1)
@@ -38,7 +38,6 @@ $(PROGS) $(UTILS) : $(HASHDIR)/uthash.h
 
 $(FUNCS) : $(HASHDIR)/uthash.h
 	$(CC) $(CFLAGS) -DHASH_FUNCTION=HASH_$@ -o keystat.$@ keystat.c 
-#	$(CC) $(CFLAGS) -DHASH_FUNCTION=HASH_$@ -o bkt.$@ bkt.c 
 
 run_tests: $(PROGS)
 	perl $(TESTS)
