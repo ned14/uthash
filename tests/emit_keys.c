@@ -1,6 +1,7 @@
 #include <stdlib.h>   /* malloc */
 #include <errno.h>    /* perror */
 #include <stdio.h>    /* printf */
+#include <unistd.h>   /* write */
 
 /* this define must precede uthash.h */
 #define HASH_EMIT_KEYS 1

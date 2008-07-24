@@ -23,6 +23,10 @@ test16: hash on aggregate key, iterate, lookup, using generalized macros
 test17: sort, add more items, sort again
 test18: test pathological HASH_DEL(a,a) scenario (single head,deletee variable)
 test19: sort two hash tables with shared elements using HASH_SRT
+test20: test a 5-byte "binary" key
+test21: test a "double" (floating point) key (userguide)
+test22: test multi-field key using flexible array member (userguide utf32)
+test23: test whether delete in iteration works
 
 Other files
 ================================================================================
