@@ -481,26 +481,27 @@ int main(int argc, char *argv[]) {
 This program is included in the distribution in `tests/example.c`. You can run
 `make example` in that directory to compile it easily.
 
-Arbitrary keys
+Key categories
 --------------
 
 Integer keys
 ~~~~~~~~~~~~
 The preceding examples demonstrated use of integer keys. To recap, use the
 convenience macros `HASH_ADD_INT` and `HASH_FIND_INT` for structures with
-integer keys.
+integer keys. (The other operations such as HASH_DELETE and HASH_SORT are 
+the same for all types of keys).
 
 String keys
 ~~~~~~~~~~~
-The convenience macros for dealing with string keys are called `HASH_ADD_STR`
-and `HASH_FIND_STR`.
+String keys are handled almost the same as integer keys. The convenience macros
+for dealing with string keys are called `HASH_ADD_STR` and `HASH_FIND_STR`.
 
 [NOTE]
 .char[ ] vs. char* 
 ================================================================================
-The string is 'within' the structure in this example-- `name` is a `char[10]`
-field.  If instead our structure merely 'pointed' to the key (i.e., `name` was
-declared `char *`), we'd use `HASH_ADD_KEYPTR`, described in
+The string is 'within' the structure in the next example-- `name` is a
+`char[10]` field.  If instead our structure merely 'pointed' to the key (i.e.,
+`name` was declared `char *`), we'd use `HASH_ADD_KEYPTR`, described in
 <<Appendix_F,Appendix F>>.
 ================================================================================
 
@@ -541,15 +542,56 @@ This example is included in the distribution in `tests/test15.c`. It prints:
 
 Arbitrary binary keys
 ~~~~~~~~~~~~~~~~~~~~~
-Your key field can have any data type.
+We're using the term "binary" here to simply mean an arbitrary byte sequence.
+Your key field can have any data type. To uthash, it is just a sequence of
+bytes. 
 
-A multi-field key
-~~~~~~~~~~~~~~~~~
-Your key field even be an aggregate of multiple contiguous fields. 
+A `double` key
+^^^^^^^^^^^^^^
+We'll use the general macros `HASH_ADD` and `HASH_FIND` to demonstrate usage of
+a floating point key of type `double`.
 
-The generalized version of the macros (e.g., `HASH_ADD`) must be used. In
-addition to the usual arguments, the generalized macros require the name of
-the `UT_hash_handle` field, and the key length.
+.Example having a `double` key
+----------------------------------------------------------------------
+#include <stdlib.h>
+#include <stdio.h>
+#include "uthash.h"
+
+typedef struct {
+    double flux; 
+    /* ... other data ... */
+    UT_hash_handle hh;
+} flux_t;
+
+int main(int argc, char *argv[]) {
+    flux_t *f, *f2, *flux_hash_table = NULL;
+    double x = 1/3.0;
+
+    f = malloc( sizeof(*f) );
+    f->flux = x;
+    HASH_ADD(hh, flux_hash_table, flux, sizeof(double), f);
+    HASH_FIND(hh, flux_hash_table, &x, sizeof(double), f2 );
+
+    if (f2) printf("found (%.2f)\n", f2->flux);
+}
+----------------------------------------------------------------------
+
+Note that the general macros require the name of the `UT_hash_handle` to be
+passed as the first argument (here, this is `hh`). The general macros are 
+documented in <<Appendix_F,Appendix F: Macro Reference>>. 
+
+Multi-field keys
+~~~~~~~~~~~~~~~~
+Your key can even comprise multiple contiguous fields. 
+
+Padding
+^^^^^^^
+If you use multi-field keys, note that the compiler `pads` adjacent fields (by
+inserting unused space between them) in order to fulfill the alignment
+requirement of each field. For example a structure containing a `char` followed
+by an `int` will normally have 3 "wasted" bytes of padding after the char, in
+order to make the `int` field start on a multiple-of-4 address (4 is the length
+of the int). 
 
 .Calculating the length of a multi-field key 
 *******************************************************************************
@@ -563,10 +605,20 @@ An easy way to calculate the key length is to use the `offsetof` macro from
                   + sizeof(last_key_field) 
                   - offsetof(first_key_field)
 
-In the example below, the `keylen` variable is set using this technique.
+In the example below, the `keylen` variable is set using this formula.
 *******************************************************************************
 
-.A multi-field binary key
+Zero-fill 
+^^^^^^^^^
+Notice the use of `memset` in the next example to initialize the structure by
+zero-filling it.  The `memset` zeroes out any padding between the fields that
+comprise the multi-field key. 
+
+If we didn't zero-fill the structure, padding in the midst of the multi-field
+key would be initialized with random values. This would make it impossible to
+lookup items reliably.
+
+.A multi-field key
 ----------------------------------------------------------------------
 #include <stdlib.h>    /* malloc       */
 #include <stddef.h>    /* offsetof     */
@@ -574,56 +626,59 @@ In the example below, the `keylen` variable is set using this technique.
 #include <string.h>    /* memset       */
 #include "uthash.h"
 
-struct my_event {
-    struct timeval tv;         /* key is aggregate of this field */ 
-    char event_code;           /* and this field.                */    
-    int user_id;
-    UT_hash_handle hh;         /* makes this structure hashable */
-};
+#define UTF32 1
 
+typedef struct {
+  UT_hash_handle hh;
+  int len;
+  char encoding;      /* these two fields */
+  int text[];         /* comprise the key */
+} msg_t;
 
 int main(int argc, char *argv[]) {
-    struct my_event *e, ev, *events = NULL;
-    int i, keylen;
+    int keylen;
+    msg_t *msg, *msgs = NULL;
+    struct { char encoding; int text[]; } *lookup_key;
 
-    keylen =   offsetof(struct my_event, event_code) + sizeof(char)                         
-             - offsetof(struct my_event, tv);
+    int beijing[] = {0x5317, 0x4eac};   /* UTF-32LE for 北京 */
 
-    for(i = 0; i < 10; i++) {
-        e = malloc(sizeof(struct my_event));
-        memset(e,0,sizeof(struct my_event));
-        e->tv.tv_sec = i * (60*60*24*365);          /* i years (sec)*/
-        e->tv.tv_usec = 0;
-        e->event_code = 'a'+(i%2);                   /* meaningless */
-        e->user_id = i;
+    /* allocate and initialize our structure */
+    msg = malloc( sizeof(msg_t) + sizeof(beijing) );
+    memset(msg, 0, sizeof(msg_t)+sizeof(beijing)); /* zero fill */
+    msg->len = sizeof(beijing);
+    msg->encoding = UTF32;
+    memcpy(msg->text, beijing, sizeof(beijing));
 
-        HASH_ADD( hh, events, tv, keylen, e);
-    }
+    /* calculate the key length including padding, using formula */
+    keylen =   offsetof(msg_t, text)       /* offset of last key field */
+             + sizeof(beijing)             /* size of last key field */
+             - offsetof(msg_t, encoding);  /* offset of first key field */
 
-    /* look for one specific event */
-    memset(&ev,0,sizeof(struct my_event));
-    ev.tv.tv_sec = 5 * (60*60*24*365);          
-    ev.tv.tv_usec = 0;
-    ev.event_code = 'b';
-    HASH_FIND( hh, events, &ev.tv, keylen, e );
-    if (e) printf("found: user %d, unix time %ld\n", e->user_id, e->tv.tv_sec);
+    /* add our structure to the hash table */
+    HASH_ADD( hh, msgs, encoding, keylen, msg);
+
+    /* look it up to prove that it worked :-) */
+    msg=NULL;
+
+    lookup_key = malloc(sizeof(*lookup_key) + sizeof(beijing));
+    memset(lookup_key, 0, sizeof(*lookup_key) + sizeof(beijing));
+    lookup_key->encoding = UTF32;
+    memcpy(lookup_key->text, beijing, sizeof(beijing));
+    HASH_FIND( hh, msgs, &lookup_key->encoding, keylen, msg );
+    if (msg) printf("found \n");
+    free(lookup_key);
 }
 ----------------------------------------------------------------------
 
-This example is included in the distribution in `tests/test16.c`.
+This example is included in the distribution in `tests/test22.c`.
 
-.Zero-fill a multi-field key before use
-*******************************************************************************
-Notice the use of `memset` in the example above to initialize the structure 
-by zero-filling it.  This might seem unnecessary, since the next lines
-explicitly set each field. However, the `memset` is needed, because it zeroes
-out any 'padding' that the compiler has inserted into the structure. 
-
-If we didn't zero-fill the structure, padding between the fields that comprise
-the key would be initialized with random values. This would make it impossible
-to lookup items by their key reliably. (The multi-field key comprises the
-fields and their intervening padding).
-*******************************************************************************
+[TIP]
+.Tricky structure definition
+If you haven't seen C99 "flexible array members" before, the `msg_t` structure
+definition may look a little strange. The last field is an incomplete type--
+its length is unspecified. When we `malloc` one of these structures, we
+allocate enough space for the structure 'plus' however much space we need for
+the array on the end.
 
 
 Structures in multiple hash tables
