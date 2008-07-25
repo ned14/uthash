@@ -11,11 +11,10 @@ A hash in C
 -----------
 include::toc.txt[]
 
-This document is geared towards C programmers of UNIX systems. Since you're
-reading this, chances are that you know a hash is used for looking up items
-using a key. In scripting languages like Perl, hashes are used all the time. 
-In C, hashes don't exist in the language itself. This software provides a hash
-for C structures.  
+This document is written for C programmers. Since you're reading this, chances
+are that you know a hash is used for looking up items using a key. In scripting
+languages like Perl, hashes are used all the time.  In C, hashes don't exist in
+the language itself. This software provides a hash for C structures.  
 
 What can it do?
 ~~~~~~~~~~~~~~~~~
@@ -34,7 +33,7 @@ by your key domain and the hash function.
 This hash aims to be minimalistic and efficient. It's around 600 lines of C.
 It inlines automatically because it's implemented as macros. It's fast as long
 as the hash function is properly chosen to suit your keys. It's easy to 
-<<Appendix_A,choose a hash function>>. 
+<<Appendix_A,choose a hash function>>, or you can just use the default. 
 
 Is it a library?
 ~~~~~~~~~~~~~~~~
@@ -48,7 +47,7 @@ You may then utilize the hash macros as explained below.
 Supported platforms
 ~~~~~~~~~~~~~~~~~~~
 This software has been tested on Linux, Mac OS X, Solaris, OpenBSD, Cygwin, and
-MinGW. It can also be used on platforms without floating point support.
+MinGW. Platforms without floating-point support can use uthash as well.
 
 BSD licensed
 ~~~~~~~~~~~~
@@ -66,11 +65,9 @@ Feel free to mailto:thanson@users.sourceforge.net[email the author]. You can als
 post a message on the
 http://sourceforge.net/forum/forum.php?forum_id=556410[Help forum].  
 
-Keys and values
----------------
+Your structure
+--------------
 
-Structures
-~~~~~~~~~~
 In uthash, a hash table is comprised of structures. Each structure represents a
 key-value association. One or more of the structure fields constitute the key;
 the structure itself is the value.
@@ -86,19 +83,24 @@ struct my_struct {
 };
 ----------------------------------------------------------------------
 
-Key field
-~~~~~~~~~
+The key
+~~~~~~~
 There are no restrictions on the data type or name of the key field. The key
-can also be comprised of multiple contiguous fields, having any names and data
-types.
+can also comprise multiple contiguous fields, having any names and data types.
 
 .Any data type... is this really C?
 *****************************************************************************
 Yes, your key and structure can have any data type. The hash macros expand to
-inline code (unlike the typed parameters of a function call). Another reason
-your structure can have any data type is because the hash macros do all their
-bookkeeping internally, using the UT_hash_handle in your struct.
+inline code; unlike function calls with fixed prototypes, macro arguments are
+untyped so there are no restrictions on the data type of your structure or key.
 *****************************************************************************
+
+[NOTE]
+.Unique keys
+As with any hash, every item must have a unique key.  Your application must
+enforce key uniqueness. Before you add an item to the hash table, you must
+first know (or, if in doubt, check) that the key is not already in use.  You
+can test whether a key already exists in the hash table using `HASH_FIND`.
 
 The UT_hash_handle field
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -108,15 +110,8 @@ initialization. It can be named anything, but you can simplify matters by
 naming it `hh`. This allows you to use the easier "convenience" macros to add,
 find and delete items.
 
-Key uniqueness
-^^^^^^^^^^^^^^
-As with any hash, every item must have a unique key.  Your application must
-enforce key uniqueness. Before you add an item to the hash table, you must
-first know (or otherwise confirm) that the key is not already in use. 
-You can test whether a key already exists in the hash table using `HASH_FIND`.
-
-Hash table operations
----------------------
+Add, find, delete, sort, iterate
+--------------------------------
 
 This section introduces the `HASH_ADD`, `HASH_FIND`, `HASH_DELETE`, and
 `HASH_SORT` macros. This section demonstrates the macros by example. For a
@@ -124,11 +119,11 @@ more succinct listing, see <<Appendix_F,Appendix F: Macro Reference>>.
 
 .Convenience vs. general macros
 *****************************************************************************
-There are two general categories of macros provided by uthash. The
-"convenience" macros can be used with integer or string keys (and require
-that you chose the conventional name "hh" for the `UT_hash_handle` field).
-The convenience macros take fewer arguments than the general macros, making
-their usage a bit simpler for these common types of keys. 
+There uthash macros fall into two categories. The convenience macros can be
+used with integer or string keys (and require that you chose the conventional
+name "hh" for the `UT_hash_handle` field).  The convenience macros take fewer
+arguments than the general macros, making their usage a bit simpler for these
+common types of keys. 
 
 The general macros can be used for any types of keys, or for multi-field keys,
 or when the `UT_hash_handle` has been named something other than "hh". These
@@ -142,8 +137,8 @@ Your hash must be declared as a `NULL`-initialized pointer to your structure.
 
   struct my_struct *users = NULL;    /* important! initialize to NULL */
 
-Add an item
-~~~~~~~~~~~
+Add item
+~~~~~~~~
 Allocate and initialize your structure as you see fit. The only aspect
 of this that matters to uthash is that your key must be initialized to
 a unique value. Then call `HASH_ADD`. (Here we use the convenience macro
@@ -173,8 +168,8 @@ structure, can be passed as a parameter?  Welcome to the world of macros.  Rest
 assured that the C preprocessor expands this to valid C code. 
 *******************************************************************************
 
-Don't modify a key
-^^^^^^^^^^^^^^^^^^
+Key must not be modified while in-use
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Once a structure has been added to the hash, do not change the value of its key.
 Instead, delete the item from the hash, change the key, and then re-add it.
 
@@ -188,9 +183,8 @@ it's only allocated once, and is deallocated automatically when the last item
 is deleted).
 
 
-Find an item 
-~~~~~~~~~~~~
-
+Find item 
+~~~~~~~~~
 To look up a structure in a hash, you need its key.  Then call `HASH_FIND`.
 (Here we use the convenience macro `HASH_FIND_INT` for keys of type `int`).
 
@@ -215,9 +209,8 @@ value to `HASH_FIND`. Instead assign the literal value to a variable, and pass
 a pointer to the variable.
 
 
-Delete an item
-~~~~~~~~~~~~~~
-
+Delete item
+~~~~~~~~~~~
 To delete a structure from a hash, you must have a pointer to it. (If you only
 have the key, first do a `HASH_FIND` to get the structure pointer).
 
@@ -240,9 +233,20 @@ it.  The choice of when to free your structure is entirely up to you; uthash
 will never free your structure.
 ================================================================================
 
-Delete all items
-^^^^^^^^^^^^^^^^
+Deleting can change the hash table pointer
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+As this example demonstrates, the hash table pointer (which initially points to
+the first item added to the hash) is not fixed. The two operations which can
+change this pointer are `HASH_DEL` and `HASH_SORT`.
 
+What happens when the last item is deleted?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+When the last item in a hash table is being deleted, uthash deallocates the
+internal management structure for this hash table. This happens behind the
+scenes. Lastly it changes the hash pointer to `NULL`.
+
+Delete all items
+~~~~~~~~~~~~~~~~
 To delete all the structures in a hash table, you need to iteratively delete.
 It's easy: just keep deleting the first item. If you plan to free it, copy the
 pointer beforehand since the delete will advance the "first item" to the next.
@@ -261,19 +265,9 @@ void delete_all() {
 ----------------------------------------------------------------------
 
 If you only want to delete all the items, but not free them, you can write this
-even more concisely as `while (users) HASH_DEL(users,users);`
+even more concisely as 
 
-[NOTE]
-.Deleting can change the head pointer
-As this example demonstrates, the hash table pointer (which initially points to
-the first item added to the hash) is not fixed. The two operations which can
-change this pointer are `HASH_DEL` and `HASH_SORT`.
-
-What happens when the last item is deleted?
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-When the last item in a hash table is being deleted, uthash deallocates the
-internal management structure for this hash table. This happens behind the
-scenes. Lastly it changes the hash pointer to `NULL`.
+  while (users) HASH_DEL(users,users);
 
 
 Iterating and sorting 
@@ -599,6 +593,20 @@ An easy way to calculate the key length is to use the `offsetof` macro from
 In the example below, the `keylen` variable is set using this formula.
 *******************************************************************************
 
+[NOTE]
+.Zero-fill before add or find
+================================================================================
+Notice the use of `memset` in the next example to initialize the structure by
+zero-filling it.  The `memset` zeroes out any padding between the fields that
+comprise the multi-field key. 
+
+If we didn't zero-fill the structure, padding in the midst of the multi-field
+key would be initialized with random values. This would make it impossible to
+lookup items reliably. For this reason, always zero-fill a structure before
+adding it to a hash table or using it for a lookup.
+================================================================================
+
+
 .A multi-field key
 ----------------------------------------------------------------------
 #include <stdlib.h>    /* malloc       */
@@ -653,37 +661,23 @@ int main(int argc, char *argv[]) {
 
 This example is included in the distribution in `tests/test22.c`.
 
-.Zero-fill before add or find
-*******************************************************************************
-Notice the use of `memset` in the next example to initialize the structure by
-zero-filling it.  The `memset` zeroes out any padding between the fields that
-comprise the multi-field key. 
-
-If we didn't zero-fill the structure, padding in the midst of the multi-field
-key would be initialized with random values. This would make it impossible to
-lookup items reliably.
-*******************************************************************************
-
-
 A structure in multiple hash tables
 -----------------------------------
 
 A structure can be in multiple hash tables simultaneously.  
 
-There are a few reasons you might do this: to support multiple alternative keys
-on the same structure; to support multiple sorting orders on the same
-structures; or (even if you have only key and one sort order) you might simply
-use multiple hash tables for different purposes. 
+There are a few reasons you might do this: 
+- to support multiple alternative keys on the same structure; 
+- to support multiple sorting orders on the same structures; 
+- or you might simply use multiple hash tables for grouping purposes. 
 
-A hash handle per hash table
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Your structure needs to have a `UT_hash_handle` field for each hash table to
 which it might be added. You can name them anything. E.g.,
 
   UT_hash_handle hh1, hh2;
 
-Multiple keys on the same structure
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Alternative keys on the same structure
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 You might create a hash table keyed on an ID field, and another hash table
 keyed on username (if they are unique). You can add the same user structure to
 both hash tables, then look up a user by either their unique ID or username.
@@ -736,10 +730,9 @@ is always used with the `users_by_name` hash table.
 
 Multiple sort
 ~~~~~~~~~~~~~
-Extending the previous example, suppose we have 100 users in our `users_by_id`
-and our `users_by_name` hash. We want to iterate over each hash separately and
-print out their contents in sorted order. We would define a sort function for
-each hash, then sort each one using `HASH_SRT`.
+Extending the previous example, suppose we have many users in our `users_by_id`
+and our `users_by_name` hash, and that we want to sort each hash so that we can 
+print the keys in order. We'd define two sort functions, then use `HASH_SRT`:
 
   int sort_by_id(struct my_struct *a, struct my_struct *b) {
     if (a->id == b->id) return 0;
@@ -753,10 +746,12 @@ each hash, then sort each one using `HASH_SRT`.
   HASH_SRT(hh1, users_by_id, sort_by_id);
   HASH_SRT(hh2, users_by_name, sort_by_name);
 
-Multiple purpose
-~~~~~~~~~~~~~~~~
+  /* now iterate over users_by_id and users_by_name in sorted order */
+
+Grouping purposes
+~~~~~~~~~~~~~~~~~
 Even if you only use one key, and don't need to sort in different ways, you may
-use multiple hash tables just for different purposes. For example you could add
+use multiple hash tables just for grouping purposes. For example you could add
 the same user structure to both an `admin_users` hash table and a `users` hash
 table.
 
@@ -797,7 +792,7 @@ First you must build the analysis utility. From the top-level directory,
     make
 
 We'll use `test14.c` to demonstrate the data-collection and analysis steps
-(using `sh` syntax):
+(using UNIX `sh` syntax):
 
 .Using keystats
 --------------------------------------------------------------------------------
@@ -836,7 +831,7 @@ ideal%::
 #buckets::
     the number of buckets in the hash after all the keys were added
 dup%::
-    the number of duplicate keys encountered in the emitted key file.
+    the percent of duplicate keys encountered in the emitted key file.
     Duplicates keys are filtered out to maintain key uniqueness. (Duplicates
     are normal.  For example, if the application adds an item to a hash,
     deletes it, then re-adds it, the key is written twice to the emitted file.)  
@@ -922,7 +917,7 @@ if it's not achieving the desired outcome. This is done automatically.
 Criterion
 ^^^^^^^^^
 The decision to inhibit expansion is made by a heuristic rule: if two
-consecutive bucket expansions yield `ideal%` values below 0.5, then the
+consecutive bucket expansions yield `ideal%` values below 50%, then the
 'bucket expansion inhibited' flag is set for this hash. 
 
 Because this condition would cause `HASH_FIND` lookups to exhibit worse than
