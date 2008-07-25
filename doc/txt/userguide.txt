@@ -48,7 +48,7 @@ You may then utilize the hash macros as explained below.
 Supported platforms
 ~~~~~~~~~~~~~~~~~~~
 This software has been tested on Linux, Mac OS X, Solaris, OpenBSD, Cygwin, and
-MinGW. FPU-less platforms can also use uthash, as it uses no floating point math.
+MinGW. It can also be used on platforms without floating point support.
 
 BSD licensed
 ~~~~~~~~~~~~
@@ -95,8 +95,9 @@ types.
 .Any data type... is this really C?
 *****************************************************************************
 Yes, your key and structure can have any data type. The hash macros expand to
-inline code (unlike the typed parameters of a function call). Furthermore the
-hash macros do all their bookkeeping inside the UT_hash_handle in your struct.
+inline code (unlike the typed parameters of a function call). Another reason
+your structure can have any data type is because the hash macros do all their
+bookkeeping internally, using the UT_hash_handle in your struct.
 *****************************************************************************
 
 The UT_hash_handle field
@@ -132,7 +133,7 @@ There are two general categories of macros provided by uthash. The
 "convenience" macros can be used with integer or string keys (and require
 that you chose the conventional name "hh" for the `UT_hash_handle` field).
 The convenience macros take fewer arguments than the general macros, making
-usage a little simpler for these common types of keys. 
+their usage a bit simpler for these common types of keys. 
 
 The general macros can be used for any types of keys, or for multi-field keys,
 or when the `UT_hash_handle` has been named something other than "hh". These
@@ -263,12 +264,15 @@ void delete_all() {
   user_struct *current_user; 
 
   while(users) { 
-    current_user = users;          /* grab pointer to first item */
-    HASH_DEL(users,current_user);  /* delete it (users advances to next) */
-    free(current_user);            /* free it */
+    current_user = users;          /* copy pointer to first item     */
+    HASH_DEL(users,current_user);  /* delete; users advances to next */
+    free(current_user);            /* optional- if you want to free  */
   } 
 }
 ----------------------------------------------------------------------
+
+If you only want to delete all the items, but not free them, you can write this
+even more concisely as `while (users) HASH_DEL(users,users);`
 
 [NOTE]
 .Deleting can change the head pointer
@@ -481,8 +485,8 @@ int main(int argc, char *argv[]) {
 This program is included in the distribution in `tests/example.c`. You can run
 `make example` in that directory to compile it easily.
 
-Key categories
---------------
+Kinds of keys
+-------------
 
 Integer keys
 ~~~~~~~~~~~~
@@ -689,7 +693,7 @@ might create one hash table keyed on an ID field, and another keyed on
 username (if they are unique). You can add the same user structure to both hash
 tables, and then look it up by either unique ID or username.
 
-.A structure with two keys
+.A structure with two keys for two hash tables
 ----------------------------------------------------------------------
 struct my_struct {
     int id;                    /* key 1 */
@@ -698,12 +702,11 @@ struct my_struct {
 };
 ----------------------------------------------------------------------
 
-In the example above, the structure can now be added to two separate hashes;
-in one hash, `id` is its key, while in the other hash, `username` is the key.
-(There is no requirement that the two hashes have different key fields. They
-could both use the same key, such as `id`).
+In the example above, the structure can now be added to two separate hash
+tables. In one hash, `id` is its key, while in the other hash, `username` is
+its key.  (There is no requirement that the two hashes have different key
+fields. They could both use the same key, such as `id`).
 
-[NOTE]
 You need to have a separate `UT_hash_handle` for each hash that your structure
 will participate in simultaneously. These are `hh1` and `hh2` in this example.
 
@@ -741,7 +744,7 @@ Threaded programs
 You can use this hash in a threaded program. But, the locking is up to you.
 You must protect the hash against concurrent usage. For every hash that
 you create in a threaded program, you should create a mutex lock to provide 
-exclusive access to one thread at a time.
+exclusive access to the hash table for one thread at a time.
 
 A read-write lock is not adequate. It is tempting to think that a hash lookup
 (`HASH_FIND`) could be carried out by multiple concurrent threads but that's not
@@ -753,15 +756,7 @@ acquired for any use of the hash.
 Appendix A: Choosing the hash function
 --------------------------------------
 Internally this software uses a particular hash function, such as Bernstein's
-hash, to transform a key to a bucket number. 
-
-.Bernstein hash function
------------------------------------------------------------------
-#define HASH_BER(key,keylen,num_bkts,bkt,i,j,k)                        \
-  bkt = 0;                                                             \
-  while (keylen--)  bkt = (bkt * 33) + *key++;                         \
-  bkt &= (num_bkts-1);          
------------------------------------------------------------------
+hash or Jenkin's hash, to transform a key to a bucket number. 
 
 Several such hash functions are built-in. The default is Jenkin's hash, but
 your key domain may get better distribution with another function.  You can
@@ -780,7 +775,6 @@ BER        Bernstein
 SAX        Shift-Add-Xor
 OAT        One-at-a-time
 FNV        Fowler/Noll/Vo
-JSW        Julienne Walker
 --------------------------
 
 Which hash function is best?
@@ -797,104 +791,74 @@ First you must build the analysis utility. From the top-level directory,
 We'll use `test14.c` to demonstrate the data-collection and analysis steps
 (using `sh` syntax):
 
-    cc -DHASH_EMIT_KEYS=3 -I../src -o test14 test14.c
-    ./test14 3>test14.keys
-    ./keystats test14.keys
-
-The numeric value of `HASH_EMIT_KEYS` is a file descriptor. Any file descriptor
-that your program doesn't use for its own purposes can be used instead of 3. 
+.Using keystats
+--------------------------------------------------------------------------------
+% cc -DHASH_EMIT_KEYS=3 -I../src -o test14 test14.c
+% ./test14 3>test14.keys
+% ./keystats test14.keys
+fcn  ideal%     #items   #buckets  dup%  fl   add_usec  find_usec  del-all usec
+---  ------ ---------- ---------- -----  -- ---------- ----------  ------------
+FNV   90.3%       1219        512    0%  ok        244        136            44
+SAX   88.7%       1219        512    0%  ok        201        145            46
+OAT   87.2%       1219        256    0%  ok        166        214            40
+JEN   86.7%       1219        256    0%  ok        266        221            40
+BER   86.2%       1219        256    0%  ok        171        155            45
+--------------------------------------------------------------------------------
 
 [NOTE]
+The value 3 in `-DHASH_EMIT_KEYS=3` is a file descriptor. Any file descriptor
+that your program doesn't use for its own purposes can be used instead of 3. 
 The data-collection mode enabled by `-DHASH_EMIT_KEYS=x` should not be used in
 production code. 
 
-The result of running the `keystats` command should look like this:
-
---------------------------------------------------------------------------------
-fcn     hash_q     #items   #buckets      #dups      flags   add_usec  find_usec
---- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-BER   1.000000       1219        512          0         ok       1206        550
-FNV   1.000000       1219        512          0         ok       1734        660
-JEN   1.000000       1219        512          0         ok       2008        845
-OAT   0.998897       1219        512          0         ok       1941        833
-SAX   0.997514       1219       1024          0         ok       2217        674
-JSW   0.994652       1219        512          0         ok       1369        608
---------------------------------------------------------------------------------
-
 Usually, you should just pick the first hash function that is listed. Here, this
-is `BER`.  This is the function that provides the most even distribution for
-your keys. If several have the same `hash_q`, then choose the fastest one
+is `FNV`.  This is the function that provides the most even distribution for
+your keys. If several have the same `ideal%`, then choose the fastest one
 according to the `find_usec` column.
-
-[TIP]
-Sometimes you might pick the fastest one even though its `hash_q` isn't the
-best. This is ok, particularly if its substantially faster (ideally hash
-functions have negligible performance overhead but in reality they can vary).
 
 keystats column reference
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 fcn::
     symbolic name of hash function
-hash_q::
-    a number between 0 and 1 that measures how evenly the items are
-    distributed among the buckets (1 is best)
+ideal%::
+    The percentage of items in the hash table which can be looked up within an
+    ideal number of steps. (Further explained below).
 #items::
     the number of keys that were read in from the emitted key file
 #buckets::
     the number of buckets in the hash after all the keys were added
-#dups::
-    the number of duplicate keys encounted in the emitted key file. Duplicates
-    keys are filtered out to maintain key uniqueness. (Duplicates are normal.
-    For example, if the application adds an item to a hash, deletes it, then
-    re-adds it, the key is written twice to the emitted file.)  
+dup%::
+    the number of duplicate keys encountered in the emitted key file.
+    Duplicates keys are filtered out to maintain key uniqueness. (Duplicates
+    are normal.  For example, if the application adds an item to a hash,
+    deletes it, then re-adds it, the key is written twice to the emitted file.)  
 flags::
-    this is either `ok`, or `noexpand` if the 'expansion inhibited' flag is
-    set, described in Appendix C.  It is not recommended to use a hash
-    function that has the `noexpand` flag set.
+    this is either `ok`, or `nx` (noexpand) if the expansion inhibited flag is
+    set, described in Appendix B.  It is not recommended to use a hash function
+    that has the `noexpand` flag set.
 add_usec::
     the clock time in microseconds required to add all the keys to a hash
 find_usec::
     the clock time in microseconds required to look up every key in the hash
+del-all usec::
+    the clock time in microseconds required to delete every item in the hash
 
-Appendix B: Statistic hash_q
-----------------------------
-The hash_q statistic measures how evenly the keys are distributed among the
-buckets.  It is a value between 0 (worst) and 1 (best).  You can access it
-in this way, if you're interested in observing how well your hash keys hold up
-to the ideal distribution.
-
-.Observing the hash_q statistic
-----------------------------------------------------------------------
-
-/* using the example "users" hash from previous listings */
-
-void print_hashq() {
-    if (users) printf("hash_q: %f\n", users->hh.tbl->hash_q);
-}
-----------------------------------------------------------------------
-
-The hash_q statistic is updated whenever bucket expansion occurs 
-(see <<Appendix_C,Appendix C>>). 
-
-.What is hash_q?
+.What is ideal%?
 *****************************************************************************
 The 'n' items in a hash are distributed into 'k' buckets. Ideally each bucket
-would contain an equal share '(n/k)' of the items. (I.e., the maximum linear
-position of any item within a bucket would be 'n/k'.) The hash_q statistic
-measures the fraction of items whose linear position is less than or equal to
-the maximum ideal position 'n/k'. 
+would contain an equal share '(n/k)' of the items. In other words, the maximum
+linear position of any item in a bucket chain would be 'n/k' if every bucket is
+equally used. If some buckets are overused and others are underused, the
+overused buckets will contain items whose linear position surpasses 'n/k'.
+Such items are considered non-ideal. 
 
-Said another way, 'hash_q' is the fraction of items which can be found using
-no more than the ideal number of steps, given the number of items and buckets.
+As you might guess, ideal% is the percentage of ideal items in the hash.  The
+closer the ideal% comes to 100%, the closer the hash table comes to exhibiting
+constant-time lookup performance.
 *****************************************************************************
 
-A low value of `hash_q` may lead to reduced lookup (`HASH_FIND`) performance.
-You can change the hash function to one that distributes your keys more
-evenly; see <<Appendix_A,Appendix A: Choosing the hash function>>. 
-
-
-[[Appendix_C]]
-Appendix C: Bucket expansion
+[[Appendix_B]]
+Appendix B: Bucket expansion
 ----------------------------
 Internally this hash manages the number of buckets, with the goal of having
 enough buckets so that each one contains only small number of items.  
@@ -917,7 +881,10 @@ no need for the application to know when it occurs.
 
 Bucket expansion hook
 ~~~~~~~~~~~~~~~~~~~~~
-There is a hook for this event, primarily for uthash development. 
+There is a hook for the bucket expansion event (normally undefined, so it
+compiles away) but can be defined as follows. Note, this is not something any
+normal application would need to do. The hook was used in the development
+of uthash itself.
 
 .Bucket expansion hook
 ----------------------------------------------------------------------------
@@ -937,24 +904,19 @@ yet have good distribution overall.
 
 Bucket expansion inhibited hook
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Some key domains may not yield a good bucket distribution using the default
-(or manually-specified) hash function. 
+A hash function may yield an uneven distribution of items across the buckets.
+In moderation this is not a problem. Some bucket expansion will take place as
+the chain lengths of the overused buckets grow. But when significant imbalance
+occurs (because the hash function is not well suited to the key domain), even
+bucket expansion can be ineffective at reducing the chain lengths.
 
-If this occurs, statistic `hash_q` reflects the uneven distribution by tending
-closer to 0 than 1.  This means that items are piling up in some buckets while
-other buckets are under-utilized.  Bucket expansion then takes place as this
-hash tries to keep a bounded number of items in each bucket.
-
-However, if items continue to be distributed unevenly after repeated bucket
-expansion, there is a point at which this hash in effect says, '"This key
-domain is really incompatible with this hash function.  I could spend all day
-expanding the buckets but it isn't helping to spread out the items in the
-hash, so I'm going to cut my losses and stop expanding the buckets."'
+Because bucket expansion is relatively expensive, it makes sense to inhibit it
+if it's not achieving the desired outcome. 
 
 Inhibition criteria 
 ^^^^^^^^^^^^^^^^^^^
 The decision to inhibit expansion is made by a heuristic rule: if two
-consecutive bucket expansions yield `hash_q` values below 0.5, then the
+consecutive bucket expansions yield `ideal%` values below 0.5, then the
 'bucket expansion inhibited' flag is set for this hash. 
 
 Because this condition would cause `HASH_FIND` lookups to exhibit worse than
@@ -976,11 +938,10 @@ Once set, the 'bucket expansion inhibited' flag remains in effect as long as
 the hash has items in it.
 
 
-Appendix D: Hooks for memory allocation
-----------------------------------------
+Appendix C: Memory allocation hooks
+-----------------------------------
 By default this hash implementation uses `malloc` and `free` to manage memory.
 If your application uses its own custom allocator, this hash can use them too.
-
 
 .Specifying alternate memory management functions
 ----------------------------------------------------------------------------
@@ -1002,15 +963,18 @@ If your application uses its own custom allocator, this hash can use them too.
 ...
 ----------------------------------------------------------------------------
 
+[NOTE]
 .Why are there two pairs of malloc/free functions?
-*******************************************************************************
-The first pair allocates and frees `UT_hash_bucket` structures,
-while the second pair deals with `UT_hash_table` structures. While
-they don't 'need' to have separate allocation/free functions (and indeed the
-default is just to use `malloc` and `free` anyway), having them separate
-permits easy integration with pool-type allocators. (In these allocators,
-there is a pool for each data structure.)
-*******************************************************************************
+===============================================================================
+One deals with `UT_hash_bucket` structures, the other with `UT_hash_table`
+structures. 
+
+While the two structures don't 'need' to have their own allocation and free
+functions (and indeed the default is just to use `malloc` and `free` anyway),
+they exist separately for each structure for convenient integration with pool
+(or slab) type allocators. This type of allocator provides a separate pool for
+each structure.
+===============================================================================
 
 Out of memory handling
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -1024,28 +988,25 @@ be modified by re-defining the `uthash_fatal` macro.
 The fatal function should terminate the process; uthash does not support
 "returning a failure" if memory cannot be allocated.
 
-Appendix E: Internal implementation notes
------------------------------------------
+Appendix E: -DHASH_DEBUG=1
+--------------------------
 
-Application and bucket order
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The `UT_hash_handle` data structure includes `next`, `prev`, `hh_next` and
-`hh_prev` fields.  The former two fields determine the "application" ordering
-(that is, iteration order that corresponds to the order the items were added).
-The latter two fields determine the "bucket" order.  These link the
-`UT_hash_handles` together in a doubly-linked list that defines a bucket.
-
-Internal consistency check with -DHASH_DEBUG=1 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 If a program that uses this hash is compiled with `-DHASH_DEBUG=1`, a special
 internal consistency-checking mode is activated.  In this mode, the integrity
-of the whole hash is checked following every add or delete operation.
+of the whole hash is checked following every add or delete operation.  This is
+for debugging the uthash software only, not for use in production code. 
 
-[NOTE]
-This is for debugging the uthash software only, not for use in production code. 
+In the `tests/` directory, running `make debug` will run all the tests in
+this mode.
 
 In this mode, any internal errors in the hash data structure will cause a
 message to be printed to `stderr` and the program to exit.
+
+The `UT_hash_handle` data structure includes `next`, `prev`, `hh_next` and
+`hh_prev` fields.  The former two fields determine the "application" ordering
+(that is, insertion order-- the order the items were added).  The latter two
+fields determine the "bucket chain" order.  These link the `UT_hash_handles`
+together in a doubly-linked list that is a bucket chain.
 
 .Checks performed in `-DHASH_DEBUG=1` mode:
 - the hash is walked in its entirety twice: once in 'bucket' order and a
@@ -1057,19 +1018,16 @@ message to be printed to `stderr` and the program to exit.
 - during the walk in 'application' order, each item's `prev` pointer is compared
   for equality with the last visited item
 
-In the `tests/` directory, running `make debug` will run all the tests in
-this mode.
-
 [[Appendix_F]]
 Appendix F: Macro reference
 ---------------------------
 
-Generalized macros
-~~~~~~~~~~~~~~~~~~
+General macros
+~~~~~~~~~~~~~~
 
 These macros add, find, delete and sort the items in a hash.  
 
-.Generalized macros
+.General macros
 `---------------`-----------------------------------------------------------
 macro           arguments
 ----------------------------------------------------------------------------
@@ -1077,7 +1035,7 @@ HASH_ADD        (hh_name, head, keyfield_name, key_len, item_ptr)
 HASH_ADD_KEYPTR (hh_name, head, key_ptr, key_len, item_ptr)
 HASH_FIND       (hh_name, head, key_ptr, key_len, item_ptr)
 HASH_DELETE     (hh_name, head, item_ptr)
-HASH_SORT       (head, cmp)
+HASH_SRT        (hh_name, head, cmp)
 ----------------------------------------------------------------------------
 
 [NOTE]
@@ -1098,6 +1056,7 @@ HASH_FIND_INT   (head, key_ptr, item_ptr)
 HASH_ADD_STR    (head, keyfield_name, item_ptr)
 HASH_FIND_STR   (head, key_ptr, item_ptr)
 HASH_DEL        (head, item_ptr)
+HASH_SORT       (head, cmp)
 ----------------------------------------------------------------------------
 
 Key and naming restrictions for convenience macros
@@ -1107,7 +1066,7 @@ In order to use the convenience macros,
 1. the structure's `UT_hash_handle` field must be named `hh`, and
 2. the key field must be of type `int` or `char[]`
 
-`HASH_DEL` does not require the second condition.
+(`HASH_DEL` and `HASH_SORT` do not require the second condition.)
 
 
 Argument descriptions
@@ -1117,7 +1076,7 @@ hh_name::
     `hh`.
 head::
     the structure pointer variable which acts as the "head" of the hash. So
-    named because it points to the first item which is added to the hash.
+    named because it initially points to the first item that is added to the hash.
 keyfield_name::
     the name of the key field in the structure. (In the case of a multi-field
     key, this is the first field of the key). If you're new to macros, it
@@ -1139,3 +1098,4 @@ cmp::
     pointer to comparison function which accepts two arguments (pointers to
     items to compare) and returns an int specifying whether the first item
     should sort before, equal to, or after the second item (like `strcmp`).
+
