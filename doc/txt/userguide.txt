@@ -673,11 +673,10 @@ Structures in multiple hash tables
 A structure can be added to multiple hash tables. A few reasons you might do
 this include:
 
-- each hash table may use alternative keys on the same structure; 
-- each hash table can have its own sort order on the same structures; 
+- each hash table may use an alternative key; 
+- each hash table may have its own sort order; 
 - or you might simply use multiple hash tables for grouping purposes.  E.g.,
-  you could have an `admin_users` hash table and a `users` hash table. Some
-  user structures would be in both tables.
+  you could have users in an `admin_users` and a `users` hash table. 
 
 Your structure needs to have a `UT_hash_handle` field for each hash table to
 which it might be added. You can name them anything. E.g.,

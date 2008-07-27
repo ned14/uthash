@@ -1,8 +1,8 @@
 ifdef::backend-xhtml11[]
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   <div id="topnav" style="font-size: 9pt; font-family: sans-serif;">
-  <a style="padding-right: 8px;" href="http://sourceforge.net/projects/uthash/">SF.net Summary</a> 
-  >> <a style="padding: 8px;" href="index.html">uthash Home</a> 
+  <a style="padding-right: 8px;" href="http://sourceforge.net/projects/uthash/">sf.net summary page</a> 
+  >> <a style="padding: 8px;" href="index.html">uthash home</a> 
   >>  User Guide 
   </div>
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
