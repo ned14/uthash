@@ -47,7 +47,16 @@ You may then utilize the hash macros as explained below.
 Supported platforms
 ~~~~~~~~~~~~~~~~~~~
 This software has been tested on Linux, Mac OS X, Solaris, OpenBSD, Cygwin, and
-MinGW. Platforms without an FPU can use it too; no floating point math is used.
+MinGW.
+
+Test suite
+^^^^^^^^^^
+You can run the test suite on these platforms, or any prospective Unix-like
+platform, in this way:
+
+  cd tests/
+  make
+
 
 BSD licensed
 ~~~~~~~~~~~~
@@ -131,12 +140,12 @@ more succinct listing, see <<Appendix_F,Appendix F: Macro Reference>>.
 *****************************************************************************
 The uthash macros fall into two categories. The 'convenience' macros can be used
 with integer or string keys (and require that you chose the conventional
-name "hh" for the `UT_hash_handle` field).  The convenience macros take fewer
+name `hh` for the `UT_hash_handle` field).  The convenience macros take fewer
 arguments than the general macros, making their usage a bit simpler for these
 common types of keys. 
 
 The 'general' macros can be used for any types of keys, or for multi-field keys,
-or when the `UT_hash_handle` has been named something other than "hh". These
+or when the `UT_hash_handle` has been named something other than `hh`. These
 macros take more arguments and offer greater flexibility in return. But if the
 convenience macros suit your needs, use them-- your code will be more readable.
 *****************************************************************************
@@ -243,9 +252,9 @@ will never free your structure.
 
 Deleting can change the hash table pointer
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-As this example demonstrates, the hash table pointer (which initially points to
-the first item added to the hash) is not fixed. The two operations which can
-change this pointer are `HASH_DEL` and `HASH_SORT`.
+The hash table pointer (which initially points to the first item added to the
+hash) is not fixed. The two operations which can change this pointer are
+`HASH_DEL` and `HASH_SORT`.
 
 What happens when the last item is deleted?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

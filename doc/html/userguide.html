@@ -155,7 +155,15 @@ the header file into your project, and:</p></div>
 <div class="para"><p>You may then utilize the hash macros as explained below.</p></div>
 <h3 id="_supported_platforms">Supported platforms</h3><div style="clear:left"></div>
 <div class="para"><p>This software has been tested on Linux, Mac OS X, Solaris, OpenBSD, Cygwin, and
-MinGW. Platforms without an FPU can use it too; no floating point math is used.</p></div>
+MinGW.</p></div>
+<h4 id="_test_suite">Test suite</h4>
+<div class="para"><p>You can run the test suite on these platforms, or any prospective Unix-like
+platform, in this way:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>cd tests/
+make</tt></pre>
+</div></div>
 <h3 id="_bsd_licensed">BSD licensed</h3><div style="clear:left"></div>
 <div class="para"><p>This software is made available under the BSD revised license. It is free and
 open source.</p></div>
@@ -223,11 +231,11 @@ more succinct listing, see <a href="#Appendix_F">Appendix F: Macro Reference</a>
 <div class="sidebar-title">Convenience vs. general macros</div>
 <div class="para"><p>The uthash macros fall into two categories. The <em>convenience</em> macros can be used
 with integer or string keys (and require that you chose the conventional
-name "hh" for the <tt>UT_hash_handle</tt> field).  The convenience macros take fewer
+name <tt>hh</tt> for the <tt>UT_hash_handle</tt> field).  The convenience macros take fewer
 arguments than the general macros, making their usage a bit simpler for these
 common types of keys.</p></div>
 <div class="para"><p>The <em>general</em> macros can be used for any types of keys, or for multi-field keys,
-or when the <tt>UT_hash_handle</tt> has been named something other than "hh". These
+or when the <tt>UT_hash_handle</tt> has been named something other than <tt>hh</tt>. These
 macros take more arguments and offer greater flexibility in return. But if the
 convenience macros suit your needs, use them&#8212; your code will be more readable.</p></div>
 </div></div>
@@ -319,9 +327,9 @@ structure we want to remove from the hash.</p></div>
 it.  The choice of when to free your structure is entirely up to you; uthash
 will never free your structure.</p></div>
 <h4 id="_deleting_can_change_the_hash_table_pointer">Deleting can change the hash table pointer</h4>
-<div class="para"><p>As this example demonstrates, the hash table pointer (which initially points to
-the first item added to the hash) is not fixed. The two operations which can
-change this pointer are <tt>HASH_DEL</tt> and <tt>HASH_SORT</tt>.</p></div>
+<div class="para"><p>The hash table pointer (which initially points to the first item added to the
+hash) is not fixed. The two operations which can change this pointer are
+<tt>HASH_DEL</tt> and <tt>HASH_SORT</tt>.</p></div>
 <h4 id="_what_happens_when_the_last_item_is_deleted">What happens when the last item is deleted?</h4>
 <div class="para"><p>When the last item in a hash table is being deleted, uthash deallocates the
 internal management structure for this hash table. This happens behind the
@@ -1491,7 +1499,7 @@ cmp
 <div id="footer">
 <div id="footer-text">
 Version 1.3<br />
-Last updated 2008-07-27 03:07:42 EDT
+Last updated 2008-07-27 19:14:17 EDT
 </div>
 </div>
 </body>
