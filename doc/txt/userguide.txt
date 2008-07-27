@@ -98,22 +98,19 @@ can also comprise multiple contiguous fields, having any names and data types.
 *****************************************************************************
 Yes, your key and structure can have any data type. Unlike function calls with
 fixed prototypes, uthash consists of macros-- whose arguments are untyped-- and
-thus able to work with any type of structure or key. 
-
-While it is possible to use functions to achieve the same result, macros confer
-additional benefits.  In particular, since uthash is a header file (only),
-there is no library code to link against. 
-
-Also, macros expand to inline code which may provide further optimization
+thus able to work with any type of structure or key.  While functions can
+achieve the same result, macros confer additional benefits.  In particular,
+since uthash is a header file only, there is no library code to link against.
+Macros also expand to inline code which may provide further optimization
 opportunities to the compiler. 
 *****************************************************************************
 
-[NOTE]
-.Unique keys
+Unique keys, please
+^^^^^^^^^^^^^^^^^^^
 As with any hash, every item must have a unique key.  Your application must
 enforce key uniqueness. Before you add an item to the hash table, you must
-first know (or, if in doubt, check) that the key is not already in use.  You
-can test whether a key already exists in the hash table using `HASH_FIND`.
+first know (if in doubt, check!) that the key is not already in use.  You
+can check whether a key already exists in the hash table using `HASH_FIND`.
 
 The hash_handle
 ~~~~~~~~~~~~~~~
@@ -707,8 +704,10 @@ tables. In one hash, `id` is its key, while in the other hash, `username` is
 its key.  (There is no requirement that the two hashes have different key
 fields. They could both use the same key, such as `id`).
 
-You need to have a separate `UT_hash_handle` for each hash that your structure
-will participate in simultaneously. These are `hh1` and `hh2` in this example.
+Notice the structure has two hash handles (`hh1` and `hh2`).  In the code
+below, notice that each hash handle is used exclusively with a particular hash
+table.  (`hh1` is always used with the `users_by_id` hash, while `hh2` is
+always used with the `users_by_name` hash table).
 
 .Two keys on a structure
 ----------------------------------------------------------------------
@@ -735,9 +734,6 @@ will participate in simultaneously. These are `hh1` and `hh2` in this example.
     if (s) printf("found user %s: %d\n", name, s->id);
 ----------------------------------------------------------------------
 
-Note that each hash handle is used exclusively with a particular hash table.
-In this example, `hh1` is always used with the `users_by_id` hash,, and `hh2`
-is always used with the `users_by_name` hash table.
 
 Different sort orders
 ~~~~~~~~~~~~~~~~~~~~~
