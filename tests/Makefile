@@ -43,10 +43,7 @@ run_tests: $(PROGS)
 	perl $(TESTS)
 
 run_tests_mingw: $(PROGS)
-	@echo ""
-	@echo "MinGW test script not implemented, manual test only, sorry"
-	@echo ""
-	@exit 1
+	/bin/sh do_tests.mingw
 
 .PHONY: clean
 

@@ -27,6 +27,7 @@ Version 1.3 (2008-00-00)
 	  variable references the head and the deletee (advancing the head 
 		then loses the correct reference to the deletee); fix by using 
 		scratch area in the hash table to store deletee hash handle.
+	* made tests runnable on MinGW 
 	* 3000+ downloads since uthash-1.0
 
 
