@@ -14,7 +14,7 @@ include::toc.txt[]
 This document is written for C programmers. Since you're reading this, chances
 are that you know a hash is used for looking up items using a key. In scripting
 languages like Perl, hashes are used all the time.  In C, hashes don't exist in
-the language itself. This software provides a hash for C structures.  
+the language itself. This software provides a hash table for C structures.  
 
 What can it do?
 ~~~~~~~~~~~~~~~~~
@@ -32,8 +32,8 @@ by your key domain and the hash function.
 
 This hash aims to be minimalistic and efficient. It's around 600 lines of C.
 It inlines automatically because it's implemented as macros. It's fast as long
-as the hash function is properly chosen to suit your keys. It's easy to 
-<<Appendix_A,choose a hash function>>, or you can just use the default. 
+as the hash function is properly chosen to suit your keys. This is easy; see
+<<Appendix_A,Built-in hash functions>>. 
 
 Is it a library?
 ~~~~~~~~~~~~~~~~
@@ -47,12 +47,12 @@ You may then utilize the hash macros as explained below.
 Supported platforms
 ~~~~~~~~~~~~~~~~~~~
 This software has been tested on Linux, Mac OS X, Solaris, OpenBSD, Cygwin, and
-MinGW. Platforms without floating-point support can use uthash as well.
+MinGW. Platforms without an FPU can use it too; no floating point math is used.
 
 BSD licensed
 ~~~~~~~~~~~~
 This software is made available under the BSD revised license. It is free and
-open source. You can use it in your projects, commercial or otherwise.
+open source.
 
 Obtaining uthash
 ~~~~~~~~~~~~~~~~
@@ -64,6 +64,12 @@ Getting help
 Feel free to mailto:thanson@users.sourceforge.net[email the author]. You can also
 post a message on the
 http://sourceforge.net/forum/forum.php?forum_id=556410[Help forum].  
+
+Who's using it?
+~~~~~~~~~~~~~~~
+Since releasing uthash in 2006, it has been downloaded thousands of times,
+incorporated into commerical software, academic research, and into other
+open-source software.  
 
 Your structure
 --------------
@@ -90,9 +96,16 @@ can also comprise multiple contiguous fields, having any names and data types.
 
 .Any data type... is this really C?
 *****************************************************************************
-Yes, your key and structure can have any data type. The hash macros expand to
-inline code; unlike function calls with fixed prototypes, macro arguments are
-untyped so there are no restrictions on the data type of your structure or key.
+Yes, your key and structure can have any data type. Unlike function calls with
+fixed prototypes, uthash consists of macros-- whose arguments are untyped-- and
+thus able to work with any type of structure or key. 
+
+While it is possible to use functions to achieve the same result, macros confer
+additional benefits.  In particular, since uthash is a header file (only),
+there is no library code to link against. 
+
+Also, macros expand to inline code which may provide further optimization
+opportunities to the compiler. 
 *****************************************************************************
 
 [NOTE]
@@ -102,8 +115,8 @@ enforce key uniqueness. Before you add an item to the hash table, you must
 first know (or, if in doubt, check) that the key is not already in use.  You
 can test whether a key already exists in the hash table using `HASH_FIND`.
 
-The UT_hash_handle field
-~~~~~~~~~~~~~~~~~~~~~~~~
+The hash_handle
+~~~~~~~~~~~~~~~
 The `UT_hash_handle` field must be present in your structure.  It is used for
 the internal bookkeeping that makes the hash work.  It does not require
 initialization. It can be named anything, but you can simplify matters by
@@ -119,13 +132,13 @@ more succinct listing, see <<Appendix_F,Appendix F: Macro Reference>>.
 
 .Convenience vs. general macros
 *****************************************************************************
-There uthash macros fall into two categories. The convenience macros can be
-used with integer or string keys (and require that you chose the conventional
+The uthash macros fall into two categories. The 'convenience' macros can be used
+with integer or string keys (and require that you chose the conventional
 name "hh" for the `UT_hash_handle` field).  The convenience macros take fewer
 arguments than the general macros, making their usage a bit simpler for these
 common types of keys. 
 
-The general macros can be used for any types of keys, or for multi-field keys,
+The 'general' macros can be used for any types of keys, or for multi-field keys,
 or when the `UT_hash_handle` has been named something other than "hh". These
 macros take more arguments and offer greater flexibility in return. But if the
 convenience macros suit your needs, use them-- your code will be more readable.
@@ -225,13 +238,11 @@ void delete_user(struct my_struct *user) {
 Here again, `users` is the hash table, and `user` is a pointer to the
 structure we want to remove from the hash.
 
-[NOTE]
-.uthash never frees your structure
-================================================================================
+uthash never frees your structure
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Deleting a structure just removes it from the hash table-- it doesn't `free`
 it.  The choice of when to free your structure is entirely up to you; uthash
 will never free your structure.
-================================================================================
 
 Deleting can change the hash table pointer
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -531,10 +542,8 @@ Binary keys
 ~~~~~~~~~~~
 We're using the term "binary" here to simply mean an arbitrary byte sequence.
 Your key field can have any data type. To uthash, it is just a sequence of
-bytes. 
-
-We'll use the general macros `HASH_ADD` and `HASH_FIND` to demonstrate usage of
-a floating point key of type `double`.
+bytes.  We'll use the general macros `HASH_ADD` and `HASH_FIND` to demonstrate
+usage of a floating point key of type `double`.
 
 .A key of type double
 ----------------------------------------------------------------------
@@ -569,10 +578,10 @@ Multi-field keys
 ~~~~~~~~~~~~~~~~
 Your key can even comprise multiple contiguous fields. 
 
-Padding
-^^^^^^^
-If you use multi-field keys, note that the compiler pads adjacent fields (by
-inserting unused space between them) in order to fulfill the alignment
+[NOTE]
+.Padding
+If you use multi-field keys, understand that the compiler pads adjacent fields
+(by inserting unused space between them) in order to fulfill the alignment
 requirement of each field. For example a structure containing a `char` followed
 by an `int` will normally have 3 "wasted" bytes of padding after the char, in
 order to make the `int` field start on a multiple-of-4 address (4 is the length
@@ -594,16 +603,16 @@ In the example below, the `keylen` variable is set using this formula.
 *******************************************************************************
 
 [NOTE]
-.Zero-fill before add or find
+.Zero-fill required
 ================================================================================
-Notice the use of `memset` in the next example to initialize the structure by
-zero-filling it.  The `memset` zeroes out any padding between the fields that
-comprise the multi-field key. 
+When dealing with a multi-field key, you must zero-fill your structure before
+`HASH_ADD`'ing it to a hash table, or using its fields in a `HASH_FIND` key.
 
-If we didn't zero-fill the structure, padding in the midst of the multi-field
-key would be initialized with random values. This would make it impossible to
-lookup items reliably. For this reason, always zero-fill a structure before
-adding it to a hash table or using it for a lookup.
+In the next example, `memset` is used to initialize the structure by
+zero-filling it. This zeroes out any padding between the key fields. If we
+didn't zero-fill the structure, this padding would contain random values.  The
+random values would lead to `HASH_FIND` failures; as two "identical" keys will
+appear to mismatch if there are any differences within their padding.
 ================================================================================
 
 
@@ -661,15 +670,17 @@ int main(int argc, char *argv[]) {
 
 This example is included in the distribution in `tests/test22.c`.
 
-A structure in multiple hash tables
------------------------------------
+Structures in multiple hash tables
+----------------------------------
 
-A structure can be in multiple hash tables simultaneously.  
+A structure can be added to multiple hash tables. A few reasons you might do
+this include:
 
-There are a few reasons you might do this: 
-- to support multiple alternative keys on the same structure; 
-- to support multiple sorting orders on the same structures; 
-- or you might simply use multiple hash tables for grouping purposes. 
+- each hash table may use alternative keys on the same structure; 
+- each hash table can have its own sort order on the same structures; 
+- or you might simply use multiple hash tables for grouping purposes.  E.g.,
+  you could have an `admin_users` hash table and a `users` hash table. Some
+  user structures would be in both tables.
 
 Your structure needs to have a `UT_hash_handle` field for each hash table to
 which it might be added. You can name them anything. E.g.,
@@ -682,7 +693,7 @@ You might create a hash table keyed on an ID field, and another hash table
 keyed on username (if they are unique). You can add the same user structure to
 both hash tables, then look up a user by either their unique ID or username.
 
-.A structure with two keys for two hash tables
+.A structure with two alternative keys
 ----------------------------------------------------------------------
 struct my_struct {
     int id;                    /* key 1 */
@@ -699,7 +710,7 @@ fields. They could both use the same key, such as `id`).
 You need to have a separate `UT_hash_handle` for each hash that your structure
 will participate in simultaneously. These are `hh1` and `hh2` in this example.
 
-.A structure in two hash tables
+.Two keys on a structure
 ----------------------------------------------------------------------
     struct my_struct *users_by_id = NULL, *users_by_name = NULL, *s;
     int i;
@@ -728,8 +739,8 @@ Note that each hash handle is used exclusively with a particular hash table.
 In this example, `hh1` is always used with the `users_by_id` hash,, and `hh2`
 is always used with the `users_by_name` hash table.
 
-Multiple sort
-~~~~~~~~~~~~~
+Different sort orders
+~~~~~~~~~~~~~~~~~~~~~
 Extending the previous example, suppose we have many users in our `users_by_id`
 and our `users_by_name` hash, and that we want to sort each hash so that we can 
 print the keys in order. We'd define two sort functions, then use `HASH_SRT`:
@@ -748,12 +759,6 @@ print the keys in order. We'd define two sort functions, then use `HASH_SRT`:
 
   /* now iterate over users_by_id and users_by_name in sorted order */
 
-Grouping purposes
-~~~~~~~~~~~~~~~~~
-Even if you only use one key, and don't need to sort in different ways, you may
-use multiple hash tables just for grouping purposes. For example you could add
-the same user structure to both an `admin_users` hash table and a `users` hash
-table.
 
 [[Appendix_A]]
 Appendix A: Built-in hash functions
@@ -792,7 +797,7 @@ First you must build the analysis utility. From the top-level directory,
     make
 
 We'll use `test14.c` to demonstrate the data-collection and analysis steps
-(using UNIX `sh` syntax):
+(here using `sh` syntax to redirect file descriptor 3 to a file):
 
 .Using keystats
 --------------------------------------------------------------------------------
@@ -846,6 +851,9 @@ find_usec::
 del-all usec::
     the clock time in microseconds required to delete every item in the hash
 
+ideal%
+~~~~~~
+
 .What is ideal%?
 *****************************************************************************
 The 'n' items in a hash are distributed into 'k' buckets. Ideally each bucket
@@ -855,9 +863,9 @@ equally used. If some buckets are overused and others are underused, the
 overused buckets will contain items whose linear position surpasses 'n/k'.
 Such items are considered non-ideal. 
 
-As you might guess, ideal% is the percentage of ideal items in the hash.  The
-closer the ideal% comes to 100%, the closer the hash table comes to exhibiting
-constant-time lookup performance.
+As you might guess, `ideal%` is the percentage of ideal items in the hash. These
+items have favorable linear positions in their bucket chains.  As `ideal%`
+approaches 100%, the hash table approaches constant-time lookup performance.
 *****************************************************************************
 
 [[Appendix_B]]
@@ -874,73 +882,63 @@ time, the number of items in each bucket must be bounded. This is accomplished
 by increasing the number of buckets as needed.
 *****************************************************************************
 
+Normal expansion
+~~~~~~~~~~~~~~~~
 This hash attempts to keep fewer than 10 items in each bucket. When an item is
 added that would cause a bucket to exceed this number, the number of buckets in
-the hash is doubled and the items are redistributed. 
+the hash is doubled and the items are redistributed into the new buckets. In an
+ideal world, each bucket will then contain half as many items as it did before.
 
 [NOTE]
 Bucket expansion occurs automatically and invisibly as needed. There is
 no need for the application to know when it occurs. 
 
-There is a hook for the bucket expansion event (normally undefined, so it
-compiles away) but can be defined as follows. Note, this is not something any
-normal application would need to do. The hook was used in the development
-of uthash itself.
+Per-bucket expansion threshold
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Normally all buckets share the same threshold (10 items) at which point bucket
+expansion is triggered. During the process of bucket expansion, uthash can
+adjust this expansion-trigger threshold on a per-bucket basis if it sees that
+certain buckets are over-utilized. 
 
-.Bucket expansion hook
-----------------------------------------------------------------------------
-#include "uthash.h"
-
-#undef uthash_expand_fyi 
-#define uthash_expand_fyi(tbl) printf("expanded to %d buckets\n", tbl->num_buckets)
-
-...
-----------------------------------------------------------------------------
-
-During bucket expansion, if the number of items in a bucket exceeds the ideal
-number, then the expansion threshold for that bucket will be increased
-(instead of being 10, it will be a multiple of 10). This prevents excessive
-bucket expansion for hash functions that tend to over-utilize a few buckets
-yet have good distribution overall.
+When this threshold is adjusted, it goes from 10 to a multiple of 10 (for that
+particular bucket).  The multiple is based on how many times greater the actual
+chain length is than the ideal length. It is a practical measure to reduce
+excess bucket expansion in the case where a hash function over-utilizes a few
+buckets but has good overall distribution. However, if the overall distribution
+gets too bad, uthash changes tactics.
 
 Inhibited expansion
 ~~~~~~~~~~~~~~~~~~~
 A hash function may yield an uneven distribution of items across the buckets.
-In moderation this is not a problem. Normal bucket expansion will take place as
-the chain lengths of the overused buckets grow. But when significant imbalance
-occurs (because the hash function is not well suited to the key domain), even
-bucket expansion can be ineffective at reducing the chain lengths.
+In moderation this is not a problem. Normal bucket expansion takes place as
+the chain lengths grow. But when significant imbalance occurs (because the hash
+function is not well suited to the key domain), bucket expansion may be
+ineffective at reducing the chain lengths. 
 
-Because bucket expansion is relatively expensive, it makes sense to inhibit it
-if it's not achieving the desired outcome. This is done automatically.
+.A scenario where expansion does not reduce chain lengths
+********************************************************************************
+Imagine a very bad hash function which always puts every item in bucket 0. No
+matter how many times you double the number of buckets, the chain length of
+bucket 0 never decreases.  If the hash table could only see the futility of
+expanding the buckets, it could cut its losses, stop expanding altogether, and
+simply accept O(n) lookup performance. Well, uthash does exactly that. By doing
+so it degrades gracefully if the hash function is ill-suited to the keys.
+********************************************************************************
 
-Criterion
-^^^^^^^^^
-The decision to inhibit expansion is made by a heuristic rule: if two
-consecutive bucket expansions yield `ideal%` values below 50%, then the
-'bucket expansion inhibited' flag is set for this hash. 
+NOTE: Usually you don't need to worry about this, if you used the
+`keystats` utility during development to select a good hash for your keys.
 
-Because this condition would cause `HASH_FIND` lookups to exhibit worse than
-constant-time performance, you can choose to hook in code to execute if it
-occurs.  (Usually you don't need to worry about this, if you used the
-`keystats` utility during development to select a good hash for your keys).
+If two consecutive bucket expansions yield `ideal%` values below 50%, uthash
+inhibits expansion for that hash table.  Once set, the 'bucket expansion
+inhibited' flag remains in effect as long as the hash has items in it.  Because
+inhibited expansion may cause `HASH_FIND` to exhibit worse than constant-time
+performance, you can hook in code to execute if you want to know if it occurs.  
 
-.Bucket expansion inhibited hook
-----------------------------------------------------------------------------
-#include "uthash.h"
+Appendix C: Hooks
+-----------------
 
-#undef uthash_noexpand_fyi
-#define uthash_noexpand_fyi printf("warning: bucket expansion inhibited\n");
-
-...
-----------------------------------------------------------------------------
-
-Once set, the 'bucket expansion inhibited' flag remains in effect as long as
-the hash has items in it.
-
-
-Appendix C: Memory hooks
-------------------------
+malloc/free
+~~~~~~~~~~~
 By default this hash implementation uses `malloc` and `free` to manage memory.
 If your application uses its own custom allocator, this hash can use them too.
 
@@ -977,8 +975,8 @@ they exist separately for each structure for convenient integration with pool
 each structure.
 ===============================================================================
 
-Out of memory handling
-~~~~~~~~~~~~~~~~~~~~~~
+Out of memory
+~~~~~~~~~~~~~
 If memory allocation fails (i.e., the malloc function returned `NULL`), the
 default behavior is to terminate the process by calling `exit(-1)`. This can
 be modified by re-defining the `uthash_fatal` macro.
@@ -988,6 +986,47 @@ be modified by re-defining the `uthash_fatal` macro.
 
 The fatal function should terminate the process; uthash does not support
 "returning a failure" if memory cannot be allocated.
+
+Bucket notifications
+~~~~~~~~~~~~~~~~~~~~
+These two hooks are "notification" hooks which get executed if uthash is
+expanding buckets, or setting the 'bucket expansion inhibited' flag. Normally
+both of these hooks are undefined and thus compile away to nothing. 
+
+There is no need for the application to set these hooks or take action in
+response to these events. They are mainly for diagnostic purposes.
+
+Expansion notification
+^^^^^^^^^^^^^^^^^^^^^^
+There is a hook for the bucket expansion event.  Note, this is not something
+any normal application would need to do. The hook was used in the development
+of uthash itself and is included here for completeness.
+
+.Bucket expansion hook
+----------------------------------------------------------------------------
+#include "uthash.h"
+
+#undef uthash_expand_fyi 
+#define uthash_expand_fyi(tbl) printf("expanded to %d buckets\n", tbl->num_buckets)
+
+...
+----------------------------------------------------------------------------
+
+Expansion-inhibited notification
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+This hook can be defined to code to execute in the event that uthash decides to
+set the 'bucket expansion inhibited' flag. 
+
+.Bucket expansion inhibited hook
+----------------------------------------------------------------------------
+#include "uthash.h"
+
+#undef uthash_noexpand_fyi
+#define uthash_noexpand_fyi printf("warning: bucket expansion inhibited\n");
+
+...
+----------------------------------------------------------------------------
+
 
 Appendix D: Debug mode
 ----------------------
