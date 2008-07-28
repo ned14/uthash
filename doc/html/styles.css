@@ -96,7 +96,7 @@ hr {
 }
 
 #footer {
-    width: 80%;
+    width: 90%;
 }
 
 #footer img {
@@ -105,6 +105,5 @@ hr {
 }
 
 #footer #support {
-    margin-right: 200px;
     float: right;
 }
