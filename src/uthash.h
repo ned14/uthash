@@ -82,7 +82,7 @@ do {                                                                          \
     (head)->hh.tbl->tail = &(add->hh);                                        \
     (head)->hh.tbl->num_buckets = HASH_INITIAL_NUM_BUCKETS;                   \
     (head)->hh.tbl->log2_num_buckets = HASH_INITIAL_NUM_BUCKETS_LOG2;         \
-    (head)->hh.tbl->hho = (void*)(&add->hh) - (void*)(add);                   \
+    (head)->hh.tbl->hho = (char*)(&add->hh) - (char*)(add);                   \
     (head)->hh.tbl->buckets = (UT_hash_bucket*)uthash_bkt_malloc(             \
             HASH_INITIAL_NUM_BUCKETS*sizeof(struct UT_hash_bucket));          \
     if (! (head)->hh.tbl->buckets) { uthash_fatal( "out of memory"); }        \
@@ -130,17 +130,17 @@ do {                                                                          \
     } else {                                                                  \
         (head)->hh.tbl->hh_del = &((delptr)->hh);                             \
         if ((delptr) == (head)->hh.tbl->tail->elmt) {                         \
-            (head)->hh.tbl->tail = (void*)(((delptr)->hh.prev) +              \
+            (head)->hh.tbl->tail = (void*)((char*)((delptr)->hh.prev) +       \
                                            (head)->hh.tbl->hho);              \
         }                                                                     \
         if ((delptr)->hh.prev) {                                              \
-            ((UT_hash_handle*)(((delptr)->hh.prev) +                          \
+            ((UT_hash_handle*)((char*)((delptr)->hh.prev) +                   \
                     (head)->hh.tbl->hho))->next = (delptr)->hh.next;          \
         } else {                                                              \
             head = (delptr)->hh.next;                                         \
         }                                                                     \
         if ((head)->hh.tbl->hh_del->next) {                                   \
-            ((UT_hash_handle*)((head)->hh.tbl->hh_del->next +                 \
+            ((UT_hash_handle*)((char*)(head)->hh.tbl->hh_del->next +          \
                     (head)->hh.tbl->hho))->prev =                             \
                     (head)->hh.tbl->hh_del->prev;                             \
         }                                                                     \
@@ -222,7 +222,7 @@ do {                                                                          \
            }                                                                  \
            (head)->hh.tbl->key = (head)->hh.tbl->thh->elmt;                   \
            (head)->hh.tbl->thh = ( (head)->hh.tbl->thh->next ?                \
-             (UT_hash_handle*)(((head)->hh.tbl->thh->next) +                  \
+             (UT_hash_handle*)((char*)((head)->hh.tbl->thh->next) +           \
                                (head)->hh.tbl->hho)                           \
                                  : NULL );                                    \
         }                                                                     \
@@ -474,7 +474,7 @@ while (out) {                                                                 \
                     (head)->hh.tbl->i++ ) {                                   \
                   (head)->hh.tbl->psize++;                                    \
                   (head)->hh.tbl->q = (((head)->hh.tbl->q->next) ?            \
-                      ((void*)(((head)->hh.tbl->q->next) +                    \
+                      ((void*)((char*)((head)->hh.tbl->q->next) +             \
                       (head)->hh.tbl->hho)) : NULL);                          \
                   if (! ((head)->hh.tbl->q) ) break;                          \
               }                                                               \
@@ -484,14 +484,14 @@ while (out) {                                                                 \
                   if ((head)->hh.tbl->psize == 0) {                           \
                       (head)->hh.tbl->e = (head)->hh.tbl->q;                  \
                       (head)->hh.tbl->q = (((head)->hh.tbl->q->next) ?        \
-                          ((void*)(((head)->hh.tbl->q->next) +                \
+                          ((void*)((char*)((head)->hh.tbl->q->next) +         \
                           (head)->hh.tbl->hho)) : NULL);                      \
                       (head)->hh.tbl->qsize--;                                \
                   } else if ( ((head)->hh.tbl->qsize == 0) ||                 \
                              !((head)->hh.tbl->q) ) {                         \
                       (head)->hh.tbl->e = (head)->hh.tbl->p;                  \
                       (head)->hh.tbl->p = (((head)->hh.tbl->p->next) ?        \
-                          ((void*)(((head)->hh.tbl->p->next) +                \
+                          ((void*)((char*)((head)->hh.tbl->p->next) +         \
                           (head)->hh.tbl->hho)) : NULL);                      \
                       (head)->hh.tbl->psize--;                                \
                   } else if ((                                                \
@@ -499,13 +499,13 @@ while (out) {                                                                 \
                           <= 0) {                                             \
                       (head)->hh.tbl->e = (head)->hh.tbl->p;                  \
                       (head)->hh.tbl->p = (((head)->hh.tbl->p->next) ?        \
-                          ((void*)(((head)->hh.tbl->p->next) +                \
+                          ((void*)((char*)((head)->hh.tbl->p->next) +         \
                           (head)->hh.tbl->hho)) : NULL);                      \
                       (head)->hh.tbl->psize--;                                \
                   } else {                                                    \
                       (head)->hh.tbl->e = (head)->hh.tbl->q;                  \
                       (head)->hh.tbl->q = (((head)->hh.tbl->q->next) ?        \
-                          ((void*)(((head)->hh.tbl->q->next) +                \
+                          ((void*)((char*)((head)->hh.tbl->q->next) +         \
                                    (head)->hh.tbl->hho)) : NULL);             \
                       (head)->hh.tbl->qsize--;                                \
                   }                                                           \
