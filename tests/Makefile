@@ -10,6 +10,10 @@ ifeq ($(HASH_DEBUG),1)
 CFLAGS += -DHASH_DEBUG=1
 endif
 
+ifeq ($(HASH_PEDANTIC),1)
+CFLAGS += -pedantic -Wall 
+endif
+
 TEST_TARGET=run_tests
 TESTS=./do_tests
 
@@ -29,6 +33,9 @@ all: $(PROGS) $(UTILS) $(FUNCS) $(TEST_TARGET)
 
 debug:
 	$(MAKE) all HASH_DEBUG=1
+
+pedantic:
+	$(MAKE) all HASH_PEDANTIC=1
 
 example: example.c $(HASHDIR)/uthash.h
 	$(CC) $(CFLAGS) -o $@ $(@).c 
