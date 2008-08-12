@@ -19,3 +19,4 @@ for my $test (@tests) {
 }
 
 print scalar @tests . " tests conducted, $num_failed failed.\n";
+exit $num_failed;
