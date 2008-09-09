@@ -1,8 +1,6 @@
 Automated tests for uthash
 ==============================================================================
-Run "make" or "make debug" in this directory to build the tests and run them.
-The latter usage activates the uthash internal debugging consistency checks.
-
+Run "make" in this directory to build the tests and run them.
 
 test1:  make 10-item hash, iterate and print each one
 test2:  make 10-item hash, lookup items with even keys, print
@@ -27,16 +25,23 @@ test20: test a 5-byte "binary" key
 test21: test a "double" (floating point) key (userguide)
 test22: test multi-field key using flexible array member (userguide utf32)
 test23: test whether delete in iteration works
+test24: make 10-item hash and confirm item count (HASH_COUNT)
+
+Other Make targets
+================================================================================
+pedantic:  makes the tests with extra CFLAGS for pedantic compiling
+cplusplus: compiles all the C tests using the C++ compiler to test compatibility
+debug:     makes the tests with debugging symbols and no optimization
+example:   builds the 'example' program from the user guide
+================================================================================
 
 Other files
 ================================================================================
-bkt:       prints bucket number for input keys. Run without args for help.
 keystats:  key statistics analyzer. See the User Guide (http://uthash.sf.net)
 emit_keys: reads a data file of unique strings, emits as keys w/HASH_EMIT_KEYS=1
 
 Manual performance testing
 ================================================================================
-  
   # test performance characteristics on keys that are English dictionary words
   emit_keys /usr/share/dict/words > words.keys
   ./keystats words.keys

@@ -107,3 +107,7 @@ hr {
 #footer #support {
     float: right;
 }
+
+body {
+    width: 80%;
+}

@@ -34,6 +34,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef UTHASH_H
 #define UTHASH_H 
 
+/* C++ requires extra stringent casting */
+#if defined __cplusplus
+#define TYPEOF(x) (typeof(x))
+#else
+#define TYPEOF(x)
+#endif
+
+
 #define uthash_fatal(msg) exit(-1)        /* fatal error (out of memory,etc) */
 #define uthash_bkt_malloc(sz) malloc(sz)  /* malloc fcn for UT_hash_bucket's */
 #define uthash_bkt_free(ptr) free(ptr)    /* free fcn for UT_hash_bucket's   */
@@ -50,7 +58,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define HASH_FIND(hh,head,keyptr,keylen_in,out)                               \
 do {                                                                          \
-  out=head;                                                                   \
+  out=TYPEOF(out)head;                                                        \
   if (head) {                                                                 \
      (head)->hh.tbl->key = (char*)(keyptr);                                   \
      (head)->hh.tbl->keylen = keylen_in;                                      \
@@ -130,14 +138,15 @@ do {                                                                          \
     } else {                                                                  \
         (head)->hh.tbl->hh_del = &((delptr)->hh);                             \
         if ((delptr) == (head)->hh.tbl->tail->elmt) {                         \
-            (head)->hh.tbl->tail = (void*)((char*)((delptr)->hh.prev) +       \
-                                           (head)->hh.tbl->hho);              \
+            (head)->hh.tbl->tail =                                            \
+                (UT_hash_handle*)((char*)((delptr)->hh.prev) +                \
+                (head)->hh.tbl->hho);                                         \
         }                                                                     \
         if ((delptr)->hh.prev) {                                              \
             ((UT_hash_handle*)((char*)((delptr)->hh.prev) +                   \
                     (head)->hh.tbl->hho))->next = (delptr)->hh.next;          \
         } else {                                                              \
-            head = (delptr)->hh.next;                                         \
+            head = TYPEOF(head)((delptr)->hh.next);                           \
         }                                                                     \
         if ((head)->hh.tbl->hh_del->next) {                                   \
             ((UT_hash_handle*)((char*)(head)->hh.tbl->hh_del->next +          \
@@ -344,12 +353,12 @@ do {                                                                          \
 
 /* iterate over items in a known bucket to find desired item */
 #define HASH_FIND_IN_BKT(hh,head,keyptr,keylen_in,out)                        \
-out = (head.hh_head) ? (head.hh_head->elmt) : NULL;                           \
+out = TYPEOF(out)((head.hh_head) ? (head.hh_head->elmt) : NULL);              \
 while (out) {                                                                 \
     if (out->hh.keylen == keylen_in) {                                        \
         if ((HASH_KEYCMP(out->hh.key,keyptr,keylen_in)) == 0) break;          \
     }                                                                         \
-    out= (out->hh.hh_next) ? (out->hh.hh_next->elmt) : NULL;                  \
+    out= TYPEOF(out)((out->hh.hh_next) ? (out->hh.hh_next->elmt) : NULL);     \
 }
 
 /* add an item to a bucket  */
@@ -473,7 +482,8 @@ while (out) {                                                                 \
                     (head)->hh.tbl->i  < (head)->hh.tbl->insize;              \
                     (head)->hh.tbl->i++ ) {                                   \
                   (head)->hh.tbl->psize++;                                    \
-                  (head)->hh.tbl->q = (((head)->hh.tbl->q->next) ?            \
+                  (head)->hh.tbl->q =                                         \
+                      (UT_hash_handle*)(((head)->hh.tbl->q->next) ?           \
                       ((void*)((char*)((head)->hh.tbl->q->next) +             \
                       (head)->hh.tbl->hho)) : NULL);                          \
                   if (! ((head)->hh.tbl->q) ) break;                          \
@@ -483,28 +493,32 @@ while (out) {                                                                 \
                       (((head)->hh.tbl->qsize > 0) && (head)->hh.tbl->q )) {  \
                   if ((head)->hh.tbl->psize == 0) {                           \
                       (head)->hh.tbl->e = (head)->hh.tbl->q;                  \
-                      (head)->hh.tbl->q = (((head)->hh.tbl->q->next) ?        \
+                      (head)->hh.tbl->q =                                     \
+                          (UT_hash_handle*)(((head)->hh.tbl->q->next) ?       \
                           ((void*)((char*)((head)->hh.tbl->q->next) +         \
                           (head)->hh.tbl->hho)) : NULL);                      \
                       (head)->hh.tbl->qsize--;                                \
                   } else if ( ((head)->hh.tbl->qsize == 0) ||                 \
                              !((head)->hh.tbl->q) ) {                         \
                       (head)->hh.tbl->e = (head)->hh.tbl->p;                  \
-                      (head)->hh.tbl->p = (((head)->hh.tbl->p->next) ?        \
+                      (head)->hh.tbl->p =                                     \
+                          (UT_hash_handle*)(((head)->hh.tbl->p->next) ?       \
                           ((void*)((char*)((head)->hh.tbl->p->next) +         \
                           (head)->hh.tbl->hho)) : NULL);                      \
                       (head)->hh.tbl->psize--;                                \
                   } else if ((                                                \
-                      cmpfcn((head)->hh.tbl->p->elmt,(head)->hh.tbl->q->elmt))\
-                          <= 0) {                                             \
+                      cmpfcn(TYPEOF(head)((head)->hh.tbl->p->elmt),           \
+                             TYPEOF(head)((head)->hh.tbl->q->elmt))) <= 0) {  \
                       (head)->hh.tbl->e = (head)->hh.tbl->p;                  \
-                      (head)->hh.tbl->p = (((head)->hh.tbl->p->next) ?        \
+                      (head)->hh.tbl->p =                                     \
+                          (UT_hash_handle*)(((head)->hh.tbl->p->next) ?       \
                           ((void*)((char*)((head)->hh.tbl->p->next) +         \
                           (head)->hh.tbl->hho)) : NULL);                      \
                       (head)->hh.tbl->psize--;                                \
                   } else {                                                    \
                       (head)->hh.tbl->e = (head)->hh.tbl->q;                  \
-                      (head)->hh.tbl->q = (((head)->hh.tbl->q->next) ?        \
+                      (head)->hh.tbl->q =                                     \
+                          (UT_hash_handle*)(((head)->hh.tbl->q->next) ?       \
                           ((void*)((char*)((head)->hh.tbl->q->next) +         \
                                    (head)->hh.tbl->hho)) : NULL);             \
                       (head)->hh.tbl->qsize--;                                \
@@ -525,12 +539,16 @@ while (out) {                                                                 \
           if ( (head)->hh.tbl->nmerges <= 1 ) {                               \
               (head)->hh.tbl->looping=0;                                      \
               (head)->hh.tbl->tail = (head)->hh.tbl->tale;                    \
-              (head) = (head)->hh.tbl->list->elmt;                            \
+              (head) = TYPEOF(head)((head)->hh.tbl->list->elmt);              \
           }                                                                   \
           (head)->hh.tbl->insize *= 2;                                        \
       }                                                                       \
       HASH_FSCK(hh,head);                                                     \
  }
+
+/* obtain a count of items in the hash */
+#define HASH_COUNT(head) HASH_CNT(hh,head) 
+#define HASH_CNT(hh,head) (head?(head->hh.tbl->num_items):0)
 
 typedef struct UT_hash_bucket {
    struct UT_hash_handle *hh_head;

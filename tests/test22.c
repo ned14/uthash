@@ -13,15 +13,20 @@ typedef struct {
   int text[];         /* comprise the key */
 } msg_t;
 
+typedef struct {
+    char encoding; 
+    int text[]; 
+} lookup_key_t;
+
 int main(int argc, char *argv[]) {
     int keylen;
     msg_t *msg, *msgs = NULL;
-    struct { char encoding; int text[]; } *lookup_key;
+    lookup_key_t *lookup_key;
 
     int beijing[] = {0x5317, 0x4eac};   /* UTF-32LE for 北京 */
 
     /* allocate and initialize our structure */
-    msg = malloc( sizeof(msg_t) + sizeof(beijing) );
+    msg = (msg_t*)malloc( sizeof(msg_t) + sizeof(beijing) );
     memset(msg, 0, sizeof(msg_t)+sizeof(beijing)); /* zero fill */
     msg->len = sizeof(beijing);
     msg->encoding = UTF32;
@@ -38,7 +43,7 @@ int main(int argc, char *argv[]) {
     /* look it up to prove that it worked :-) */
     msg=NULL;
 
-    lookup_key = malloc(sizeof(*lookup_key) + sizeof(beijing));
+    lookup_key = (lookup_key_t*)malloc(sizeof(*lookup_key) + sizeof(beijing));
     memset(lookup_key, 0, sizeof(*lookup_key) + sizeof(beijing));
     lookup_key->encoding = UTF32;
     memcpy(lookup_key->text, beijing, sizeof(beijing));

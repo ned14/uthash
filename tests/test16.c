@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
              - offsetof(struct my_event, tv);
 
     for(i = 0; i < 10; i++) {
-        e = malloc(sizeof(struct my_event));
+        e = (struct my_event*)malloc(sizeof(struct my_event));
         memset(e,0,sizeof(struct my_event));
         e->tv.tv_sec = i * (60*60*24*365);          /* i years (sec)*/
         e->tv.tv_usec = 0;

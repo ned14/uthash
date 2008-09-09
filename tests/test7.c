@@ -46,7 +46,7 @@ int main(int argc,char *argv[]) {
 
     /* create elements */
     for(i=0;i<1000;i++) {
-        if ( (user = malloc(sizeof(example_user_t))) == NULL) exit(-1);
+        if ( (user = (example_user_t*)malloc(sizeof(example_user_t))) == NULL) exit(-1);
         user->id = i;
         user->cookie = i*i;
         HASH_ADD_INT(users,id,user);
@@ -62,7 +62,7 @@ int main(int argc,char *argv[]) {
     }
 
     /* show the hash */
-    for(user=users; user != NULL; user=user->hh.next) {
+    for(user=users; user != NULL; user=(example_user_t*)(user->hh.next)) {
         printf("user %d, cookie %d\n", user->id, user->cookie);
     }
 }

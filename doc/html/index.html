@@ -28,6 +28,12 @@
         <h2>download</h2>
         <div><a href="http://prdownloads.sourceforge.net/uthash/uthash-1.3.tar.bz2?download">uthash-1.3.tar.bz2</a></div>
 
+        <h2>last release</h2>
+        <div>September, 2008</div>
+
+        <h2>license</h2>
+        <div>BSD revised</div>
+
         <h2>other projects</h2>
         <div><a href="http://tpl.sourceforge.net/">tpl</a></div>
 
@@ -38,7 +44,9 @@
 
 
       <div id="main">
-        This is the home page for uthash, an easy-to-use hash table for C structures. 
+        Uthash allows any C structure to be stored in a hash table. Just add a 
+        <em>UT_hash_handle</em> to the structure and use these macros.
+        Choose one or more fields in your structure to act as the key. 
 
 <div class="listing">
 Example 1. Adding an item to a hash.
@@ -90,8 +98,7 @@ void delete_user(struct my_struct *user) {
 </div> <!-- code -->
 </div> <!-- listing -->
 
-This hash table can work with any kind of key, not just integer keys as shown here.
-Please see the <a href="userguide.html">User Guide.</a>
+ The key can have any data type. For more information please see the <a href="userguide.html">User Guide.</a>
 
 </div> <!-- main -->
 </div> <!-- mid -->

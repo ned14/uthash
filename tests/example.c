@@ -14,7 +14,7 @@ struct my_struct *users = NULL;
 int add_user(int user_id, char *name) {
     struct my_struct *s;
 
-    s = malloc(sizeof(struct my_struct));
+    s = (struct my_struct*)malloc(sizeof(struct my_struct));
     s->id = user_id;
     strcpy(s->name, name);
     HASH_ADD_INT( users, id, s );  /* id: name of key field */
@@ -45,7 +45,7 @@ void delete_all() {
 void print_users() {
     struct my_struct *s;
 
-    for(s=users; s != NULL; s=s->hh.next) {
+    for(s=users; s != NULL; s=(struct my_struct*)(s->hh.next)) {
         printf("user id %d: name %s\n", s->id, s->name);
     }
 }
@@ -70,6 +70,7 @@ int main(int argc, char *argv[]) {
     char in[10];
     int id=1;
     struct my_struct *s;
+    unsigned num_users;
 
     while (1) {
         printf("1. add user\n");
@@ -79,6 +80,7 @@ int main(int argc, char *argv[]) {
         printf("5. sort items by name\n");
         printf("6. sort items by id\n");
         printf("7. print users\n");
+        printf("8. count users\n");
         gets(in);
         switch(atoi(in)) {
             case 1:
@@ -107,6 +109,10 @@ int main(int argc, char *argv[]) {
                 break;
             case 7:
                 print_users();
+                break;
+            case 8:
+                num_users=HASH_COUNT(users);
+                printf("there are %u users\n", num_users);
                 break;
         }
     }

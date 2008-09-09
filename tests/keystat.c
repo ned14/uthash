@@ -103,7 +103,7 @@ int main(int argc, char *argv[]) {
 
     /* add all keys to a new hash, so we can measure add time w/o malloc */
     gettimeofday(&start_tm,NULL);
-    for(keyt = keys; keyt != NULL; keyt=keyt->hh.next) {
+    for(keyt = keys; keyt != NULL; keyt=(stat_key*)keyt->hh.next) {
         HASH_ADD_KEYPTR(hh2,keys2,keyt->key,keyt->len,keyt);
     }
     gettimeofday(&end_tm,NULL);
@@ -111,7 +111,7 @@ int main(int argc, char *argv[]) {
 
     /* now look up all keys in the new hash, again measuring elapsed time */
     gettimeofday(&start_tm,NULL);
-    for(keyt = keys; keyt != NULL; keyt=keyt->hh.next) {
+    for(keyt = keys; keyt != NULL; keyt=(stat_key*)keyt->hh.next) {
         HASH_FIND(hh2,keys2,keyt->key,keyt->len,keytmp);
         if (!keytmp) fprintf(stderr,"internal error, key not found\n");
     }

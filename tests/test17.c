@@ -19,34 +19,34 @@ int main(int argc,char *argv[]) {
 
     /* create elements */
     for(i=9;i>=0;i--) {
-        if ( (user = malloc(sizeof(example_user_t))) == NULL) exit(-1);
+        if ( (user = (example_user_t*)malloc(sizeof(example_user_t))) == NULL) exit(-1);
         user->id = i;
         user->cookie = i*i;
         HASH_ADD_INT(users,id,user);
     }
 
-    for(user=users; user != NULL; user=user->hh.next) {
+    for(user=users; user != NULL; user=(example_user_t*)user->hh.next) {
         printf("user %d, cookie %d\n", user->id, user->cookie);
     }
     printf("sorting\n");
     HASH_SORT(users,rev);
-    for(user=users; user != NULL; user=user->hh.next) {
+    for(user=users; user != NULL; user=(example_user_t*)user->hh.next) {
         printf("user %d, cookie %d\n", user->id, user->cookie);
     }
 
     printf("adding 10-20\n");
     for(i=20;i>=10;i--) {
-        if ( (user = malloc(sizeof(example_user_t))) == NULL) exit(-1);
+        if ( (user = (example_user_t*)malloc(sizeof(example_user_t))) == NULL) exit(-1);
         user->id = i;
         user->cookie = i*i;
         HASH_ADD_INT(users,id,user);
     }
-    for(user=users; user != NULL; user=user->hh.next) {
+    for(user=users; user != NULL; user=(example_user_t*)user->hh.next) {
         printf("user %d, cookie %d\n", user->id, user->cookie);
     }
     printf("sorting\n");
     HASH_SORT(users,rev);
-    for(user=users; user != NULL; user=user->hh.next) {
+    for(user=users; user != NULL; user=(example_user_t*)user->hh.next) {
         printf("user %d, cookie %d\n", user->id, user->cookie);
     }
 }

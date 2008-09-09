@@ -25,7 +25,7 @@ int main(int argc,char *argv[]) {
 
     /* create elements */
     for(i=0;i<1000;i++) {
-        if ( (user = malloc(sizeof(example_user_t))) == NULL) exit(-1);
+        if ( (user = (example_user_t*)malloc(sizeof(example_user_t))) == NULL) exit(-1);
         user->id = i;
         user->cookie = i*i;
         if (i<10) HASH_ADD_INT(users,id,user);
@@ -34,12 +34,12 @@ int main(int argc,char *argv[]) {
 
     printf("sorting users ascending\n");
     HASH_SRT(hh,users,ascending_sort);
-    for(user=users; user; user=user->hh.next)
+    for(user=users; user; user=(example_user_t*)user->hh.next)
       printf("user %d\n", user->id);
 
     printf("sorting altusers descending\n");
     HASH_SRT(alth,altusers,descending_sort);
-    for(user=altusers; user; user=user->alth.next)
+    for(user=altusers; user; user=(example_user_t*)user->alth.next)
       printf("altuser %d\n", user->id);
 
     /* HASH_FSCK(hh,users); */
