@@ -56,6 +56,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define HASH_INITIAL_NUM_BUCKETS_LOG2 5  /* lg2 of initial number of buckets */
 #define HASH_BKT_CAPACITY_THRESH 10      /* expand when bucket count reaches */
 
+/* calculate the element whose hash handle address is hhe */
+#define ELMT_FROM_HH(tbl,hhp) ((void*)(((char*)hhp) - (tbl)->hho))
+
 #define HASH_FIND(hh,head,keyptr,keylen_in,out)                               \
 do {                                                                          \
   out=TYPEOF(out)head;                                                        \
@@ -66,8 +69,9 @@ do {                                                                          \
              (head)->hh.tbl->num_buckets,                                     \
              (head)->hh.tbl->hash_scratch, (head)->hh.tbl->bkt,               \
              (head)->hh.tbl->i, (head)->hh.tbl->j,(head)->hh.tbl->k);         \
-     HASH_FIND_IN_BKT(hh, (head)->hh.tbl->buckets[ (head)->hh.tbl->bkt],      \
-             keyptr,keylen_in,out);                                           \
+     HASH_FIND_IN_BKT((head)->hh.tbl, hh,                                     \
+                      (head)->hh.tbl->buckets[ (head)->hh.tbl->bkt],          \
+                      keyptr,keylen_in,out);                                  \
   }                                                                           \
 } while (0)
 
@@ -79,7 +83,6 @@ do {                                                                          \
  add->hh.next = NULL;                                                         \
  add->hh.key = (char*)keyptr;                                                 \
  add->hh.keylen = keylen_in;                                                  \
- add->hh.elmt = add;                                                          \
  if (!(head)) {                                                               \
     head = add;                                                               \
     (head)->hh.prev = NULL;                                                   \
@@ -98,7 +101,7 @@ do {                                                                          \
             HASH_INITIAL_NUM_BUCKETS*sizeof(struct UT_hash_bucket));          \
  } else {                                                                     \
     (head)->hh.tbl->tail->next = add;                                         \
-    add->hh.prev = (head)->hh.tbl->tail->elmt;                                \
+    add->hh.prev = ELMT_FROM_HH((head)->hh.tbl, (head)->hh.tbl->tail);        \
     (head)->hh.tbl->tail = &(add->hh);                                        \
  }                                                                            \
  (head)->hh.tbl->num_items++;                                                 \
@@ -137,7 +140,7 @@ do {                                                                          \
         head = NULL;                                                          \
     } else {                                                                  \
         (head)->hh.tbl->hh_del = &((delptr)->hh);                             \
-        if ((delptr) == (head)->hh.tbl->tail->elmt) {                         \
+        if ((delptr) == ELMT_FROM_HH((head)->hh.tbl,(head)->hh.tbl->tail)) {  \
             (head)->hh.tbl->tail =                                            \
                 (UT_hash_handle*)((char*)((delptr)->hh.prev) +                \
                 (head)->hh.tbl->hho);                                         \
@@ -229,7 +232,8 @@ do {                                                                          \
                     (head)->hh.tbl->thh->prev,                                \
                     (head)->hh.tbl->key );                                    \
            }                                                                  \
-           (head)->hh.tbl->key = (head)->hh.tbl->thh->elmt;                   \
+           (head)->hh.tbl->key = ELMT_FROM_HH((head)->hh.tbl,                 \
+                                              (head)->hh.tbl->thh);           \
            (head)->hh.tbl->thh = ( (head)->hh.tbl->thh->next ?                \
              (UT_hash_handle*)((char*)((head)->hh.tbl->thh->next) +           \
                                (head)->hh.tbl->hho)                           \
@@ -352,13 +356,14 @@ do {                                                                          \
 #define HASH_KEYCMP(a,b,len) memcmp(a,b,len) 
 
 /* iterate over items in a known bucket to find desired item */
-#define HASH_FIND_IN_BKT(hh,head,keyptr,keylen_in,out)                        \
-out = TYPEOF(out)((head.hh_head) ? (head.hh_head->elmt) : NULL);              \
+#define HASH_FIND_IN_BKT(tbl,hh,head,keyptr,keylen_in,out)                    \
+out = TYPEOF(out)((head.hh_head) ? ELMT_FROM_HH(tbl,head.hh_head) : NULL);    \
 while (out) {                                                                 \
     if (out->hh.keylen == keylen_in) {                                        \
         if ((HASH_KEYCMP(out->hh.key,keyptr,keylen_in)) == 0) break;          \
     }                                                                         \
-    out= TYPEOF(out)((out->hh.hh_next) ? (out->hh.hh_next->elmt) : NULL);     \
+    out= TYPEOF(out)((out->hh.hh_next) ?                                      \
+                     ELMT_FROM_HH(tbl,out->hh.hh_next) : NULL);               \
 }
 
 /* add an item to a bucket  */
@@ -376,7 +381,7 @@ while (out) {                                                                 \
 /* remove an item from a given bucket */
 #define HASH_DEL_IN_BKT(hh,head,hh_del)                                       \
     (head).count--;                                                           \
-    if ((head).hh_head->elmt == hh_del->elmt) {                               \
+    if ((head).hh_head == hh_del) {                                           \
       (head).hh_head = hh_del->hh_next;                                       \
     }                                                                         \
     if (hh_del->hh_prev) {                                                    \
@@ -507,8 +512,11 @@ while (out) {                                                                 \
                           (head)->hh.tbl->hho)) : NULL);                      \
                       (head)->hh.tbl->psize--;                                \
                   } else if ((                                                \
-                      cmpfcn(TYPEOF(head)((head)->hh.tbl->p->elmt),           \
-                             TYPEOF(head)((head)->hh.tbl->q->elmt))) <= 0) {  \
+                      cmpfcn(TYPEOF(head)                                     \
+                            (ELMT_FROM_HH((head)->hh.tbl,(head)->hh.tbl->p)), \
+                            TYPEOF(head)                                      \
+                            (ELMT_FROM_HH((head)->hh.tbl,(head)->hh.tbl->q))) \
+                             ) <= 0) {                                        \
                       (head)->hh.tbl->e = (head)->hh.tbl->p;                  \
                       (head)->hh.tbl->p =                                     \
                           (UT_hash_handle*)(((head)->hh.tbl->p->next) ?       \
@@ -525,12 +533,12 @@ while (out) {                                                                 \
                   }                                                           \
                   if ( (head)->hh.tbl->tale ) {                               \
                       (head)->hh.tbl->tale->next = (((head)->hh.tbl->e) ?     \
-                               ((head)->hh.tbl->e->elmt) : NULL);             \
+                      ELMT_FROM_HH((head)->hh.tbl,(head)->hh.tbl->e) : NULL); \
                   } else {                                                    \
                       (head)->hh.tbl->list = (head)->hh.tbl->e;               \
                   }                                                           \
                   (head)->hh.tbl->e->prev = (((head)->hh.tbl->tale) ?         \
-                                 ((head)->hh.tbl->tale->elmt) : NULL);        \
+                   ELMT_FROM_HH((head)->hh.tbl,(head)->hh.tbl->tale) : NULL); \
                   (head)->hh.tbl->tale = (head)->hh.tbl->e;                   \
               }                                                               \
               (head)->hh.tbl->p = (head)->hh.tbl->q;                          \
@@ -539,7 +547,8 @@ while (out) {                                                                 \
           if ( (head)->hh.tbl->nmerges <= 1 ) {                               \
               (head)->hh.tbl->looping=0;                                      \
               (head)->hh.tbl->tail = (head)->hh.tbl->tale;                    \
-              (head) = TYPEOF(head)((head)->hh.tbl->list->elmt);              \
+              (head) = TYPEOF(head)ELMT_FROM_HH((head)->hh.tbl,               \
+                                                (head)->hh.tbl->list);        \
           }                                                                   \
           (head)->hh.tbl->insize *= 2;                                        \
       }                                                                       \
@@ -611,7 +620,6 @@ typedef struct UT_hash_table {
 
 typedef struct UT_hash_handle {
    struct UT_hash_table *tbl;
-   void *elmt;                       /* ptr to enclosing element       */
    void *prev;                       /* prev element in app order      */
    void *next;                       /* next element in app order      */
    struct UT_hash_handle *hh_prev;   /* previous hh in bucket order    */

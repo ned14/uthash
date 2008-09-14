@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
     veloc_t *v, *v2, *veloc_table = NULL;
     double x = 1/3.0;
 
-    v = malloc( sizeof(*v) );
+    v = (veloc_t*)malloc( sizeof(*v) );
     v->veloc = x;
     HASH_ADD(hh, veloc_table, veloc, sizeof(double), v);
     HASH_FIND(hh, veloc_table, &x, sizeof(double), v2 );

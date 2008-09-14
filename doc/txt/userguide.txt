@@ -772,8 +772,8 @@ print the keys in order. We'd define two sort functions, then use `HASH_SRT`:
 [[Appendix_A]]
 Appendix A: Built-in hash functions
 -----------------------------------
-The hash function transforms a key into a bucket number.  You don't have to
-take any action to use the default hash function (Jenkin's hash). 
+Internally, a hash function transforms a key into a bucket number.  You don't
+have to take any action to use the default hash function, Jenkin's hash. 
 
 Some programs may benefit from using another of the built-in hash functions.
 There is a simple analysis utility included with uthash to help you determine
@@ -883,7 +883,7 @@ approaches 100%, the hash table approaches constant-time lookup performance.
 Appendix B: Expansion internals
 -------------------------------
 Internally this hash manages the number of buckets, with the goal of having
-enough buckets so that each one contains only small number of items.  
+enough buckets so that each one contains only a small number of items.  
 
 .Why does the number of buckets matter?
 *****************************************************************************
@@ -936,9 +936,9 @@ does. It degrades gracefully if the hash function is ill-suited to the keys.
 
 If two consecutive bucket expansions yield `ideal%` values below 50%, uthash
 inhibits expansion for that hash table.  Once set, the 'bucket expansion
-inhibited' flag remains in effect as long as the hash has items in it.  Because
-inhibited expansion may cause `HASH_FIND` to exhibit worse than constant-time
-performance, you can hook in code to execute if you want to know if it occurs.  
+inhibited' flag remains in effect as long as the hash has items in it.  
+Inhibited expansion may cause `HASH_FIND` to exhibit worse than constant-time
+performance. 
 
 Appendix C: Hooks
 -----------------
@@ -1106,7 +1106,9 @@ HASH_COUNT      (head)
 General macros
 ~~~~~~~~~~~~~~
 
-These macros add, find, delete and sort the items in a hash.  
+These macros add, find, delete and sort the items in a hash.  You need to 
+use the general macros if your `UT_hash_handle` is named something other
+than `hh`, or if your key's data type isn't `int` or `char[]`.
 
 .General macros
 `---------------`-----------------------------------------------------------

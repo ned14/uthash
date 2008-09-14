@@ -5,6 +5,8 @@ Version 1.4 (????-??-??)
  * C++ compatibility; satisfy additional casting requirements.
    Also in the tests/ directory, running 'make cplusplus' now compiles
    all the test programs with the C++ compiler.
+ * Eliminate "elmt" pointer from the UT_hash_handle. Calculate elmt
+   from hash handle address by subtracting hho (hash handle offset).
  * L.S.Chin <L.S.Chin@NOSPAM.rl.ac.uk>
    - Cast void* to char* before pointer arithmetic to suppress compiler 
      warnings. We assume compilers abide to C standards which impose 
