@@ -152,8 +152,9 @@ sort
 by your key domain and the hash function.</p></div>
 <div class="para"><p>This hash aims to be minimalistic and efficient. It's around 600 lines of C.
 It inlines automatically because it's implemented as macros. It's fast as long
-as the hash function is properly chosen to suit your keys. This is easy; see
-<a href="#Appendix_A">Built-in hash functions</a>.</p></div>
+as the hash function is suited to your keys. You can use the default hash
+function, or easily compare performance and choose from among several other
+<a href="#Appendix_A">built-in hash functions</a>.</p></div>
 <h3 id="_is_it_a_library">Is it a library?</h3><div style="clear:left"></div>
 <div class="para"><p>No, it's just a single header file: <tt>uthash.h</tt>.  All you need to do is copy
 the header file into your project, and:</p></div>
@@ -161,7 +162,7 @@ the header file into your project, and:</p></div>
 <div class="content">
 <pre><tt>#include "uthash.h"</tt></pre>
 </div></div>
-<div class="para"><p>You may then utilize the hash macros as explained below.</p></div>
+<div class="para"><p>Since uthash is a header file only, there is no library code to link against.</p></div>
 <h3 id="_c_c_and_platforms">C/C++ and platforms</h3><div style="clear:left"></div>
 <div class="para"><p>This software can be used in C and C++ programs.  It has been tested on:</p></div>
 <div class="ilist"><ul>
@@ -240,12 +241,10 @@ struct my_struct {
 can also comprise multiple contiguous fields, having any names and data types.</p></div>
 <div class="sidebarblock">
 <div class="sidebar-content">
-<div class="sidebar-title">Any data type&#8230; is this really C?</div>
+<div class="sidebar-title">Any data type&#8230; really?</div>
 <div class="para"><p>Yes, your key and structure can have any data type. Unlike function calls with
 fixed prototypes, uthash consists of macros&#8212; whose arguments are untyped&#8212; and
-thus able to work with any type of structure or key.  Since uthash is a header
-file only, there is no library code to link against.  Macros expand to inline
-code which may provide further optimization opportunities to the compiler.</p></div>
+thus able to work with any type of structure or key.</p></div>
 </div></div>
 <h4 id="_unique_keys">Unique keys</h4>
 <div class="para"><p>As with any hash, every item must have a unique key.  Your application must
@@ -261,9 +260,8 @@ find and delete items.</p></div>
 </div>
 <h2 id="_add_find_delete_count_sort_iterate">Add, find, delete, count, sort, iterate</h2>
 <div class="sectionbody">
-<div class="para"><p>This section introduces the <tt>HASH_ADD</tt>, <tt>HASH_FIND</tt>, <tt>HASH_DELETE</tt>, <tt>HASH_COUNT</tt>
-and <tt>HASH_SORT</tt> macros. This section demonstrates the macros by example. For a
-more succinct listing, see <a href="#Appendix_F">Appendix F: Macro Reference</a>.</p></div>
+<div class="para"><p>This section introduces the uthash macros by example. For a more succinct
+listing, see <a href="#Appendix_F">Appendix F: Macro Reference</a>.</p></div>
 <div class="sidebarblock">
 <div class="sidebar-content">
 <div class="sidebar-title">Convenience vs. general macros</div>
@@ -305,10 +303,10 @@ second parameter is the <em>name</em> of the key field. Here, this is <tt>id</tt
 last parameter is a pointer to the structure being added.</p></div>
 <div class="sidebarblock" id="validc">
 <div class="sidebar-content">
-<div class="sidebar-title">Uhh.. the field name is a parameter?</div>
-<div class="para"><p>Does it look strange to you that <tt>id</tt>, which is the <em>name of a field</em> in the
-structure, can be passed as a parameter?  Welcome to the world of macros.  Rest
-assured that the C preprocessor expands this to valid C code.</p></div>
+<div class="sidebar-title">Wait.. the field name is a parameter?</div>
+<div class="para"><p>If you find it strange that <tt>id</tt>, which is the <em>name of a field</em> in the
+structure, can be passed as a parameter, welcome to the world of macros. Don't
+worry- the C preprocessor expands this to valid C code.</p></div>
 </div></div>
 <h4 id="_key_must_not_be_modified_while_in_use">Key must not be modified while in-use</h4>
 <div class="para"><p>Once a structure has been added to the hash, do not change the value of its key.
@@ -872,8 +870,8 @@ HASH_SRT(hh2, users_by_name, sort_by_name);</tt></pre>
 </div>
 <h2 id="Appendix_A">Appendix A: Built-in hash functions</h2>
 <div class="sectionbody">
-<div class="para"><p>The hash function transforms a key into a bucket number.  You don't have to
-take any action to use the default hash function (Jenkin's hash).</p></div>
+<div class="para"><p>Internally, a hash function transforms a key into a bucket number.  You don't
+have to take any action to use the default hash function, Jenkin's hash.</p></div>
 <div class="para"><p>Some programs may benefit from using another of the built-in hash functions.
 There is a simple analysis utility included with uthash to help you determine
 if another hash function will give you better performance.</p></div>
@@ -1085,7 +1083,7 @@ approaches 100%, the hash table approaches constant-time lookup performance.</p>
 <h2 id="Appendix_B">Appendix B: Expansion internals</h2>
 <div class="sectionbody">
 <div class="para"><p>Internally this hash manages the number of buckets, with the goal of having
-enough buckets so that each one contains only small number of items.</p></div>
+enough buckets so that each one contains only a small number of items.</p></div>
 <div class="sidebarblock">
 <div class="sidebar-content">
 <div class="sidebar-title">Why does the number of buckets matter?</div>
@@ -1127,9 +1125,9 @@ stop expanding, and accept O(n) lookup performance. This is what uthash
 does. It degrades gracefully if the hash function is ill-suited to the keys.</p></div>
 <div class="para"><p>If two consecutive bucket expansions yield <tt>ideal%</tt> values below 50%, uthash
 inhibits expansion for that hash table.  Once set, the <em>bucket expansion
-inhibited</em> flag remains in effect as long as the hash has items in it.  Because
-inhibited expansion may cause <tt>HASH_FIND</tt> to exhibit worse than constant-time
-performance, you can hook in code to execute if you want to know if it occurs.</p></div>
+inhibited</em> flag remains in effect as long as the hash has items in it.
+Inhibited expansion may cause <tt>HASH_FIND</tt> to exhibit worse than constant-time
+performance.</p></div>
 </div>
 <h2 id="_appendix_c_hooks">Appendix C: Hooks</h2>
 <div class="sectionbody">
@@ -1161,12 +1159,11 @@ If your application uses its own custom allocator, this hash can use them too.</
 </div></div>
 <h4 id="_why_are_there_two_pairs_of_malloc_free_functions">Why are there two pairs of malloc/free functions?</h4>
 <div class="para"><p>One deals with <tt>UT_hash_bucket</tt> structures, the other with <tt>UT_hash_table</tt>
-structures.</p></div>
-<div class="para"><p>While the two structures don't <em>need</em> to have their own allocation and free
-functions (and indeed the default is just to use <tt>malloc</tt> and <tt>free</tt> anyway),
-they exist separately for each structure for convenient integration with pool
-(or slab) type allocators. This type of allocator provides a separate pool for
-each structure.</p></div>
+structures.  While the two structures don't <em>need</em> to have their own allocation
+and free functions (indeed, the default is just to use <tt>malloc</tt> and <tt>free</tt> for
+both), they exist separately for each structure for convenient integration with
+pool or "slab" type allocators. This type of allocator provides a separate pool
+for each structure.</p></div>
 <h3 id="_out_of_memory">Out of memory</h3><div style="clear:left"></div>
 <div class="para"><p>If memory allocation fails (i.e., the malloc function returned <tt>NULL</tt>), the
 default behavior is to terminate the process by calling <tt>exit(-1)</tt>. This can
@@ -1360,7 +1357,9 @@ cellspacing="0" cellpadding="4">
 </table>
 </div>
 <h3 id="_general_macros">General macros</h3><div style="clear:left"></div>
-<div class="para"><p>These macros add, find, delete and sort the items in a hash.</p></div>
+<div class="para"><p>These macros add, find, delete and sort the items in a hash.  You need to
+use the general macros if your <tt>UT_hash_handle</tt> is named something other
+than <tt>hh</tt>, or if your key's data type isn't <tt>int</tt> or <tt>char[]</tt>.</p></div>
 <div class="tableblock">
 <table rules="none"
 frame="hsides"
@@ -1515,7 +1514,7 @@ cmp
 <div id="footer">
 <div id="footer-text">
 Version 1.4<br />
-Last updated 2008-09-09 06:01:39 EDT
+Last updated 2008-09-23 20:06:27 EDT
 </div>
 </div>
 </body>

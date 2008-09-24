@@ -26,7 +26,7 @@
         <div><a href="userguide.html">user guide</a></div>
 
         <h2>download</h2>
-        <div><a href="http://prdownloads.sourceforge.net/uthash/uthash-1.3.tar.bz2?download">uthash-1.3.tar.bz2</a></div>
+        <div><a href="http://prdownloads.sourceforge.net/uthash/uthash-1.4.tar.bz2?download">uthash-1.4.tar.bz2</a></div>
 
         <h2>last release</h2>
         <div>September, 2008</div>
@@ -44,9 +44,10 @@
 
 
       <div id="main">
-        Uthash allows any C structure to be stored in a hash table. Just add a 
-        <em>UT_hash_handle</em> to the structure and use these macros.
-        Choose one or more fields in your structure to act as the key. 
+        Any C structure can be stored in a hash table using uthash. Just add a
+        <em>UT_hash_handle</em> to the structure and choose one or more fields
+        in your structure to act as the key. Then use these macros to store,
+        retrieve or delete items from the hash table.
 
 <div class="listing">
 Example 1. Adding an item to a hash.
@@ -98,7 +99,7 @@ void delete_user(struct my_struct *user) {
 </div> <!-- code -->
 </div> <!-- listing -->
 
- The key can have any data type. For more information please see the <a href="userguide.html">User Guide.</a>
+ For more information and examples, please see the <a href="userguide.html">User Guide.</a>
 
 </div> <!-- main -->
 </div> <!-- mid -->

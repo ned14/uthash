@@ -33,8 +33,9 @@ by your key domain and the hash function.
 
 This hash aims to be minimalistic and efficient. It's around 600 lines of C.
 It inlines automatically because it's implemented as macros. It's fast as long
-as the hash function is properly chosen to suit your keys. This is easy; see
-<<Appendix_A,Built-in hash functions>>. 
+as the hash function is suited to your keys. You can use the default hash
+function, or easily compare performance and choose from among several other
+<<Appendix_A,built-in hash functions>>. 
 
 Is it a library?
 ~~~~~~~~~~~~~~~~
@@ -43,7 +44,7 @@ the header file into your project, and:
 
     #include "uthash.h"
 
-You may then utilize the hash macros as explained below.
+Since uthash is a header file only, there is no library code to link against.
 
 C/C++ and platforms
 ~~~~~~~~~~~~~~~~~~~
@@ -110,13 +111,11 @@ The key
 There are no restrictions on the data type or name of the key field. The key
 can also comprise multiple contiguous fields, having any names and data types.
 
-.Any data type... is this really C?
+.Any data type... really?
 *****************************************************************************
 Yes, your key and structure can have any data type. Unlike function calls with
 fixed prototypes, uthash consists of macros-- whose arguments are untyped-- and
-thus able to work with any type of structure or key.  Since uthash is a header
-file only, there is no library code to link against.  Macros expand to inline
-code which may provide further optimization opportunities to the compiler. 
+thus able to work with any type of structure or key.  
 *****************************************************************************
 
 Unique keys
@@ -137,9 +136,8 @@ find and delete items.
 Add, find, delete, count, sort, iterate
 ---------------------------------------
 
-This section introduces the `HASH_ADD`, `HASH_FIND`, `HASH_DELETE`, `HASH_COUNT` 
-and `HASH_SORT` macros. This section demonstrates the macros by example. For a
-more succinct listing, see <<Appendix_F,Appendix F: Macro Reference>>. 
+This section introduces the uthash macros by example. For a more succinct
+listing, see <<Appendix_F,Appendix F: Macro Reference>>. 
 
 .Convenience vs. general macros
 *****************************************************************************
@@ -185,11 +183,11 @@ second parameter is the 'name' of the key field. Here, this is `id`. The
 last parameter is a pointer to the structure being added.
 
 [[validc]]
-.Uhh.. the field name is a parameter?
+.Wait.. the field name is a parameter?
 *******************************************************************************
-Does it look strange to you that `id`, which is the 'name of a field' in the
-structure, can be passed as a parameter?  Welcome to the world of macros.  Rest
-assured that the C preprocessor expands this to valid C code. 
+If you find it strange that `id`, which is the 'name of a field' in the
+structure, can be passed as a parameter, welcome to the world of macros. Don't
+worry- the C preprocessor expands this to valid C code. 
 *******************************************************************************
 
 Key must not be modified while in-use
@@ -974,13 +972,11 @@ If your application uses its own custom allocator, this hash can use them too.
 Why are there two pairs of malloc/free functions?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 One deals with `UT_hash_bucket` structures, the other with `UT_hash_table`
-structures. 
-
-While the two structures don't 'need' to have their own allocation and free
-functions (and indeed the default is just to use `malloc` and `free` anyway),
-they exist separately for each structure for convenient integration with pool
-(or slab) type allocators. This type of allocator provides a separate pool for
-each structure.
+structures.  While the two structures don't 'need' to have their own allocation
+and free functions (indeed, the default is just to use `malloc` and `free` for
+both), they exist separately for each structure for convenient integration with
+pool or "slab" type allocators. This type of allocator provides a separate pool
+for each structure.
 
 Out of memory
 ~~~~~~~~~~~~~
