@@ -1,0 +1,5 @@
+ifdef::backend-xhtml11[]
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+<a style="float: right; padding-right: 50px;" href="http://sourceforge.net"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=163879&amp;type=2" width="125" height="37" border="0" alt="SourceForge.net Logo" /></a>
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+endif::backend-xhtml11[]
