@@ -6,7 +6,6 @@ div.sidebar-content {
   padding: 0.5em;
 }
 div.sidebar-title, div.image-title {
-  color: #527bbd;
   font-family: sans-serif;
   font-weight: bold;
   margin-top: 0.0em;
@@ -19,17 +18,8 @@ div.listingblock div.content {
   padding: 0.5em;
 }
 
-div.quoteblock-attribution {
-  padding-top: 0.5em;
-  text-align: right;
-}
-
-div.verseblock-content {
-  white-space: pre;
-}
-div.verseblock-attribution {
-  padding-top: 0.75em;
-  text-align: left;
+div.quoteblock-content {
+  padding-left: 2.0em;
 }
 
 div.exampleblock-content {
@@ -39,11 +29,3 @@ div.exampleblock-content {
 
 /* IE6 sets dynamically generated links as visited. */
 div#toc a:visited { color: blue; }
-
-/* Because IE6 child selector is broken. */
-div.olist2 ol {
-  list-style-type: lower-alpha;
-}
-div.olist2 div.olist ol {
-  list-style-type: decimal;
-}

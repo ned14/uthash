@@ -139,7 +139,7 @@ Add, find, delete, count, sort, iterate
 This section introduces the uthash macros by example. For a more succinct
 listing, see <<Appendix_F,Appendix F: Macro Reference>>. 
 
-.Convenience vs. general macros
+.Convenience vs. general macros:
 *****************************************************************************
 The uthash macros fall into two categories. The 'convenience' macros can be used
 with integer or string keys (and require that you chose the conventional
@@ -308,7 +308,7 @@ void print_users() {
 There is also an `hh.prev` pointer you could use to iterate backwards through
 the hash, starting from any known item.
 
-.A hash is also a doubly-linked list
+.A hash is also a doubly-linked list.
 *******************************************************************************
 Iterating backward and forward through the items in the hash is possible
 because of the `hh.prev` and `hh.next` fields. All the items in the hash can
@@ -369,7 +369,7 @@ If this code was placed in a file called `example.c` in the same directory as
 
 Follow the prompts to try the program, and type `Ctrl-C` when done.
 
-.A complete program
+.A complete program (part 1 of 2)
 ----------------------------------------------------------------------
 #include <stdio.h>   /* gets */
 #include <stdlib.h>  /* atoi, malloc */
@@ -430,7 +430,10 @@ int name_sort(struct my_struct *a, struct my_struct *b) {
 int id_sort(struct my_struct *a, struct my_struct *b) {
     return (a->id - b->id);
 }
+----------------------------------------------------------------------
 
+.A complete program (part 2 of 2)
+----------------------------------------------------------------------
 void sort_by_name() {
     HASH_SORT(users, name_sort);
 }
@@ -655,7 +658,7 @@ by an `int` will normally have 3 "wasted" bytes of padding after the char, in
 order to make the `int` field start on a multiple-of-4 address (4 is the length
 of the int). 
 
-.Calculating the length of a multi-field key 
+.Calculating the length of a multi-field key:
 *******************************************************************************
 To determine the key length when using a multi-field key, you must include any
 intervening structure padding the compiler adds for alignment purposes.
@@ -784,15 +787,15 @@ below. E.g.,
     cc -DHASH_FUNCTION=HASH_BER -o program program.c
 
 .Built-in hash functions
-`---------`---------------
-Symbol     Name    
---------------------------
-JEN        Jenkins (default)
-BER        Bernstein
-SAX        Shift-Add-Xor
-OAT        One-at-a-time
-FNV        Fowler/Noll/Vo
---------------------------
+[width="50%",cols="^5m,20",grid="none",options="header"]
+|===============================================================================
+|Symbol |   Name    
+|JEN    |   Jenkins (default)
+|BER    |   Bernstein
+|SAX    |   Shift-Add-Xor
+|OAT    |   One-at-a-time
+|FNV    |   Fowler/Noll/Vo
+|===============================================================================
 
 Which hash function is best?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -883,13 +886,12 @@ Appendix B: Expansion internals
 Internally this hash manages the number of buckets, with the goal of having
 enough buckets so that each one contains only a small number of items.  
 
-.Why does the number of buckets matter?
-*****************************************************************************
+Why does the number of buckets matter?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 When looking up an item by its key, this hash scans linearly through the items
 in the appropriate bucket. In order for the linear scan to run in constant
 time, the number of items in each bucket must be bounded. This is accomplished
 by increasing the number of buckets as needed.
-*****************************************************************************
 
 Normal expansion
 ~~~~~~~~~~~~~~~~
@@ -1087,17 +1089,17 @@ In order to use the convenience macros,
 2. for add or find, the key field must be of type `int` or `char[]` 
 
 .Convenience macros
-`---------------`-----------------------------------------------------------
-macro           arguments
-----------------------------------------------------------------------------
-HASH_ADD_INT    (head, keyfield_name, item_ptr)
-HASH_FIND_INT   (head, key_ptr, item_ptr)
-HASH_ADD_STR    (head, keyfield_name, item_ptr)
-HASH_FIND_STR   (head, key_ptr, item_ptr)
-HASH_DEL        (head, item_ptr)
-HASH_SORT       (head, cmp)
-HASH_COUNT      (head)
-----------------------------------------------------------------------------
+[width="90%",cols="10m,30m",grid="none",options="header"]
+|===============================================================================
+|macro         | arguments
+|HASH_ADD_INT  | (head, keyfield_name, item_ptr)
+|HASH_FIND_INT | (head, key_ptr, item_ptr)
+|HASH_ADD_STR  | (head, keyfield_name, item_ptr)
+|HASH_FIND_STR | (head, key_ptr, item_ptr)
+|HASH_DEL      | (head, item_ptr)
+|HASH_SORT     | (head, cmp)
+|HASH_COUNT    | (head)
+|===============================================================================
 
 General macros
 ~~~~~~~~~~~~~~
@@ -1107,16 +1109,16 @@ use the general macros if your `UT_hash_handle` is named something other
 than `hh`, or if your key's data type isn't `int` or `char[]`.
 
 .General macros
-`---------------`-----------------------------------------------------------
-macro           arguments
-----------------------------------------------------------------------------
-HASH_ADD        (hh_name, head, keyfield_name, key_len, item_ptr)
-HASH_ADD_KEYPTR (hh_name, head, key_ptr, key_len, item_ptr)
-HASH_FIND       (hh_name, head, key_ptr, key_len, item_ptr)
-HASH_DELETE     (hh_name, head, item_ptr)
-HASH_SRT        (hh_name, head, cmp)
-HASH_CNT        (hh_name, head)
-----------------------------------------------------------------------------
+[width="90%",cols="10m,30m",grid="none",options="header"]
+|===============================================================================
+|macro          | arguments
+|HASH_ADD       | (hh_name, head, keyfield_name, key_len, item_ptr)
+|HASH_ADD_KEYPTR| (hh_name, head, key_ptr, key_len, item_ptr)
+|HASH_FIND      | (hh_name, head, key_ptr, key_len, item_ptr)
+|HASH_DELETE    | (hh_name, head, item_ptr)
+|HASH_SRT       | (hh_name, head, cmp)
+|HASH_CNT       | (hh_name, head)
+|===============================================================================
 
 [NOTE]
 `HASH_ADD_KEYPTR` is used when the structure contains a pointer to the

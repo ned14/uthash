@@ -32,6 +32,12 @@ h1,p {  margin: 0; }  /* non-0 margin on firefox */
     margin-bottom: 10px;
 }
 
+#mid img {
+     padding-left: 10px;
+     vertical-align: middle;
+}
+
+
 #nav {
     background-color: #fff8f1;
     margin-left: 10px;
