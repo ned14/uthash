@@ -17,6 +17,11 @@ endif
 TEST_TARGET=run_tests
 TESTS=./do_tests
 
+# Prefer 64-bit compilation on Mac OS X (not necessary, just faster)
+ifneq ($(strip $(shell $(CC) -v 2>&1 |egrep "i[0-9]+-apple-darwin")),)
+  CFLAGS += -m64
+endif
+
 # detect Cygwin
 ifneq ($(strip $(shell $(CC) -v 2>&1 |grep "cygwin")),)
   TESTS=./do_tests.cygwin

@@ -1,0 +1,1 @@
+test1: exercise a two-reader, one-writer, rwlock-protected hash.
