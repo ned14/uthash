@@ -24,4 +24,5 @@ int main(int argc, char *argv[]) {
 
     HASH_FIND_STR( users, "betty", s);
     if (s) printf("betty's id is %d\n", s->id);
+   return 0;
 }

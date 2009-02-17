@@ -25,4 +25,5 @@ int main(int argc,char *argv[]) {
     for(user=altusers; user != NULL; user=(example_user_t*)(user->alth.next)) {
         printf("cookie %d, user %d\n", user->cookie, user->id);
     }
+   return 0;
 }

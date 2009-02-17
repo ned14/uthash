@@ -21,7 +21,7 @@ int descending_sort(example_user_t *a, example_user_t *b) {
 
 int main(int argc,char *argv[]) {
     int i;
-    example_user_t *user, *tmp, *users=NULL, *altusers=NULL;
+    example_user_t *user, *users=NULL, *altusers=NULL;
 
     /* create elements */
     for(i=0;i<1000;i++) {
@@ -44,4 +44,5 @@ int main(int argc,char *argv[]) {
 
     /* HASH_FSCK(hh,users); */
     /* HASH_FSCK(alth,altusers); */
+   return 0;
 }

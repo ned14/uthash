@@ -29,4 +29,5 @@ int main(int argc,char *argv[]) {
       printf("deleting id %i\n", users->id);
       HASH_DEL(users,users); /* single head/deletee var! */
     }
+   return 0;
 }

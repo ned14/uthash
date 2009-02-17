@@ -40,4 +40,5 @@ int main() {
     printf("deleting %d\n", j->key);
     HASH_DEL(items,j);
   }
+  return 0;
 }

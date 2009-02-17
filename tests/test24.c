@@ -21,4 +21,5 @@ int main(int argc,char *argv[]) {
     }
     
     printf("hash contains %d items\n", HASH_COUNT(users));
+   return 0;
 }

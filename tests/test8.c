@@ -30,4 +30,5 @@ int main(int argc,char *argv[]) {
             printf("deleted; num_items in hash: %d\n", user->hh.tbl->num_items);
         } else printf("user id %d not found\n", i);
     }
+   return 0;
 }

@@ -39,4 +39,5 @@ int main(int argc, char *argv[]) {
     ev.event_code = 'b';
     HASH_FIND( hh, events, &ev.tv, keylen , e);
     if (e) printf("found: user %d, unix time %ld\n", e->user_id, e->tv.tv_sec);
+   return 0;
 }

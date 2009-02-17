@@ -270,10 +270,10 @@ do { \
 #define HASH_BER(key,keylen,num_bkts,hashv,bkt)                          \
 do { \
   unsigned _keylen=keylen; \
-  hashv = 0; \
   char *_key=(char*)key; \
-  while (_keylen--)  hashv = (hashv * 33) + *_key++;                              \
-  bkt = hashv & (num_bkts-1);          \
+  (hashv) = 0; \
+  while (_keylen--)  { (hashv) = ((hashv) * 33) + *_key++; }                            \
+  bkt = (hashv) & (num_bkts-1);          \
 } while (0)
 
 
@@ -281,34 +281,28 @@ do { \
  * http://eternallyconfuzzled.com/tuts/algorithms/jsw_tut_hashing.aspx */
 #define HASH_SAX(key,keylen,num_bkts,hashv,bkt)                          \
 do { \
-  unsigned _i,_j,_k; \
-  unsigned _keylen=keylen; \
-  char *_key=(char*)key; \
+  unsigned _i; \
   hashv = 0;                                                                   \
   for(_i=0; _i < keylen; _i++)                                                   \
-      hashv ^= (hashv << 5) + (hashv >> 2) + _key[_i];                             \
+      hashv ^= (hashv << 5) + (hashv >> 2) + key[_i];                             \
   bkt = hashv & (num_bkts-1);          \
 } while (0)
 
 #define HASH_FNV(key,keylen,num_bkts,hashv,bkt)                          \
 do { \
-  unsigned _i,_j,_k; \
-  unsigned _keylen=keylen; \
-  char *_key=(char*)key; \
+  unsigned _i; \
   hashv = 2166136261UL;                                                        \
-  for(_i=0; _i < _keylen; _i++)                                                   \
-      hashv = (hashv * 16777619) ^ _key[_i];                                      \
+  for(_i=0; _i < keylen; _i++)                                                   \
+      hashv = (hashv * 16777619) ^ key[_i];                                      \
   bkt = hashv & (num_bkts-1);          \
 } while(0);
  
 #define HASH_OAT(key,keylen,num_bkts,hashv,bkt)                          \
 do { \
-  unsigned _i,_j,_k; \
-  unsigned _keylen=keylen; \
-  char *_key=(char*)key; \
+  unsigned _i; \
   hashv = 0;                                                                   \
-  for(_i=0; _i < _keylen; _i++) {                                                 \
-      hashv += _key[_i];                                                         \
+  for(_i=0; _i < keylen; _i++) {                                                 \
+      hashv += key[_i];                                                         \
       hashv += (hashv << 10);                                                   \
       hashv ^= (hashv >> 6);                                                    \
   }                                                                           \
@@ -334,11 +328,10 @@ do {                                                                            
 #define HASH_JEN(key,keylen,num_bkts,hashv,bkt)                          \
 do { \
   unsigned _i,_j,_k; \
-  unsigned _keylen=keylen; \
   char *_key=(char*)key; \
   hashv = 0xfeedbeef;                                                          \
   _i = _j = 0x9e3779b9;                                                         \
-  _k = _keylen;                                                                 \
+  _k = keylen;                                                                 \
   while (_k >= 12) {                                                           \
     _i +=    (_key[0] + ( (unsigned)_key[1] << 8 )                               \
         + ( (unsigned)_key[2] << 16 )                                          \
@@ -355,7 +348,7 @@ do { \
      _key += 12;                                                               \
      _k -= 12;                                                                 \
   }                                                                           \
-  hashv += _keylen;                                                             \
+  hashv += keylen;                                                             \
   switch ( _k ) {                                                              \
      case 11: hashv += ( (unsigned)_key[10] << 24 );                            \
      case 10: hashv += ( (unsigned)_key[9] << 16 );                             \

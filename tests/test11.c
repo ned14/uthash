@@ -8,7 +8,7 @@
 /* Print a message if the hash's no-expand flag is set. */
 #undef uthash_noexpand_fyi 
 #undef uthash_expand_fyi 
-#define uthash_noexpand_fyi printf("noexpand set\n");
+#define uthash_noexpand_fyi(tbl) printf("noexpand set\n");
 #define uthash_expand_fyi(tbl) printf("hash expanded\n");
 
 typedef struct name_rec {
@@ -40,5 +40,7 @@ int main(int argc,char *argv[]) {
     HASH_SORT(names,namecmp);
     for(name=names;name;name=(name_rec*)(name->hh.next)) 
       printf("%s",name->boy_name);
+
+   return 0;
 }
 

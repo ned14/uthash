@@ -29,4 +29,5 @@ int main(int argc,char *argv[]) {
         if (tmp) printf("cookie %d found, user id %d\n", tmp->cookie, tmp->id);
         else printf("cookie %d not found\n", j);
     }
+   return 0;
 }

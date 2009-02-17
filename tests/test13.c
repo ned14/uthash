@@ -38,4 +38,5 @@ int main(int argc,char *argv[]) {
         }
     } else printf("user id %d not found\n", i);
 
+   return 0;
 }

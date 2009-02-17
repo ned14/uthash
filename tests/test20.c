@@ -24,4 +24,5 @@ int main(int argc, char *argv[]) {
     HASH_FIND( hh, bins, binary, sizeof(binary), t );
 
     if (t) printf("found\n");
+   return 0;
 }

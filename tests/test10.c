@@ -39,4 +39,5 @@ int main(int argc,char *argv[]) {
     HASH_FIND(alth,altusers,&i,sizeof(int),tmp);
     printf("%d %s in alth\n", i, (tmp ? "found" : "not found"));
 
+   return 0;
 }

@@ -30,4 +30,5 @@ int main(int argc, char*argv[]) {
         else 
             printf("failed to find %s\n", *name);
     }
+   return 0;
 }

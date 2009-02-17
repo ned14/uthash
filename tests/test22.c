@@ -50,4 +50,5 @@ int main(int argc, char *argv[]) {
     HASH_FIND( hh, msgs, &lookup_key->encoding, keylen, msg );
     if (msg) printf("found \n");
     free(lookup_key);
+    return 0;
 }

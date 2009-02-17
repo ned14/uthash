@@ -18,5 +18,6 @@ int main(int argc, char *argv[]) {
     HASH_FIND(hh, veloc_table, &x, sizeof(double), v2 );
 
     if (v2) printf("found (%.2f)\n", v2->veloc);
+   return 0;
 }
 

@@ -10,9 +10,9 @@ ifeq ($(HASH_DEBUG),1)
 CFLAGS += -DHASH_DEBUG=1
 endif
 
-ifeq ($(HASH_PEDANTIC),1)
+#ifeq ($(HASH_PEDANTIC),1)
 CFLAGS += -pedantic -Wall 
-endif
+#endif
 
 TEST_TARGET=run_tests
 TESTS=./do_tests

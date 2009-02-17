@@ -14,8 +14,8 @@
 
 #undef uthash_noexpand_fyi 
 #undef uthash_expand_fyi 
-#define uthash_noexpand_fyi printf("noexpand set\n");
-#define uthash_expand_fyi printf("hash expanded\n");
+#define uthash_noexpand_fyi(tbl) printf("noexpand set\n");
+#define uthash_expand_fyi(tbl) printf("hash expanded\n");
 
 typedef struct example_user_t {
     int id;
@@ -59,4 +59,5 @@ int main(int argc,char *argv[]) {
             printf("user %d, cookie %d\n", tmp->id, tmp->cookie);
         } else printf("user id %d not found\n", i);
     }
+   return 0;
 }

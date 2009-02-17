@@ -39,5 +39,6 @@ int main(int argc,char *argv[]) {
 
     fprintf(stderr,"%d keys emitted.\n", i);
     fclose(file);
+    return 0;
 }
 

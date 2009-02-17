@@ -48,7 +48,7 @@ typedef struct stat_key {
 
 int main(int argc, char *argv[]) {
     int dups=0, rc, fd, done=0, err=0, keylen;
-    char *key, *filename = "/dev/stdin"; 
+    char *filename = "/dev/stdin"; 
     stat_key *keyt, *keytmp, *keys=NULL, *keys2=NULL;
     struct timeval start_tm, end_tm, elapsed_tm, elapsed_tm2, elapsed_tm3;
 
@@ -138,5 +138,6 @@ int main(int argc, char *argv[]) {
         (elapsed_tm2.tv_sec * 1000000) + elapsed_tm2.tv_usec,
         (elapsed_tm3.tv_sec * 1000000) + elapsed_tm3.tv_usec );
     }
+  return 0;
 }
 

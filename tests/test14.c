@@ -39,5 +39,6 @@ int main(int argc,char *argv[]) {
     }
     fclose(file);
     printf("lookup on %d of %d names succeeded\n", j, i);
+   return 0;
 }
 
