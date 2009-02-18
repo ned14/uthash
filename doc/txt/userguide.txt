@@ -1,7 +1,7 @@
 uthash User Guide
 =================
 Troy D. Hanson <thanson@users.sourceforge.net>
-v1.4, September 2008
+v1.5, February 2009
 
 include::sflogo.txt[]
 include::topnav.txt[]
@@ -68,8 +68,9 @@ platform, in this way:
 
 BSD licensed
 ~~~~~~~~~~~~
-This software is made available under the BSD revised license. It is free and
-open source.
+This software is made available under the 
+link:license.html[revised BSD license]. 
+It is free and open source. 
 
 Obtaining uthash
 ~~~~~~~~~~~~~~~~
@@ -78,9 +79,12 @@ http://uthash.sourceforge.net[uthash website].
 
 Getting help
 ~~~~~~~~~~~~
-Feel free to mailto:thanson@users.sourceforge.net[email the author]. You can also
-post a message on the
-http://sourceforge.net/forum/forum.php?forum_id=556410[Help forum].  
+Feel free to mailto:thanson@users.sourceforge.net[email the author]. 
+
+Resources
+~~~~~~~~~
+News::
+ The author has a news feed for http://troydhanson.wordpress.com/feed/[software updates] image:img/rss.png[(RSS)].
 
 Who's using it?
 ~~~~~~~~~~~~~~~
@@ -1033,7 +1037,6 @@ set the 'bucket expansion inhibited' flag.
 
 Appendix D: Debug mode
 ----------------------
-
 If a program that uses this hash is compiled with `-DHASH_DEBUG=1`, a special
 internal consistency-checking mode is activated.  In this mode, the integrity
 of the whole hash is checked following every add or delete operation.  This is
@@ -1061,18 +1064,42 @@ together in a doubly-linked list that is a bucket chain.
 - during the walk in 'application' order, each item's `prev` pointer is compared
   for equality with the last visited item
 
-Appendix E: Threaded programs
------------------------------
-You can use this hash in a threaded program. But, the locking is up to you.
-You must protect the hash against concurrent usage. For every hash that
-you create in a threaded program, you should create a mutex lock to provide 
-exclusive access to the hash table for one thread at a time.
+.Macro debugging
+********************************************************************************
+Sometimes it's difficult to interpret a compiler warning when all it has
+is a warning and a line number containing a macro call. In the case of uthash,
+the macro can expand to dozens of lines. In this case, it is helpful to expand
+the macros to get a more precise idea of the line number where the error occurs.
 
-A read-write lock is not adequate. It is tempting to think that a hash lookup
-(`HASH_FIND`) could be carried out by multiple concurrent threads but that's not
-the case. Even a hash lookup conducts some writes to the internal hash structures
-as the key-to-hash-bucket calculation is performed. Therefore a mutex lock must be
-acquired for any use of the hash.
+  gcc -E -I../src test1.c > /tmp/a.c
+  egrep -v '^#' /tmp/a.c > /tmp/b.c
+  indent /tmp/b.c
+  gcc -o /tmp/b /tmp/b.c
+
+The last line compiles the original program (test1.c) with all macros expanded.
+So any compiler error or warning will have a line number that can be used to
+pinpoint the offending line precisely within the expanded macro call.
+********************************************************************************
+
+Appendix E: Thread safety
+-------------------------
+You can use uthash in a threaded program. To do so, you must use a reader-writer
+lock to protect against concurrent writes. 'It is ok to have concurrent readers'
+(since uthash 1.5). 
+
+  if (pthread_rwlock_init(&lock,NULL) != 0) fatal("can't create rwlock");
+  ...
+  if (pthread_rwlock_rdlock(&lock) != 0) fatal("can't get rdlock");
+  HASH_FIND_INT(elts, &i, e);
+  pthread_rwlock_unlock(&lock);
+  ...
+  if (pthread_rwlock_wrlock(&lock) != 0) fatal("can't get rdlock");
+  /* some add */
+  pthread_rwlock_unlock(&lock);
+
+Of course, you can use a mutex lock to protect against
+all concurrent access, if you prefer.
+
 
 [[Appendix_F]]
 Appendix F: Macro reference
@@ -1154,4 +1181,6 @@ cmp::
     pointer to comparison function which accepts two arguments (pointers to
     items to compare) and returns an int specifying whether the first item
     should sort before, equal to, or after the second item (like `strcmp`).
+
+// vim: set tw=80 wm=2 syntax=asciidoc: 
 

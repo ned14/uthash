@@ -42,12 +42,13 @@ void gettimeofday(struct timeval* p, void* tz /* IGNORED */)
 
 typedef struct stat_key {
     char *key;
-    int len;
+    unsigned len;
     UT_hash_handle hh, hh2;
 } stat_key;
 
 int main(int argc, char *argv[]) {
-    int dups=0, rc, fd, done=0, err=0, keylen;
+    int dups=0, rc, fd, done=0, err=0;
+    unsigned keylen;
     char *filename = "/dev/stdin"; 
     stat_key *keyt, *keytmp, *keys=NULL, *keys2=NULL;
     struct timeval start_tm, end_tm, elapsed_tm, elapsed_tm2, elapsed_tm3;
@@ -83,7 +84,7 @@ int main(int argc, char *argv[]) {
           keyt->len = keylen;
   
           rc = read(fd,keyt->key,keylen);
-          if (rc != keylen) {
+          if (rc != (int)keylen) {
               if (rc == -1) fprintf(stderr,"read failed: %s\n", strerror(errno));
               else if (rc >= 0) fprintf(stderr,"incomplete file\n");
               err=1;

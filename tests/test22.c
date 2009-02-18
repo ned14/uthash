@@ -19,7 +19,7 @@ typedef struct {
 } lookup_key_t;
 
 int main(int argc, char *argv[]) {
-    int keylen;
+    unsigned keylen;
     msg_t *msg, *msgs = NULL;
     lookup_key_t *lookup_key;
 

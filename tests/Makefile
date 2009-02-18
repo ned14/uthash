@@ -11,7 +11,8 @@ CFLAGS += -DHASH_DEBUG=1
 endif
 
 #ifeq ($(HASH_PEDANTIC),1)
-CFLAGS += -pedantic -Wall 
+#CFLAGS += -pedantic 
+CFLAGS += -Wall 
 #endif
 
 TEST_TARGET=run_tests
