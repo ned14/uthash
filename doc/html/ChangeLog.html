@@ -393,12 +393,13 @@ div#toc a:visited { color: blue; }
 <div class="ulist"><ul>
 <li>
 <p>
-now thread-safe for concurrent readers. writers must be exclusive.
+now thread-safe for concurrent readers
 </p>
 </li>
 <li>
 <p>
-about 13% improved lookup performance from using stack for scratch variables
+use scratch variables on stack rather than in table (thanks, Petter Arvidsson!).
+  This change made HASH_FIND about 13% faster and enabled reader concurrency.
 </p>
 </li>
 <li>
@@ -586,7 +587,7 @@ Initial release
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2009-02-19 05:18:04 EDT
+Last updated 2009-02-19 06:44:52 EDT
 </div>
 </div>
 </body>

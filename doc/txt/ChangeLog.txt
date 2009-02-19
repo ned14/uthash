@@ -3,8 +3,9 @@ uthash ChangeLog
 
 Version 1.5 (2009-02-19)
 --------------------------
-* now thread-safe for concurrent readers. writers must be exclusive. 
-* about 13% improved lookup performance from using stack for scratch variables
+* now thread-safe for concurrent readers
+* use scratch variables on stack rather than in table (thanks, Petter Arvidsson!).
+  This change made HASH_FIND about 13% faster and enabled reader concurrency.
 * made link:license.html[BSD license] terms even more permissive
 * added link:userguide.pdf[PDF version] of User Guide 
 * added http://troydhanson.wordpress.com/feed/[update news] image:img/rss.png[(RSS)]
