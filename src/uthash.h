@@ -27,6 +27,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef UTHASH_H
 #define UTHASH_H 
 
+#define UTHASH_VERSION 1.5
+
 /* C++ requires extra stringent casting */
 #if defined __cplusplus
 #define TYPEOF(x) (typeof(x))
@@ -176,7 +178,7 @@ do {                                                                           \
     if (head) {                                                                \
         _count = 0;                                                            \
         for( _bkt_i = 0; _bkt_i < (head)->hh.tbl->num_buckets; _bkt_i++) {     \
-            _bkt_count = 0;                                             \
+            _bkt_count = 0;                                                    \
             _thh = (head)->hh.tbl->buckets[_bkt_i].hh_head;                    \
             _prev = NULL;                                                      \
             while (_thh) {                                                     \
@@ -246,10 +248,10 @@ do {                                                                           \
 /* The Bernstein hash function, used in Perl prior to v5.6 */
 #define HASH_BER(key,keylen,num_bkts,hashv,bkt)                                \
 do {                                                                           \
-  unsigned _keylen=keylen;                                                     \
-  char *_key=(char*)key;                                                       \
+  unsigned _hb_keylen=keylen;                                                  \
+  char *_hb_key=(char*)key;                                                    \
   (hashv) = 0;                                                                 \
-  while (_keylen--)  { (hashv) = ((hashv) * 33) + *_key++; }                   \
+  while (_hb_keylen--)  { (hashv) = ((hashv) * 33) + *_hb_key++; }             \
   bkt = (hashv) & (num_bkts-1);                                                \
 } while (0)
 
@@ -258,28 +260,28 @@ do {                                                                           \
  * http://eternallyconfuzzled.com/tuts/algorithms/jsw_tut_hashing.aspx */
 #define HASH_SAX(key,keylen,num_bkts,hashv,bkt)                                \
 do {                                                                           \
-  unsigned _i;                                                                 \
+  unsigned _sx_i;                                                              \
   hashv = 0;                                                                   \
-  for(_i=0; _i < keylen; _i++)                                                 \
-      hashv ^= (hashv << 5) + (hashv >> 2) + key[_i];                          \
+  for(_sx_i=0; _sx_i < keylen; _sx_i++)                                        \
+      hashv ^= (hashv << 5) + (hashv >> 2) + key[_sx_i];                       \
   bkt = hashv & (num_bkts-1);                                                  \
 } while (0)
 
 #define HASH_FNV(key,keylen,num_bkts,hashv,bkt)                                \
 do {                                                                           \
-  unsigned _i;                                                                 \
+  unsigned _fn_i;                                                              \
   hashv = 2166136261UL;                                                        \
-  for(_i=0; _i < keylen; _i++)                                                 \
-      hashv = (hashv * 16777619) ^ key[_i];                                    \
+  for(_fn_i=0; _fn_i < keylen; _fn_i++)                                        \
+      hashv = (hashv * 16777619) ^ key[_fn_i];                                 \
   bkt = hashv & (num_bkts-1);                                                  \
 } while(0);
  
 #define HASH_OAT(key,keylen,num_bkts,hashv,bkt)                                \
 do {                                                                           \
-  unsigned _i;                                                                 \
+  unsigned _ho_i;                                                              \
   hashv = 0;                                                                   \
-  for(_i=0; _i < keylen; _i++) {                                               \
-      hashv += key[_i];                                                        \
+  for(_ho_i=0; _ho_i < keylen; _ho_i++) {                                      \
+      hashv += key[_ho_i];                                                     \
       hashv += (hashv << 10);                                                  \
       hashv ^= (hashv >> 6);                                                   \
   }                                                                            \
@@ -304,42 +306,42 @@ do {                                                                           \
 
 #define HASH_JEN(key,keylen,num_bkts,hashv,bkt)                                \
 do {                                                                           \
-  unsigned _i,_j,_k;                                                           \
-  char *_key=(char*)key;                                                       \
+  unsigned _hj_i,_hj_j,_hj_k;                                                  \
+  char *_hj_key=(char*)key;                                                    \
   hashv = 0xfeedbeef;                                                          \
-  _i = _j = 0x9e3779b9;                                                        \
-  _k = keylen;                                                                 \
-  while (_k >= 12) {                                                           \
-    _i +=    (_key[0] + ( (unsigned)_key[1] << 8 )                             \
-        + ( (unsigned)_key[2] << 16 )                                          \
-        + ( (unsigned)_key[3] << 24 ) );                                       \
-    _j +=    (_key[4] + ( (unsigned)_key[5] << 8 )                             \
-        + ( (unsigned)_key[6] << 16 )                                          \
-        + ( (unsigned)_key[7] << 24 ) );                                       \
-    hashv += (_key[8] + ( (unsigned)_key[9] << 8 )                             \
-        + ( (unsigned)_key[10] << 16 )                                         \
-        + ( (unsigned)_key[11] << 24 ) );                                      \
+  _hj_i = _hj_j = 0x9e3779b9;                                                  \
+  _hj_k = keylen;                                                              \
+  while (_hj_k >= 12) {                                                        \
+    _hj_i +=    (_hj_key[0] + ( (unsigned)_hj_key[1] << 8 )                    \
+        + ( (unsigned)_hj_key[2] << 16 )                                       \
+        + ( (unsigned)_hj_key[3] << 24 ) );                                    \
+    _hj_j +=    (_hj_key[4] + ( (unsigned)_hj_key[5] << 8 )                    \
+        + ( (unsigned)_hj_key[6] << 16 )                                       \
+        + ( (unsigned)_hj_key[7] << 24 ) );                                    \
+    hashv += (_hj_key[8] + ( (unsigned)_hj_key[9] << 8 )                       \
+        + ( (unsigned)_hj_key[10] << 16 )                                      \
+        + ( (unsigned)_hj_key[11] << 24 ) );                                   \
                                                                                \
-     HASH_JEN_MIX(_i, _j, hashv);                                              \
+     HASH_JEN_MIX(_hj_i, _hj_j, hashv);                                        \
                                                                                \
-     _key += 12;                                                               \
-     _k -= 12;                                                                 \
+     _hj_key += 12;                                                            \
+     _hj_k -= 12;                                                              \
   }                                                                            \
   hashv += keylen;                                                             \
-  switch ( _k ) {                                                              \
-     case 11: hashv += ( (unsigned)_key[10] << 24 );                           \
-     case 10: hashv += ( (unsigned)_key[9] << 16 );                            \
-     case 9:  hashv += ( (unsigned)_key[8] << 8 );                             \
-     case 8:  _j += ( (unsigned)_key[7] << 24 );                               \
-     case 7:  _j += ( (unsigned)_key[6] << 16 );                               \
-     case 6:  _j += ( (unsigned)_key[5] << 8 );                                \
-     case 5:  _j += _key[4];                                                   \
-     case 4:  _i += ( (unsigned)_key[3] << 24 );                               \
-     case 3:  _i += ( (unsigned)_key[2] << 16 );                               \
-     case 2:  _i += ( (unsigned)_key[1] << 8 );                                \
-     case 1:  _i += _key[0];                                                   \
+  switch ( _hj_k ) {                                                           \
+     case 11: hashv += ( (unsigned)_hj_key[10] << 24 );                        \
+     case 10: hashv += ( (unsigned)_hj_key[9] << 16 );                         \
+     case 9:  hashv += ( (unsigned)_hj_key[8] << 8 );                          \
+     case 8:  _hj_j += ( (unsigned)_hj_key[7] << 24 );                         \
+     case 7:  _hj_j += ( (unsigned)_hj_key[6] << 16 );                         \
+     case 6:  _hj_j += ( (unsigned)_hj_key[5] << 8 );                          \
+     case 5:  _hj_j += _hj_key[4];                                             \
+     case 4:  _hj_i += ( (unsigned)_hj_key[3] << 24 );                         \
+     case 3:  _hj_i += ( (unsigned)_hj_key[2] << 16 );                         \
+     case 2:  _hj_i += ( (unsigned)_hj_key[1] << 8 );                          \
+     case 1:  _hj_i += _hj_key[0];                                             \
   }                                                                            \
-  HASH_JEN_MIX(_i, _j, hashv);                                                 \
+  HASH_JEN_MIX(_hj_i, _hj_j, hashv);                                           \
   bkt = hashv & (num_bkts-1);                                                  \
 } while(0)
 

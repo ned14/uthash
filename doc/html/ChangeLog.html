@@ -388,12 +388,17 @@ div#toc a:visited { color: blue; }
 <div id="header">
 <h1>uthash ChangeLog</h1>
 </div>
-<h2 id="_version_1_5_2009_02_13">Version 1.5 (2009-02-13)</h2>
+<h2 id="_version_1_5_2009_02_19">Version 1.5 (2009-02-19)</h2>
 <div class="sectionbody">
 <div class="ulist"><ul>
 <li>
 <p>
-use stack-based scratch variables to enable experimental threaded usage with an rwlock
+now thread-safe for concurrent readers. writers must be exclusive.
+</p>
+</li>
+<li>
+<p>
+about 13% improved lookup performance from using stack for scratch variables
 </p>
 </li>
 <li>
@@ -581,7 +586,7 @@ Initial release
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2009-02-12 17:52:23 EDT
+Last updated 2009-02-19 05:18:04 EDT
 </div>
 </div>
 </body>

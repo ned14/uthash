@@ -13,8 +13,8 @@
 <h1>uthash User Guide</h1>
 <span id="author">Troy D. Hanson</span><br />
 <span id="email"><tt>&lt;<a href="mailto:thanson@users.sourceforge.net">thanson@users.sourceforge.net</a>&gt;</tt></span><br />
-<span id="revision">version 1.4,</span>
-September 2008
+<span id="revision">version 1.5,</span>
+February 2009
 </div>
 <div id="preamble">
 <div class="sectionbody">
@@ -207,15 +207,28 @@ platform, in this way:</p></div>
 make</tt></pre>
 </div></div>
 <h3 id="_bsd_licensed">BSD licensed</h3><div style="clear:left"></div>
-<div class="paragraph"><p>This software is made available under the BSD revised license. It is free and
-open source.</p></div>
+<div class="paragraph"><p>This software is made available under the
+<a href="license.html">revised BSD license</a>.
+It is free and open source.</p></div>
 <h3 id="_obtaining_uthash">Obtaining uthash</h3><div style="clear:left"></div>
 <div class="paragraph"><p>Please follow the link to download on the
-<a href="http://uthash.sourceforge.net">uthash website</a>.</p></div>
+<a href="http://uthash.sourceforge.net">uthash website</a> at <a href="http://uthash.sourceforge.net">http://uthash.sourceforge.net</a>.</p></div>
 <h3 id="_getting_help">Getting help</h3><div style="clear:left"></div>
-<div class="paragraph"><p>Feel free to <a href="mailto:thanson@users.sourceforge.net">email the author</a>. You can also
-post a message on the
-<a href="http://sourceforge.net/forum/forum.php?forum_id=556410">Help forum</a>.</p></div>
+<div class="paragraph"><p>Feel free to <a href="mailto:thanson@users.sourceforge.net">email the author</a> at
+thanson@users.sourceforge.net.</p></div>
+<h3 id="_resources">Resources</h3><div style="clear:left"></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+News
+</dt>
+<dd>
+<p>
+ The author has a news feed for <a href="http://troydhanson.wordpress.com/feed/">software updates</a> <span class="image">
+<img src="img/rss.png" alt="(RSS)" title="(RSS)" />
+</span>.
+</p>
+</dd>
+</dl></div>
 <h3 id="_who_8217_s_using_it">Who&#8217;s using it?</h3><div style="clear:left"></div>
 <div class="paragraph"><p>Since releasing uthash in 2006, it has been downloaded thousands of times,
 incorporated into commerical software, academic research, and into other
@@ -1065,11 +1078,14 @@ approaches 100%, the hash table approaches constant-time lookup performance.</p>
 <div class="sectionbody">
 <div class="paragraph"><p>Internally this hash manages the number of buckets, with the goal of having
 enough buckets so that each one contains only a small number of items.</p></div>
-<h3 id="_why_does_the_number_of_buckets_matter">Why does the number of buckets matter?</h3><div style="clear:left"></div>
+<div class="sidebarblock">
+<div class="sidebar-content">
+<div class="sidebar-title">Why does the number of buckets matter?</div>
 <div class="paragraph"><p>When looking up an item by its key, this hash scans linearly through the items
 in the appropriate bucket. In order for the linear scan to run in constant
 time, the number of items in each bucket must be bounded. This is accomplished
 by increasing the number of buckets as needed.</p></div>
+</div></div>
 <h3 id="_normal_expansion">Normal expansion</h3><div style="clear:left"></div>
 <div class="paragraph"><p>This hash attempts to keep fewer than 10 items in each bucket. When an item is
 added that would cause a bucket to exceed this number, the number of buckets in
@@ -1200,7 +1216,8 @@ message to be printed to <tt>stderr</tt> and the program to exit.</p></div>
 (that is, insertion order-- the order the items were added).  The latter two
 fields determine the "bucket chain" order.  These link the <tt>UT_hash_handles</tt>
 together in a doubly-linked list that is a bucket chain.</p></div>
-<div class="ulist"><div class="title">Checks performed in <tt>-DHASH_DEBUG=1</tt> mode:</div><ul>
+<div class="paragraph"><p>Checks performed in <tt>-DHASH_DEBUG=1</tt> mode:</p></div>
+<div class="ulist"><ul>
 <li>
 <p>
 the hash is walked in its entirety twice: once in <em>bucket</em> order and a
@@ -1226,18 +1243,56 @@ during the walk in <em>application</em> order, each item&#8217;s <tt>prev</tt> p
 </p>
 </li>
 </ul></div>
+<div class="sidebarblock">
+<div class="sidebar-content">
+<div class="sidebar-title">Macro debugging:</div>
+<div class="paragraph"><p>Sometimes it&#8217;s difficult to interpret a compiler warning when all it has
+is a warning and a line number containing a macro call. In the case of uthash,
+the macro can expand to dozens of lines. In this case, it is helpful to expand
+the macros to get a more precise idea of the line number where the error occurs.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>gcc -E -I../src test1.c &gt; /tmp/a.c
+egrep -v '^#' /tmp/a.c &gt; /tmp/b.c
+indent /tmp/b.c
+gcc -o /tmp/b /tmp/b.c</tt></pre>
+</div></div>
+<div class="paragraph"><p>The last line compiles the original program (test1.c) with all macros expanded.
+So any compiler error or warning will have a line number that can be used to
+pinpoint the offending line precisely within the expanded macro call.</p></div>
+</div></div>
 </div>
-<h2 id="_appendix_e_threaded_programs">Appendix E: Threaded programs</h2>
+<h2 id="_appendix_e_thread_safety">Appendix E: Thread safety</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>You can use this hash in a threaded program. But, the locking is up to you.
-You must protect the hash against concurrent usage. For every hash that
-you create in a threaded program, you should create a mutex lock to provide
-exclusive access to the hash table for one thread at a time.</p></div>
-<div class="paragraph"><p>A read-write lock is not adequate. It is tempting to think that a hash lookup
-(<tt>HASH_FIND</tt>) could be carried out by multiple concurrent threads but that&#8217;s not
-the case. Even a hash lookup conducts some writes to the internal hash structures
-as the key-to-hash-bucket calculation is performed. Therefore a mutex lock must be
-acquired for any use of the hash.</p></div>
+<div class="paragraph"><p>You can use uthash in a threaded program. But you must do the locking. Use a
+read-write lock to protect against concurrent writes. It is ok to have
+concurrent readers (since uthash 1.5).</p></div>
+<div class="paragraph"><p>For example using pthreads you can create an rwlock like this:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>pthread_rwlock_t lock;
+if (pthread_rwlock_init(&amp;lock,NULL) != 0) fatal("can't create rwlock");</tt></pre>
+</div></div>
+<div class="paragraph"><p>Then, readers must acquire the read lock before doing any <tt>HASH_FIND</tt> calls or
+before iterating over the hash elements:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>if (pthread_rwlock_rdlock(&amp;lock) != 0) fatal("can't get rdlock");
+HASH_FIND_INT(elts, &amp;i, e);
+pthread_rwlock_unlock(&amp;lock);</tt></pre>
+</div></div>
+<div class="paragraph"><p>Writers must acquire the exclusive write lock before doing any update. Add,
+delete, and sort are all updates that must be locked.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>if (pthread_rwlock_wrlock(&amp;lock) != 0) fatal("can't get wrlock");
+HASH_DEL(elts, e);
+pthread_rwlock_unlock(&amp;lock);</tt></pre>
+</div></div>
+<div class="paragraph"><p>If you prefer, you can use a mutex instead of a read-write lock, but this will
+reduce reader concurrency to a single thread at a time.</p></div>
+<div class="paragraph"><p>An example program using uthash with a read-write lock is included in
+<tt>tests/threads/test1.c</tt>.</p></div>
 </div>
 <h2 id="Appendix_F">Appendix F: Macro reference</h2>
 <div class="sectionbody">
@@ -1433,8 +1488,8 @@ cmp
 </div>
 <div id="footer">
 <div id="footer-text">
-Version 1.4<br />
-Last updated 2009-02-12 17:52:20 EDT
+Version 1.5<br />
+Last updated 2009-02-19 05:18:01 EDT
 </div>
 </div>
 </body>

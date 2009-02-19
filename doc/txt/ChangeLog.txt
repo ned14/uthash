@@ -1,9 +1,10 @@
 uthash ChangeLog
 ================
 
-Version 1.5 (2009-02-13)
+Version 1.5 (2009-02-19)
 --------------------------
-* use stack-based scratch variables to enable experimental threaded usage with an rwlock
+* now thread-safe for concurrent readers. writers must be exclusive. 
+* about 13% improved lookup performance from using stack for scratch variables
 * made link:license.html[BSD license] terms even more permissive
 * added link:userguide.pdf[PDF version] of User Guide 
 * added http://troydhanson.wordpress.com/feed/[update news] image:img/rss.png[(RSS)]
