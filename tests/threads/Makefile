@@ -5,8 +5,8 @@ PROGS = test1 test2
 # ----------------------------------------------------------------------------
 # GNU 
 CFLAGS = -I$(HASHDIR) -g -pthread
-# Solaris (Studio 11 on Sparc Ultra3) 
-#CFLAGS = -I$(TPLSRC) -g -mt
+# Solaris (Studio 11) 
+#CFLAGS = -I$(HASHDIR) -g -mt
 # ----------------------------------------------------------------------------
 
 ifeq ($(HASH_DEBUG),1)
