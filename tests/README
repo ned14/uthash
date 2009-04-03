@@ -26,6 +26,8 @@ test21: test a "double" (floating point) key (userguide)
 test22: test multi-field key using flexible array member (userguide utf32)
 test23: test whether delete in iteration works
 test24: make 10-item hash and confirm item count (HASH_COUNT)
+test25: test the linked list macros in utlist.h
+test26: test the linked list sort macros in utlist.h
 
 Other Make targets
 ================================================================================

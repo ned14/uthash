@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# utility to macro-expand a test program
+
+gcc -E -I../src $1 | egrep -v '^#' > /tmp/$1
+indent /tmp/$1
+gcc -o /tmp/$1.$$ /tmp/$1
+rm -f /tmp/$1.$$ 
+
+read -p "open /tmp/$1 ? [n] " response
+if [ "$response" = "y" ]
+then
+  vi /tmp/$1
+fi
+
+
