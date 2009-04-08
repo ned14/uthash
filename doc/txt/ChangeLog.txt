@@ -1,6 +1,10 @@
 uthash ChangeLog
 ================
 
+Version 1.6 (2009-02-19)
+--------------------------
+* added `utlist.h` linked list macros 
+
 Version 1.5 (2009-02-19)
 --------------------------
 * now thread-safe for concurrent readers

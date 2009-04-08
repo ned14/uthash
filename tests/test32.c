@@ -30,10 +30,10 @@ int main(int argc, char *argv[]) {
     while (fgets(linebuf,BUFLEN,file) != NULL) {
         if ( (name = (el*)malloc(sizeof(el))) == NULL) exit(-1);
         strncpy(name->bname,linebuf,BUFLEN);
-        LL_APPEND(head, name);
+        DL_PREPEND(head, name);
     }
-    LL_SORT(head, namecmp);
-    LL_FOREACH(head,tmp) printf("%s", tmp->bname);
+    /* DL_SORT(head, namecmp); */
+    DL_FOREACH(head,tmp) printf("%s", tmp->bname);
 
     fclose(file);
 

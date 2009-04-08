@@ -1,10 +1,12 @@
 #!/bin/sh
 
 # utility to macro-expand a test program
+CC=gcc
+#CC=g++
 
-gcc -E -I../src $1 | egrep -v '^#' > /tmp/$1
+${CC} -E -I../src $1 | egrep -v '^#' > /tmp/$1
 indent /tmp/$1
-gcc -o /tmp/$1.$$ /tmp/$1
+${CC} -o /tmp/$1.$$ /tmp/$1
 rm -f /tmp/$1.$$ 
 
 read -p "open /tmp/$1 ? [n] " response

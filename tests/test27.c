@@ -15,9 +15,9 @@ int main(int argc, char *argv[]) {
 
     /* test CDL macros */
     printf("CDL macros\n");
-    CDL_INSERT(head,&els[0]);
-    CDL_INSERT(head,&els[1]);
-    CDL_INSERT(head,&els[2]);
+    CDL_PREPEND(head,&els[0]);
+    CDL_PREPEND(head,&els[1]);
+    CDL_PREPEND(head,&els[2]);
     CDL_FOREACH(head,e) 
         printf("%c ", e->id); 
     printf("\n");
@@ -56,26 +56,26 @@ int main(int argc, char *argv[]) {
 
     /* test DL macros */
     printf("DL macros\n");
-    DL_APPEND(head,&els[0]);
-    DL_APPEND(head,&els[1]);
-    DL_APPEND(head,&els[2]);
+    DL_PREPEND(head,&els[0]);
+    DL_PREPEND(head,&els[1]);
+    DL_PREPEND(head,&els[2]);
     DL_FOREACH(head,e) 
         printf("%c ", e->id); 
     printf("\n");
 
-    printf("deleting tail c\n");
+    printf("deleting c\n");
     DL_DELETE(head,&els[2]);
     DL_FOREACH(head,e) 
         printf("%c ", e->id); 
     printf("\n");
 
-    printf("deleting head a\n");
+    printf("deleting a\n");
     DL_DELETE(head,&els[0]);
     DL_FOREACH(head,e) 
         printf("%c ", e->id); 
     printf("\n");
 
-    printf("deleting head b\n");
+    printf("deleting b\n");
     DL_DELETE(head,&els[1]);
     DL_FOREACH(head,e) 
         printf("%c ", e->id); 
@@ -83,26 +83,26 @@ int main(int argc, char *argv[]) {
 
     /* test LL macros */
     printf("LL macros\n");
-    LL_APPEND(head,&els[0]);
-    LL_APPEND(head,&els[1]);
-    LL_APPEND(head,&els[2]);
+    LL_PREPEND(head,&els[0]);
+    LL_PREPEND(head,&els[1]);
+    LL_PREPEND(head,&els[2]);
     LL_FOREACH(head,e) 
         printf("%c ", e->id); 
     printf("\n");
 
-    printf("deleting tail c\n");
+    printf("deleting c\n");
     LL_DELETE(head,&els[2]);
     LL_FOREACH(head,e) 
         printf("%c ", e->id); 
     printf("\n");
 
-    printf("deleting head a\n");
+    printf("deleting a\n");
     LL_DELETE(head,&els[0]);
     LL_FOREACH(head,e) 
         printf("%c ", e->id); 
     printf("\n");
 
-    printf("deleting head b\n");
+    printf("deleting b\n");
     LL_DELETE(head,&els[1]);
     LL_FOREACH(head,e) 
         printf("%c ", e->id); 
