@@ -1,7 +1,7 @@
 uthash User Guide
 =================
 Troy D. Hanson <thanson@users.sourceforge.net>
-v1.5, February 2009
+v1.5, April 2009
 
 include::sflogo.txt[]
 include::topnav.txt[]
@@ -86,6 +86,9 @@ Resources
 ~~~~~~~~~
 News::
  The author has a news feed for http://troydhanson.wordpress.com/feed/[software updates] image:img/rss.png[(RSS)].
+Linked list macros::
+ The uthash package includes a separate, standalone header called
+ link:utlist.html[utlist.h] which contains macros for singly- and doubly-linked lists.
 
 Who's using it?
 ~~~~~~~~~~~~~~~
@@ -1195,57 +1198,6 @@ cmp::
     pointer to comparison function which accepts two arguments (pointers to
     items to compare) and returns an int specifying whether the first item
     should sort before, equal to, or after the second item (like `strcmp`).
-
-[[Appendix_G]]
-Appendix G: Linked list macros
-------------------------------
-
-As a bonus, a set of linked list macros are included in `utlist.h`. 
-
-Types of lists
-~~~~~~~~~~~~~~
-There are three types of linked lists supported.
-
-- singly-linked lists,
-- doubly-linked lists, and
-- circular, doubly-linked lists
-
-For singly-linked and doubly-linked, non-circular lists, the tail of the list
-has `NULL` for its `next` pointer. If the list is circular, the tail of the
-list instead points back to the head element. The head element of a
-doubly-linked list (circular or non-circular) has its `prev` member pointing to
-the tail of the list. (Note that the `prev` pointer is essentially circular
-even for a non-circular list. This may be unconventional but it makes it
-possible to append to a doubly-linked list in constant-time).
-
-List elements
-~~~~~~~~~~~~~
-Any structure can be used with these macros provided that it contains a `next` 
-pointer. The doubly-linked lists also require a `prev` pointer.
-
-  typedef struct {
-      char name[20];
-      struct element *next, *prev;
-  } element;
-
-List operations
-~~~~~~~~~~~~~~~
-
-[width="90%",cols="10m,10m,10m",grid="none",options="header"]
-|===============================================================================
-|Singly-linked  | Doubly-linked| Circular, doubly-linked
-|LL_PREPEND     | DL_PREPEND   | CDL_PREPEND
-|LL_APPEND      | DL_APPEND    | CDL_INSERT
-|LL_DELETE      | DL_DELETE    | CDL_DELETE
-|LL_SORT        | DL_SORT      | CDL_SORT
-|LL_FOREACH     | DL_FOREACH   | CDL_FOREACH
-|===============================================================================
-
-Prepend means to insert an element in front of the list head-- 'changing the 
-list head to the new element in the process.' Append means to add an element
-at the end of the list, so that it becomes the new tail element. The special
-"insert" operation, for a circular list only, adds the new element right after
-the head, if any. The "for each" operation is a shortcut for easy iteration.
 
 // vim: set tw=80 wm=2 syntax=asciidoc: 
 

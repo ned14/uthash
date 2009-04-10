@@ -15,9 +15,9 @@ int main(int argc, char *argv[]) {
 
     /* test CDL macros */
     printf("CDL macros\n");
-    CDL_INSERT(head,&els[0]);
-    CDL_INSERT(head,&els[1]);
-    CDL_INSERT(head,&els[2]);
+    CDL_PREPEND(head,&els[0]);
+    CDL_PREPEND(head,&els[1]);
+    CDL_PREPEND(head,&els[2]);
     CDL_FOREACH(head,e) 
         printf("%c ", e->id); 
     printf("\n");
@@ -43,12 +43,12 @@ int main(int argc, char *argv[]) {
     CDL_DELETE(head,&els[1]);
     CDL_FOREACH(head,e) printf("%c ", e->id); 
     printf("\n");
-    printf("deleting head (a)\n");
+    printf("deleting (a)\n");
     CDL_DELETE(head,&els[0]);
     CDL_FOREACH(head,e) 
         printf("%c ", e->id); 
     printf("\n");
-    printf("deleting new head (c)\n");
+    printf("deleting (c)\n");
     CDL_DELETE(head,&els[2]);
     CDL_FOREACH(head,e) 
         printf("%c ", e->id); 

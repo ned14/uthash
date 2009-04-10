@@ -1,0 +1,155 @@
+utlist macros
+=============
+Troy D. Hanson <thanson@users.sourceforge.net>
+v1.0, April 2009
+
+include::sflogo.txt[]
+include::topnav_utlist.txt[]
+
+Linked list macros
+------------------
+include::toc.txt[]
+
+A set of general-purpose linked list macros for C structures are included with
+uthash in `src/utlist.h`.  To use these macros in your own C program, all you
+need to do is copy `utlist.h` into your source directory and use it in your
+programs.
+
+  #include "utlist.h"
+
+Download
+~~~~~~~~
+To download the `utlist.h` header file, click the link to download on the
+http://uthash.sourceforge.net[uthash home page]. After you untar the package,
+look in the `src/` directory for `utlist.h`.
+
+BSD licensed
+~~~~~~~~~~~~
+This software is made available under the 
+link:license.html[revised BSD license]. 
+It is free and open source. 
+
+Types of lists
+~~~~~~~~~~~~~~
+There are three types of linked lists supported.
+
+- singly-linked lists,
+- doubly-linked lists, and
+- circular, doubly-linked lists
+
+A quirk of the doubly-linked list macros is that the head element has its `prev`
+member pointing back to the list tail-- even for a non-circular list.
+Internally, this detail allows items to be appended to a doubly-linked list in
+constant time.
+
+List elements
+~~~~~~~~~~~~~
+You can use any structure with these macros, provided that the structure 
+contains a `next` pointer. Naturally, if you want to use a doubly-linked list, 
+the element also needs to have a `prev` pointer.
+
+  typedef struct {
+      char name[10];
+      struct element *next, *prev;
+  } element;
+
+You can name your structure anything-- `element` is just used as an example.
+All the elements of a particular list have to be of the same type. 
+
+List head
+~~~~~~~~~
+The list head is simply a pointer to your element structure. You can name it
+anything. *It must be initialized to `NULL`*.
+
+  element *head = NULL;
+
+List operations
+~~~~~~~~~~~~~~~
+The lists support inserting or deleting elements, sorting the elements and of
+course, iterating over them.
+
+[width="90%",cols="10m,10m,10m",grid="none",options="header"]
+|===============================================================================
+|Singly-linked        | Doubly-linked          | Circular, doubly-linked
+|LL_PREPEND(head,add) | DL_PREPEND(head,add)   | CDL_PREPEND(head,add)
+|LL_APPEND(head,add)  | DL_APPEND(head,add)    | 
+|LL_DELETE(head,del)  | DL_DELETE(head,del)    | CDL_DELETE(head,del)
+|LL_SORT(head,cmp)    | DL_SORT(head,cmp)      | CDL_SORT(head,cmp)
+|LL_FOREACH(head,elt) | DL_FOREACH(head,elt)   | CDL_FOREACH(head,elt)
+|===============================================================================
+
+'Prepend' means to insert an element in front of the existing list head (if any),
+changing the list head to the new element. 'Append' means to add an element at the
+end of the list, so it becomes the new tail element.  The 'foreach' operation
+is for easy iteration over the list from the head to the tail. A usage example
+is shown below.
+
+The parameters shown in the table above are explained here:
+
+head::
+  The list head (a pointer to your list element structure).
+add::
+  A pointer to the list element structure you are adding to the list.
+del::
+  A pointer to the list element structure you are deleting from the list.
+elt::
+  A pointer that will be assigned to each list element in succession (see
+  example).
+cmp::
+  pointer to comparison function which accepts two arguments-- these are
+  pointers to two element structures to be compared. The comparison function
+  must return an  int specifying whether the first item should sort before,
+  equal to, or after the second item (like `strcmp`).
+
+Example
+~~~~~~~
+This example program reads names from a text file (one name per line), and
+appends each name to a doubly-linked list. Then it sorts and prints them.
+
+.A doubly-linked list
+--------------------------------------------------------------------------------
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "utlist.h"
+
+#define BUFLEN 20
+
+typedef struct el {
+    char bname[BUFLEN];
+    struct el *next, *prev;
+} el;
+
+int namecmp(el *a, el *b) {
+    return strcmp(a->bname,b->bname);
+}
+
+el *head = NULL; /* important- initialize to NULL! */
+
+int main(int argc, char *argv[]) {
+    el *name, *tmp;
+
+    char linebuf[BUFLEN];
+    FILE *file;
+
+    if ( (file = fopen( "test11.dat", "r" )) == NULL ) {
+        perror("can't open: "); 
+        exit(-1);
+    }
+
+    while (fgets(linebuf,BUFLEN,file) != NULL) {
+        if ( (name = (el*)malloc(sizeof(el))) == NULL) exit(-1);
+        strncpy(name->bname,linebuf,BUFLEN);
+        DL_APPEND(head, name);
+    }
+    DL_SORT(head, namecmp);
+    DL_FOREACH(head,tmp) printf("%s", tmp->bname);
+
+    fclose(file);
+
+    return 0;
+}
+--------------------------------------------------------------------------------
+
+// vim: set tw=80 wm=2 syntax=asciidoc: 
+

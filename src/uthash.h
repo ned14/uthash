@@ -27,7 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef UTHASH_H
 #define UTHASH_H 
 
-#define UTHASH_VERSION 1.5
+#define UTHASH_VERSION 1.6
 
 /* C++ requires extra stringent casting */
 #if defined __cplusplus
@@ -71,32 +71,32 @@ do {                                                                           \
 #define HASH_ADD_KEYPTR(hh,head,keyptr,keylen_in,add)                          \
 do {                                                                           \
  unsigned _ha_bkt;                                                             \
- add->hh.next = NULL;                                                          \
- add->hh.key = (char*)keyptr;                                                  \
- add->hh.keylen = keylen_in;                                                   \
+ (add)->hh.next = NULL;                                                          \
+ (add)->hh.key = (char*)keyptr;                                                  \
+ (add)->hh.keylen = keylen_in;                                                   \
  if (!(head)) {                                                                \
-    head = add;                                                                \
+    head = (add);                                                                \
     (head)->hh.prev = NULL;                                                    \
     (head)->hh.tbl = (UT_hash_table*)uthash_tbl_malloc(                        \
                     sizeof(UT_hash_table));                                    \
     if (!((head)->hh.tbl))  { uthash_fatal( "out of memory"); }                \
     memset((head)->hh.tbl, 0, sizeof(UT_hash_table));                          \
-    (head)->hh.tbl->tail = &(add->hh);                                         \
+    (head)->hh.tbl->tail = &((add)->hh);                                         \
     (head)->hh.tbl->num_buckets = HASH_INITIAL_NUM_BUCKETS;                    \
     (head)->hh.tbl->log2_num_buckets = HASH_INITIAL_NUM_BUCKETS_LOG2;          \
-    (head)->hh.tbl->hho = (char*)(&add->hh) - (char*)(add);                    \
+    (head)->hh.tbl->hho = (char*)(&(add)->hh) - (char*)(add);                    \
     (head)->hh.tbl->buckets = (UT_hash_bucket*)uthash_bkt_malloc(              \
             HASH_INITIAL_NUM_BUCKETS*sizeof(struct UT_hash_bucket));           \
     if (! (head)->hh.tbl->buckets) { uthash_fatal( "out of memory"); }         \
     memset((head)->hh.tbl->buckets, 0,                                         \
             HASH_INITIAL_NUM_BUCKETS*sizeof(struct UT_hash_bucket));           \
  } else {                                                                      \
-    (head)->hh.tbl->tail->next = add;                                          \
-    add->hh.prev = ELMT_FROM_HH((head)->hh.tbl, (head)->hh.tbl->tail);         \
-    (head)->hh.tbl->tail = &(add->hh);                                         \
+    (head)->hh.tbl->tail->next = (add);                                          \
+    (add)->hh.prev = ELMT_FROM_HH((head)->hh.tbl, (head)->hh.tbl->tail);         \
+    (head)->hh.tbl->tail = &((add)->hh);                                         \
  }                                                                             \
  (head)->hh.tbl->num_items++;                                                  \
- add->hh.tbl = (head)->hh.tbl;                                                 \
+ (add)->hh.tbl = (head)->hh.tbl;                                                 \
  HASH_FCN(keyptr,keylen_in, (head)->hh.tbl->num_buckets,                       \
          (add)->hh.hashv, _ha_bkt);                                            \
  HASH_ADD_TO_BKT(hh,(head)->hh.tbl->buckets[_ha_bkt],add);                     \
@@ -363,13 +363,13 @@ while (out) {                                                                  \
 /* add an item to a bucket  */
 #define HASH_ADD_TO_BKT(hh,head,add)                                           \
  head.count++;                                                                 \
- add->hh.hh_next = head.hh_head;                                               \
- add->hh.hh_prev = NULL;                                                       \
- if (head.hh_head) head.hh_head->hh_prev = &add->hh;                           \
- head.hh_head=&add->hh;                                                        \
+ (add)->hh.hh_next = head.hh_head;                                               \
+ (add)->hh.hh_prev = NULL;                                                       \
+ if (head.hh_head) head.hh_head->hh_prev = &(add)->hh;                           \
+ head.hh_head=&(add)->hh;                                                        \
  if (head.count >= ((head.expand_mult+1) * HASH_BKT_CAPACITY_THRESH)           \
-     && add->hh.tbl->noexpand != 1) {                                          \
-       HASH_EXPAND_BUCKETS(add->hh.tbl);                                       \
+     && (add)->hh.tbl->noexpand != 1) {                                          \
+       HASH_EXPAND_BUCKETS((add)->hh.tbl);                                       \
  }
 
 /* remove an item from a given bucket */

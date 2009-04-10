@@ -24,6 +24,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef UTLIST_H
 #define UTLIST_H
 
+#define UTLIST_VERSION 1.0
+
 /* C++ requires extra stringent casting */
 #if defined __cplusplus
 #define LTYPEOF(x) (typeof(x))
@@ -195,48 +197,48 @@ do {                                                                            
 /******************************************************************************
  * doubly linked list macros (non-circular)                                   *
  *****************************************************************************/
-#define DL_PREPEND(head,add)                                                      \
- do { \
-   (add)->next = head; \
-   if (head) { \
-     (add)->prev = (head)->prev; \
-     (head)->prev = (add); \
-   } else { \
-     (add)->prev = (add); \
-   } \
-   (head) = (add); \
- } while (0)
+#define DL_PREPEND(head,add)                                                     \
+do {                                                                             \
+ (add)->next = head;                                                             \
+ if (head) {                                                                     \
+   (add)->prev = (head)->prev;                                                   \
+   (head)->prev = (add);                                                         \
+ } else {                                                                        \
+   (add)->prev = (add);                                                          \
+ }                                                                               \
+ (head) = (add);                                                                 \
+} while (0)
 
 #define DL_APPEND(head,add)                                                      \
-    do {                                                                         \
-        if (head) {                                                              \
-            (add)->prev = (head)->prev;                                          \
-            (head)->prev->next = (add);                                          \
-            (head)->prev = (add);                                                \
-            (add)->next = NULL;                                                  \
-        } else {                                                                 \
-            (head)=(add);                                                        \
-            (head)->prev = (head);                                               \
-            (head)->next = NULL;                                                 \
-        }                                                                        \
-    } while (0);
+do {                                                                             \
+  if (head) {                                                                    \
+      (add)->prev = (head)->prev;                                                \
+      (head)->prev->next = (add);                                                \
+      (head)->prev = (add);                                                      \
+      (add)->next = NULL;                                                        \
+  } else {                                                                       \
+      (head)=(add);                                                              \
+      (head)->prev = (head);                                                     \
+      (head)->next = NULL;                                                       \
+  }                                                                              \
+} while (0);
 
 #define DL_DELETE(head,del)                                                      \
-    do {                                                                         \
-        if ((del)->prev == (del)) {                                              \
-            (head)=NULL;                                                         \
-        } else if ((del)==(head)) {                                              \
-            (del)->next->prev = (del)->prev;                                     \
-            (head) = (del)->next;                                                \
-        } else {                                                                 \
-            (del)->prev->next = (del)->next;                                     \
-            if ((del)->next) {                                                   \
-                (del)->next->prev = (del)->prev;                                 \
-            } else {                                                             \
-                (head)->prev = (del)->prev;                                      \
-            }                                                                    \
-        }                                                                        \
-    } while (0);
+do {                                                                             \
+  if ((del)->prev == (del)) {                                                    \
+      (head)=NULL;                                                               \
+  } else if ((del)==(head)) {                                                    \
+      (del)->next->prev = (del)->prev;                                           \
+      (head) = (del)->next;                                                      \
+  } else {                                                                       \
+      (del)->prev->next = (del)->next;                                           \
+      if ((del)->next) {                                                         \
+          (del)->next->prev = (del)->prev;                                       \
+      } else {                                                                   \
+          (head)->prev = (del)->prev;                                            \
+      }                                                                          \
+  }                                                                              \
+} while (0);
 
 
 #define DL_FOREACH(head,el)                                                      \
@@ -245,43 +247,29 @@ do {                                                                            
 /******************************************************************************
  * circular doubly linked list macros                                         *
  *****************************************************************************/
-#define CDL_PREPEND(head,add)                                                     \
- do { \
-   if (head) { \
-     (add)->prev = (head)->prev; \
-     (add)->next = (head); \
-     (head)->prev = (add); \
-     (add)->prev->next = (add); \
-   } else { \
-     (add)->prev = (add); \
-     (add)->next = (add); \
-   } \
-  (head)=(add);                                                              \
- } while (0)
-
-#define CDL_INSERT(head,add)                                                     \
+#define CDL_PREPEND(head,add)                                                    \
 do {                                                                             \
-    if (head) {                                                                  \
-      (add)->next = (head)->next;                                                \
-      (add)->prev = (head);                                                      \
-      (head)->next->prev = (add);                                                \
-      (head)->next = (add);                                                      \
-    } else {                                                                     \
-      (head)=(add);                                                              \
-      (add)->prev = (add);                                                       \
-      (add)->next = (add);                                                       \
-    }                                                                            \
- } while (0);
+ if (head) {                                                                     \
+   (add)->prev = (head)->prev;                                                   \
+   (add)->next = (head);                                                         \
+   (head)->prev = (add);                                                         \
+   (add)->prev->next = (add);                                                    \
+ } else {                                                                        \
+   (add)->prev = (add);                                                          \
+   (add)->next = (add);                                                          \
+ }                                                                               \
+(head)=(add);                                                                    \
+} while (0)
 
 #define CDL_DELETE(head,del)                                                     \
 do {                                                                             \
-    if ( ((head)==(del)) && ((head)->next == (head))) {                          \
-        (head) = 0L;                                                             \
-    } else {                                                                     \
-       (del)->next->prev = (del)->prev;                                          \
-       (del)->prev->next = (del)->next;                                          \
-       if ((del) == (head)) (head)=(del)->next;                                  \
-    }                                                                            \
+  if ( ((head)==(del)) && ((head)->next == (head))) {                            \
+      (head) = 0L;                                                               \
+  } else {                                                                       \
+     (del)->next->prev = (del)->prev;                                            \
+     (del)->prev->next = (del)->next;                                            \
+     if ((del) == (head)) (head)=(del)->next;                                    \
+  }                                                                              \
 } while (0);
 
 #define CDL_FOREACH(head,el)                                                     \

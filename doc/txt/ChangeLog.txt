@@ -1,9 +1,13 @@
 uthash ChangeLog
 ================
 
-Version 1.6 (2009-02-19)
+Version 1.6 (2009-04-09)
 --------------------------
-* added `utlist.h` linked list macros 
+* added separate, standalone header called link:utlist.html[utlist.h]
+  containing linked list macros for C structures
+* fixed a minor parenthesization bug that led to a compiler error if
+  HASH_ADD_KEYPTR's last argument was passed as a pointer to an array member
+  like &a[i]
 
 Version 1.5 (2009-02-19)
 --------------------------

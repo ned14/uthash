@@ -1,0 +1,325 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.3.4" />
+<title>utlist macros</title>
+<link rel="stylesheet" href="./tdh.css" type="text/css" />
+<link rel="stylesheet" href="./tdh-quirks.css" type="text/css" />
+</head>
+<body>
+<div id="header">
+<h1>utlist macros</h1>
+<span id="author">Troy D. Hanson</span><br />
+<span id="email"><tt>&lt;<a href="mailto:thanson@users.sourceforge.net">thanson@users.sourceforge.net</a>&gt;</tt></span><br />
+<span id="revision">version 1.0,</span>
+April 2009
+</div>
+<div id="preamble">
+<div class="sectionbody">
+<a style="float: right; padding-right: 50px;" href="http://sourceforge.net"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=163879&amp;type=2" width="125" height="37" border="0" alt="SourceForge.net Logo" /></a>
+  <div id="topnav" style="font-size: 9pt; font-family: sans-serif;">
+  <a style="padding: 8px;" href="index.html">uthash home</a>
+  >>  utlist macros
+  </div>
+</div>
+</div>
+<h2 id="_linked_list_macros">Linked list macros</h2>
+<div class="sectionbody">
+<div id="toc"></div>
+<script>
+window.onload=generate_TOC
+
+/* Author: Mihai Bazon, September 2002
+ * <a href="http://students.infoiasi.ro/~mishoo">http://students.infoiasi.ro/~mishoo</a>
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+
+function H_getText(el) {
+  var text = "";
+  for (var i = el.firstChild; i != null; i = i.nextSibling) {
+    if (i.nodeType == 3 /* Node.TEXT_NODE, IE doesn't speak constants */)
+      text += i.data;
+    else if (i.firstChild != null)
+      text += H_getText(i);
+  }
+  return text;
+}
+
+function TOC_EL(el, text, level) {
+  this.element = el;
+  this.text = text;
+  this.level = level;
+}
+
+function getHeadlines(el) {
+  var l = new Array;
+  var rx = /[hH]([2-3])/;
+  // internal recursive function that scans the DOM tree
+  var rec = function (el) {
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+        if (rx.exec(i.tagName))
+          l[l.length] = new TOC_EL(i, H_getText(i), parseInt(RegExp.$1));
+        rec(i);
+      }
+    }
+  }
+  rec(el);
+  return l;
+}
+
+function generate_TOC() {
+  var parent = document.getElementById("toc");
+  var toc_hdr = document.createElement("div");
+  var toc_hdr_txt = document.createTextNode("CONTENTS");
+  toc_hdr.appendChild(toc_hdr_txt);
+  /* toc_hdr.setAttribute("id","hdr"); */
+  toc_hdr.id = "hdr";
+  parent.appendChild(toc_hdr);
+  var hs = getHeadlines(document.getElementsByTagName("body")[0]);
+  for (var i = 0; i < hs.length; ++i) {
+    var hi = hs[i];
+    var d = document.createElement("div");
+    if (hi.element.id == "") hi.element.id = "gen" + i;
+    var a = document.createElement("a");
+    a.href = "#" + hi.element.id;
+    a.appendChild(document.createTextNode(hi.text));
+    d.appendChild(a);
+    d.className = "level" + hi.level;
+    parent.appendChild(d);
+    /*
+    if (hi.level == 3) {
+        var dvtop = document.createElement("div");
+        dvtop.className = "toplink";
+        dvtop.appendChild(document.createTextNode("^top^"));
+        dvtop.onclick=function(){scrollTo(0,0);};
+        hi.element.appendChild(dvtop);
+    }
+    */
+  }
+}
+</script>
+<div class="paragraph"><p>A set of general-purpose linked list macros for C structures are included with
+uthash in <tt>src/utlist.h</tt>.  To use these macros in your own C program, all you
+need to do is copy <tt>utlist.h</tt> into your source directory and use it in your
+programs.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>#include "utlist.h"</tt></pre>
+</div></div>
+<h3 id="_download">Download</h3><div style="clear:left"></div>
+<div class="paragraph"><p>To download the <tt>utlist.h</tt> header file, click the link to download on the
+<a href="http://uthash.sourceforge.net">uthash home page</a>. After you untar the package,
+look in the <tt>src/</tt> directory for <tt>utlist.h</tt>.</p></div>
+<h3 id="_bsd_licensed">BSD licensed</h3><div style="clear:left"></div>
+<div class="paragraph"><p>This software is made available under the
+<a href="license.html">revised BSD license</a>.
+It is free and open source.</p></div>
+<h3 id="_types_of_lists">Types of lists</h3><div style="clear:left"></div>
+<div class="paragraph"><p>There are three types of linked lists supported.</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+singly-linked lists,
+</p>
+</li>
+<li>
+<p>
+doubly-linked lists, and
+</p>
+</li>
+<li>
+<p>
+circular, doubly-linked lists
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>A quirk of the doubly-linked list macros is that the head element has its <tt>prev</tt>
+member pointing back to the list tail-- even for a non-circular list.
+Internally, this detail allows items to be appended to a doubly-linked list in
+constant time.</p></div>
+<h3 id="_list_elements">List elements</h3><div style="clear:left"></div>
+<div class="paragraph"><p>You can use any structure with these macros, provided that the structure
+contains a <tt>next</tt> pointer. Naturally, if you want to use a doubly-linked list,
+the element also needs to have a <tt>prev</tt> pointer.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>typedef struct {
+    char name[10];
+    struct element *next, *prev;
+} element;</tt></pre>
+</div></div>
+<div class="paragraph"><p>You can name your structure anything-- <tt>element</tt> is just used as an example.
+All the elements of a particular list have to be of the same type.</p></div>
+<h3 id="_list_head">List head</h3><div style="clear:left"></div>
+<div class="paragraph"><p>The list head is simply a pointer to your element structure. You can name it
+anything. <strong>It must be initialized to <tt>NULL</tt></strong>.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>element *head = NULL;</tt></pre>
+</div></div>
+<h3 id="_list_operations">List operations</h3><div style="clear:left"></div>
+<div class="paragraph"><p>The lists support inserting or deleting elements, sorting the elements and of
+course, iterating over them.</p></div>
+<div class="tableblock">
+<table rules="none"
+width="90%"
+frame="border"
+cellspacing="0" cellpadding="4">
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
+<thead valign="top">
+<tr>
+<th align="left">Singly-linked        </th>
+<th align="left"> Doubly-linked          </th>
+<th align="left"> Circular, doubly-linked</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr>
+<td align="left"><p class="table"><tt>LL_PREPEND(head,add)</tt></p></td>
+<td align="left"><p class="table"><tt>DL_PREPEND(head,add)</tt></p></td>
+<td align="left"><p class="table"><tt>CDL_PREPEND(head,add)</tt></p></td>
+</tr>
+<tr>
+<td align="left"><p class="table"><tt>LL_APPEND(head,add)</tt></p></td>
+<td align="left"><p class="table"><tt>DL_APPEND(head,add)</tt></p></td>
+<td align="left"><p class="table"><tt></tt></p></td>
+</tr>
+<tr>
+<td align="left"><p class="table"><tt>LL_DELETE(head,del)</tt></p></td>
+<td align="left"><p class="table"><tt>DL_DELETE(head,del)</tt></p></td>
+<td align="left"><p class="table"><tt>CDL_DELETE(head,del)</tt></p></td>
+</tr>
+<tr>
+<td align="left"><p class="table"><tt>LL_SORT(head,cmp)</tt></p></td>
+<td align="left"><p class="table"><tt>DL_SORT(head,cmp)</tt></p></td>
+<td align="left"><p class="table"><tt>CDL_SORT(head,cmp)</tt></p></td>
+</tr>
+<tr>
+<td align="left"><p class="table"><tt>LL_FOREACH(head,elt)</tt></p></td>
+<td align="left"><p class="table"><tt>DL_FOREACH(head,elt)</tt></p></td>
+<td align="left"><p class="table"><tt>CDL_FOREACH(head,elt)</tt></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="paragraph"><p><em>Prepend</em> means to insert an element in front of the existing list head (if any),
+changing the list head to the new element. <em>Append</em> means to add an element at the
+end of the list, so it becomes the new tail element.  The <em>foreach</em> operation
+is for easy iteration over the list from the head to the tail. A usage example
+is shown below.</p></div>
+<div class="paragraph"><p>The parameters shown in the table above are explained here:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+head
+</dt>
+<dd>
+<p>
+  The list head (a pointer to your list element structure).
+</p>
+</dd>
+<dt class="hdlist1">
+add
+</dt>
+<dd>
+<p>
+  A pointer to the list element structure you are adding to the list.
+</p>
+</dd>
+<dt class="hdlist1">
+del
+</dt>
+<dd>
+<p>
+  A pointer to the list element structure you are deleting from the list.
+</p>
+</dd>
+<dt class="hdlist1">
+elt
+</dt>
+<dd>
+<p>
+  A pointer that will be assigned to each list element in succession (see
+  example).
+</p>
+</dd>
+<dt class="hdlist1">
+cmp
+</dt>
+<dd>
+<p>
+  pointer to comparison function which accepts two arguments-- these are
+  pointers to two element structures to be compared. The comparison function
+  must return an  int specifying whether the first item should sort before,
+  equal to, or after the second item (like <tt>strcmp</tt>).
+</p>
+</dd>
+</dl></div>
+<h3 id="_example">Example</h3><div style="clear:left"></div>
+<div class="paragraph"><p>This example program reads names from a text file (one name per line), and
+appends each name to a doubly-linked list. Then it sorts and prints them.</p></div>
+<div class="listingblock">
+<div class="title">A doubly-linked list</div>
+<div class="content">
+<pre><tt>#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+#include "utlist.h"
+
+#define BUFLEN 20
+
+typedef struct el {
+    char bname[BUFLEN];
+    struct el *next, *prev;
+} el;
+
+int namecmp(el *a, el *b) {
+    return strcmp(a-&gt;bname,b-&gt;bname);
+}
+
+el *head = NULL; /* important- initialize to NULL! */
+
+int main(int argc, char *argv[]) {
+    el *name, *tmp;
+
+    char linebuf[BUFLEN];
+    FILE *file;
+
+    if ( (file = fopen( "test11.dat", "r" )) == NULL ) {
+        perror("can't open: ");
+        exit(-1);
+    }
+
+    while (fgets(linebuf,BUFLEN,file) != NULL) {
+        if ( (name = (el*)malloc(sizeof(el))) == NULL) exit(-1);
+        strncpy(name-&gt;bname,linebuf,BUFLEN);
+        DL_APPEND(head, name);
+    }
+    DL_SORT(head, namecmp);
+    DL_FOREACH(head,tmp) printf("%s", tmp-&gt;bname);
+
+    fclose(file);
+
+    return 0;
+}</tt></pre>
+</div></div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version 1.0<br />
+Last updated 2009-04-09 16:52:47 EDT
+</div>
+</div>
+</body>
+</html>

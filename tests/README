@@ -34,12 +34,12 @@ test26: test the linked list sort macros in utlist.h
 test27: LL_APPEND, SORT
 test28: CDL / DL / LL tests  
 test29: DL_APPEND, SORT
-test30: CDL_INSERT, SORT
+test30: CDL_PREPEND, SORT
 test31: CDL_PREPEND, SORT
 test32: DL_PREPEND
 test33: LL_PREPEND
 test34: CDL_PREPEND
-test35: CDL_INSERT
+test35: CDL_PREPEND
 
 Other Make targets
 ================================================================================

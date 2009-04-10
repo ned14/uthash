@@ -1,13 +1,13 @@
 CDL macros
-c d b a 
+d c b a 
 advancing head pointer
-d b a c 
-d b a c d b a c d b 
-d c a b d c a b d c 
+c b a d 
+c b a d c b a d c b 
+c d a b c d a b c d 
 deleting b
-d a c 
+c a d 
 deleting (a)
-d c 
+c d 
 deleting (c)
 d 
 deleting (d)

@@ -388,6 +388,24 @@ div#toc a:visited { color: blue; }
 <div id="header">
 <h1>uthash ChangeLog</h1>
 </div>
+<h2 id="_version_1_6_2009_04_09">Version 1.6 (2009-04-09)</h2>
+<div class="sectionbody">
+<div class="ulist"><ul>
+<li>
+<p>
+added separate, standalone header called <a href="utlist.html">utlist.h</a>
+  containing linked list macros for C structures
+</p>
+</li>
+<li>
+<p>
+fixed a minor parenthesization bug that led to a compiler error if
+  HASH_ADD_KEYPTR&#8217;s last argument was passed as a pointer to an array member
+  like &amp;a[i]
+</p>
+</li>
+</ul></div>
+</div>
 <h2 id="_version_1_5_2009_02_19">Version 1.5 (2009-02-19)</h2>
 <div class="sectionbody">
 <div class="ulist"><ul>
@@ -587,7 +605,7 @@ Initial release
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2009-02-19 06:44:52 EDT
+Last updated 2009-04-09 16:52:35 EDT
 </div>
 </div>
 </body>

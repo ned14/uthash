@@ -1,41 +1,37 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "utlist.h"
+#include "uthash.h"
+#include <string.h>   /* strcpy */
+#include <stdlib.h>   /* malloc */
+#include <stdio.h>    /* printf */
 
-#define BUFLEN 20
+typedef struct elt {
+    char *s;
+    UT_hash_handle hh;
+} elt;
 
-typedef struct el {
-    char bname[BUFLEN];
-    struct el *next, *prev;
-} el;
-
-int namecmp(el *a, el *b) {
-    return strcmp(a->bname,b->bname);
-}
-
-el *head = NULL;
-
-int main(int argc, char *argv[]) {
-    el *name, *tmp;
-
-    char linebuf[BUFLEN];
-    FILE *file;
-
-    if ( (file = fopen( "test11.dat", "r" )) == NULL ) {
-        perror("can't open: "); 
-        exit(-1);
+int main(int argc,char *argv[]) {
+    int i;
+    elt *head = NULL;
+    elt elts[10];
+    char label[6];
+    for(i=0;i<10;i++) { 
+      elts[i].s = (char*)malloc(6); 
+      strncpy(elts[i].s, "hello",6); 
+      elts[i].s[0] = 'a' + i;
+      printf("%d: %s\n", i, elts[i].s);
+      HASH_ADD_KEYPTR(hh, head, elts[i].s, 6, &elts[i]);
     }
 
-    while (fgets(linebuf,BUFLEN,file) != NULL) {
-        if ( (name = (el*)malloc(sizeof(el))) == NULL) exit(-1);
-        strncpy(name->bname,linebuf,BUFLEN);
-        CDL_INSERT(head, name);
+    /* look up each element and verify the result pointer */
+    strncpy(label, "hello", 6);
+    for(i=0;i<10;i++) { 
+      elt *e;
+      label[0] = 'a' + i;
+      HASH_FIND(hh,head,label,6,e);
+      if (e) {
+        printf( "found %s\n", e->s);
+        printf( "right address? %s\n", (e == &elts[i]) ? "yes" : "no");
+      }
     }
-    /* CDL_SORT(head, namecmp); */
-    CDL_FOREACH(head,tmp) printf("%s", tmp->bname);
-
-    fclose(file);
 
     return 0;
 }

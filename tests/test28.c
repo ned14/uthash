@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
     CDL_PREPEND(head,&els[0]);
     CDL_PREPEND(head,&els[1]);
     CDL_PREPEND(head,&els[2]);
-    CDL_INSERT(head,&els[3]);
+    CDL_PREPEND(head,&els[3]);
     CDL_FOREACH(head,e) 
         printf("%c ", e->id); 
     printf("\n");

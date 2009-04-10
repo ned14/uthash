@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
     while (fgets(linebuf,BUFLEN,file) != NULL) {
         if ( (name = (el*)malloc(sizeof(el))) == NULL) exit(-1);
         strncpy(name->bname,linebuf,BUFLEN);
-        CDL_INSERT(head, name);
+        CDL_PREPEND(head, name);
     }
     CDL_SORT(head, namecmp);
     CDL_FOREACH(head,tmp) printf("%s", tmp->bname);
