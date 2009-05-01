@@ -281,6 +281,10 @@ div.toclevel4 {
   margin-bottom:5px;
 }
 
+a img {
+   border: 0
+}
+
 #toc a:visited, #toc a:link { color:#000; text-decoration: none }
 #toc a:hover { color:#00f; text-decoration: underline; }
 
