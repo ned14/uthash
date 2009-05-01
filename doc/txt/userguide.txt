@@ -57,6 +57,13 @@ This software can be used in C and C++ programs.  It has been tested on:
  * Cygwin
  * MinGW
 
+Non-GNU C++ compilers
+^^^^^^^^^^^^^^^^^^^^^
+When compiling C\+\+ code it may be necessary to use the GNU compiler, g\+\+, which
+supports the `typeof` extension. Alternatively some users of non-GNU C++
+compilers simply hardcode the `TYPEOF` macro in `uthash.h` to the data type they
+want to use.
+
 Test suite
 ^^^^^^^^^^
 You can run the test suite on these platforms, or any prospective Unix-like

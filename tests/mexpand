@@ -2,9 +2,10 @@
 
 # utility to macro-expand a test program
 CC=gcc
+#CPPFLAGS=-DHASH_DEBUG=1
 #CC=g++
 
-${CC} -E -I../src $1 | egrep -v '^#' > /tmp/$1
+${CC} ${CPPFLAGS} -E -I../src $1 | egrep -v '^#' > /tmp/$1
 indent /tmp/$1
 ${CC} -o /tmp/$1.$$ /tmp/$1
 rm -f /tmp/$1.$$ 

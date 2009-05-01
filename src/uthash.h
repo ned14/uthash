@@ -21,11 +21,11 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <string.h> /* memcmp,strlen */
-#include <stddef.h> /* ptrdiff_t */
-
 #ifndef UTHASH_H
 #define UTHASH_H 
+
+#include <string.h> /* memcmp,strlen */
+#include <stddef.h> /* ptrdiff_t */
 
 #define UTHASH_VERSION 1.6
 
@@ -65,6 +65,23 @@ do {                                                                           \
   }                                                                            \
 } while (0)
 
+#define HASH_MAKE_TABLE(hh,head) \
+do { \
+  (head)->hh.tbl = (UT_hash_table*)uthash_tbl_malloc(                        \
+                  sizeof(UT_hash_table));                                    \
+  if (!((head)->hh.tbl))  { uthash_fatal( "out of memory"); }                \
+  memset((head)->hh.tbl, 0, sizeof(UT_hash_table));                          \
+  (head)->hh.tbl->tail = &((head)->hh);                                         \
+  (head)->hh.tbl->num_buckets = HASH_INITIAL_NUM_BUCKETS;                    \
+  (head)->hh.tbl->log2_num_buckets = HASH_INITIAL_NUM_BUCKETS_LOG2;          \
+  (head)->hh.tbl->hho = (char*)(&(head)->hh) - (char*)(head);                    \
+  (head)->hh.tbl->buckets = (UT_hash_bucket*)uthash_bkt_malloc(              \
+          HASH_INITIAL_NUM_BUCKETS*sizeof(struct UT_hash_bucket));           \
+  if (! (head)->hh.tbl->buckets) { uthash_fatal( "out of memory"); }         \
+  memset((head)->hh.tbl->buckets, 0,                                         \
+          HASH_INITIAL_NUM_BUCKETS*sizeof(struct UT_hash_bucket));           \
+} while(0)
+
 #define HASH_ADD(hh,head,fieldname,keylen_in,add)                              \
         HASH_ADD_KEYPTR(hh,head,&add->fieldname,keylen_in,add)
  
@@ -77,19 +94,7 @@ do {                                                                           \
  if (!(head)) {                                                                \
     head = (add);                                                                \
     (head)->hh.prev = NULL;                                                    \
-    (head)->hh.tbl = (UT_hash_table*)uthash_tbl_malloc(                        \
-                    sizeof(UT_hash_table));                                    \
-    if (!((head)->hh.tbl))  { uthash_fatal( "out of memory"); }                \
-    memset((head)->hh.tbl, 0, sizeof(UT_hash_table));                          \
-    (head)->hh.tbl->tail = &((add)->hh);                                         \
-    (head)->hh.tbl->num_buckets = HASH_INITIAL_NUM_BUCKETS;                    \
-    (head)->hh.tbl->log2_num_buckets = HASH_INITIAL_NUM_BUCKETS_LOG2;          \
-    (head)->hh.tbl->hho = (char*)(&(add)->hh) - (char*)(add);                    \
-    (head)->hh.tbl->buckets = (UT_hash_bucket*)uthash_bkt_malloc(              \
-            HASH_INITIAL_NUM_BUCKETS*sizeof(struct UT_hash_bucket));           \
-    if (! (head)->hh.tbl->buckets) { uthash_fatal( "out of memory"); }         \
-    memset((head)->hh.tbl->buckets, 0,                                         \
-            HASH_INITIAL_NUM_BUCKETS*sizeof(struct UT_hash_bucket));           \
+    HASH_MAKE_TABLE(hh,head); \
  } else {                                                                      \
     (head)->hh.tbl->tail->next = (add);                                          \
     (add)->hh.prev = ELMT_FROM_HH((head)->hh.tbl, (head)->hh.tbl->tail);         \
@@ -99,12 +104,15 @@ do {                                                                           \
  (add)->hh.tbl = (head)->hh.tbl;                                                 \
  HASH_FCN(keyptr,keylen_in, (head)->hh.tbl->num_buckets,                       \
          (add)->hh.hashv, _ha_bkt);                                            \
- HASH_ADD_TO_BKT(hh,(head)->hh.tbl->buckets[_ha_bkt],add);                     \
+ HASH_ADD_TO_BKT((head)->hh.tbl->buckets[_ha_bkt],&(add)->hh);                     \
  HASH_EMIT_KEY(hh,head,keyptr,keylen_in);                                      \
  HASH_FSCK(hh,head);                                                           \
 } while(0)
 
-#define HASH_TO_BKT( hashv, num_bkts, bkt ) bkt = ((hashv) & ((num_bkts) - 1))
+#define HASH_TO_BKT( hashv, num_bkts, bkt ) \
+do { \
+  bkt = ((hashv) & ((num_bkts) - 1)); \
+} while(0)
 
 /* delete "delptr" from the hash table.
  * "the usual" patch-up process for the app-order doubly-linked-list.
@@ -210,7 +218,7 @@ do {                                                                           \
               HASH_OOPS("invalid prev %p, actual %p\n",                        \
                     _thh->prev, _prev );                                       \
            }                                                                   \
-           _prev = ELMT_FROM_HH((head)->hh.tbl, _thh);                         \
+           _prev = (char*)ELMT_FROM_HH((head)->hh.tbl, _thh);                         \
            _thh = ( _thh->next ?  (UT_hash_handle*)((char*)(_thh->next) +      \
                                   (head)->hh.tbl->hho) : NULL );               \
         }                                                                      \
@@ -361,16 +369,18 @@ while (out) {                                                                  \
 }
 
 /* add an item to a bucket  */
-#define HASH_ADD_TO_BKT(hh,head,add)                                           \
+#define HASH_ADD_TO_BKT(head,addhh)                                           \
+do { \
  head.count++;                                                                 \
- (add)->hh.hh_next = head.hh_head;                                               \
- (add)->hh.hh_prev = NULL;                                                       \
- if (head.hh_head) head.hh_head->hh_prev = &(add)->hh;                           \
- head.hh_head=&(add)->hh;                                                        \
+ (addhh)->hh_next = head.hh_head;                                               \
+ (addhh)->hh_prev = NULL;                                                       \
+ if (head.hh_head) { (head).hh_head->hh_prev = (addhh); }                         \
+ (head).hh_head=addhh;                                                        \
  if (head.count >= ((head.expand_mult+1) * HASH_BKT_CAPACITY_THRESH)           \
-     && (add)->hh.tbl->noexpand != 1) {                                          \
-       HASH_EXPAND_BUCKETS((add)->hh.tbl);                                       \
- }
+     && (addhh)->tbl->noexpand != 1) {                                          \
+       HASH_EXPAND_BUCKETS((addhh)->tbl);                                       \
+ } \
+} while(0)
 
 /* remove an item from a given bucket */
 #define HASH_DEL_IN_BKT(hh,head,hh_del)                                        \
@@ -545,6 +555,50 @@ do {                                                                           \
       HASH_FSCK(hh,head);                                                      \
  }                                                                             \
 } while (0)
+
+/* This function selects items from one hash into another hash. 
+ * The end result is that the selected items have dual presence 
+ * in both hashes. There is no copy of the items made; rather 
+ * they are woven into the new hash through a secondary hash 
+ * hash handle that must be present in the structure. */
+#define HASH_SELECT(hh_dst, dst, hh_src, src, cond) \
+do { \
+  unsigned src_bkt, dst_bkt; \
+  void *last_elt=NULL, *elt; \
+  UT_hash_handle *src_hh, *dst_hh, *last_elt_hh=NULL;  \
+  ptrdiff_t dst_hho = ((char*)(&(dst)->hh_dst) - (char*)(dst)); \
+  if (src) { \
+    for(src_bkt=0; src_bkt < (src)->hh_src.tbl->num_buckets; src_bkt++) { \
+      for(src_hh = (src)->hh_src.tbl->buckets[src_bkt].hh_head; \
+          src_hh; \
+          src_hh = src_hh->hh_next) { \
+          elt = ELMT_FROM_HH((src)->hh_src.tbl, src_hh); \
+          if (cond(elt)) { \
+            dst_hh = (UT_hash_handle*)(((char*)elt) + dst_hho); \
+            dst_hh->key = src_hh->key; \
+            dst_hh->keylen = src_hh->keylen; \
+            dst_hh->hashv = src_hh->hashv; \
+            dst_hh->prev = last_elt; \
+            dst_hh->next = NULL; \
+            if (last_elt_hh) { last_elt_hh->next = elt; } \
+            if (!dst) { \
+              dst = TYPEOF(dst)elt; \
+              HASH_MAKE_TABLE(hh_dst,dst); \
+            } else { \
+              dst_hh->tbl = (dst)->hh_dst.tbl; \
+            } \
+            HASH_TO_BKT(dst_hh->hashv, dst_hh->tbl->num_buckets, dst_bkt); \
+            HASH_ADD_TO_BKT(dst_hh->tbl->buckets[dst_bkt],dst_hh);  \
+            (dst)->hh_dst.tbl->num_items++; \
+            last_elt = elt; \
+            last_elt_hh = dst_hh; \
+          } \
+      } \
+    } \
+  } \
+  HASH_FSCK(hh_dst,dst); \
+} while (0)
+
 
 /* obtain a count of items in the hash */
 #define HASH_COUNT(head) HASH_CNT(hh,head) 

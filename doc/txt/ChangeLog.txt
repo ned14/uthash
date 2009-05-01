@@ -1,13 +1,14 @@
 uthash ChangeLog
 ================
 
+Click to return to the file:index.html[uthash home page].
+
 Version 1.6 (2009-04-09)
 --------------------------
-* added separate, standalone header called link:utlist.html[utlist.h]
-  containing linked list macros for C structures
-* fixed a minor parenthesization bug that led to a compiler error if
-  HASH_ADD_KEYPTR's last argument was passed as a pointer to an array member
-  like &a[i]
+* a new, separate header called link:utlist.html[utlist.h] is included which
+  provides 'linked list macros' for C structures, similar in style to the uthash macros
+* fixed a minor parenthesization bug that caused a compile error if the final
+  argument to `HASH_ADD_KEYPTR` was a pointer to an array member like `&a[i]`
 
 Version 1.5 (2009-02-19)
 --------------------------
