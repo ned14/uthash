@@ -4,8 +4,10 @@
 #include <stdio.h>    /* printf */
 
 #define BUFLEN 20
+#if 0
 #undef uthash_expand_fyi
 #define uthash_expand_fyi(tbl) printf("expanding to %d buckets\n", tbl->num_buckets)
+#endif
 
 typedef struct name_rec {
     char boy_name[BUFLEN];

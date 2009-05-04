@@ -94,8 +94,9 @@ Resources
 News::
  The author has a news feed for http://troydhanson.wordpress.com/feed/[software updates] image:img/rss.png[(RSS)].
 Linked list macros::
- The uthash package includes a separate, standalone header called
- link:utlist.html[utlist.h] which contains macros for singly- and doubly-linked lists.
+ uthash includes a separate, standalone header called link:utlist.html[utlist.h]
+ which has 'linked list macros' for C structures, similar in style to the
+ hash macros
 
 Who's using it?
 ~~~~~~~~~~~~~~~

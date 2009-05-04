@@ -5,11 +5,13 @@
 
 #define BUFLEN 20
 
+#if 0
 /* Print a message if the hash's no-expand flag is set. */
 #undef uthash_noexpand_fyi 
 #undef uthash_expand_fyi 
 #define uthash_noexpand_fyi(tbl) printf("noexpand set\n");
 #define uthash_expand_fyi(tbl) printf("hash expanded\n");
+#endif
 
 typedef struct name_rec {
     char boy_name[BUFLEN];

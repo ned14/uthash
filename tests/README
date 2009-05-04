@@ -26,9 +26,6 @@ test21: test a "double" (floating point) key (userguide)
 test22: test multi-field key using flexible array member (userguide utf32)
 test23: test whether delete in iteration works
 test24: make 10-item hash and confirm item count (HASH_COUNT)
-================================================================================
-   Tests for linked lists 
-================================================================================
 test25: CDL / DL / LL tests
 test26: test the linked list sort macros in utlist.h
 test27: LL_APPEND, SORT
@@ -40,6 +37,10 @@ test32: DL_PREPEND
 test33: LL_PREPEND
 test34: CDL_PREPEND
 test35: CDL_PREPEND
+test36: HASH_SELECT
+test37: HASH_CLEAR
+test38: find-or-add test on integer keys in short loop
+test39: HASH_ADD_KEYPTR then HASH_FIND using array element as key pointer
 
 Other Make targets
 ================================================================================
@@ -53,6 +54,7 @@ Other files
 ================================================================================
 keystats:  key statistics analyzer. See the User Guide (http://uthash.sf.net)
 emit_keys: reads a data file of unique strings, emits as keys w/HASH_EMIT_KEYS=1
+all_funcs: a script which executes the test suite with every hash function
 
 Manual performance testing
 ================================================================================

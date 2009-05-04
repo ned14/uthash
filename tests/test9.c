@@ -2,6 +2,7 @@
 #include <stdlib.h>   /* malloc */
 #include <stdio.h>    /* printf */
 
+#if 0
 /* Set up macros for alternative malloc/free functions  */
 #undef uthash_bkt_malloc
 #undef uthash_bkt_free
@@ -16,6 +17,7 @@
 #undef uthash_expand_fyi 
 #define uthash_noexpand_fyi(tbl) printf("noexpand set\n");
 #define uthash_expand_fyi(tbl) printf("hash expanded\n");
+#endif
 
 typedef struct example_user_t {
     int id;
