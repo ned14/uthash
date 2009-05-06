@@ -7,19 +7,23 @@ Click to return to the file:index.html[uthash home page].
 
 Version 1.6 (2009-05-01)
 --------------------------
+* a new, separate header called link:utlist.html[utlist.h] is included which
+  provides 'linked list macros' for C structures, similar in style to the
+  uthash macros
 * a new `HASH_SELECT` operation inserts those elements from one hash that
   satisfy a given condition into another hash. The selected items have
   dual presence in both hash tables. For example a game could select the
   visible polygons from a hash of all polygons.
 * a new `HASH_CLEAR` operation clears a hash table in one step. Previously, 
   the application had to call `HASH_DEL` on every item to completely dellocate.
-* fixed casting in `HASH_FNV`, `HASH_SAX` and `HASH_OAT` for non-char keys (thanks, 
-  Alfred Heisner!)
+* Under Cygwin and MinGW, the `keystats` utility now has much better elapsed time 
+  accuracy (thanks, Alfred Heisner!)
+* fixed casting in `HASH_FNV`, `HASH_SAX` and `HASH_OAT` for non-char keys (also 
+  thanks to Alfred Heisner!)
 * fixed a compile-time error if the final argument to `HASH_ADD_KEYPTR` was a 
   pointer to an array member like `&a[i]`
-* a new, separate header called link:utlist.html[utlist.h] is included which
-  provides 'linked list macros' for C structures, similar in style to the
-  uthash macros
+* added a `tests/all_funcs` script which executes the test suite using every
+  supported hash function
 
 Version 1.5 (2009-02-19)
 --------------------------
