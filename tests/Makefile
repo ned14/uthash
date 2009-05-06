@@ -40,9 +40,10 @@ ifneq ($(strip $(shell $(CC) -v 2>&1 |grep "mingw")),)
 endif
 
 
-tests_only: $(PROGS) $(TEST_TARGET)
 
 all: $(PROGS) $(UTILS) $(FUNCS) $(TEST_TARGET)
+
+tests_only: $(PROGS) $(TEST_TARGET)
 
 debug:
 	$(MAKE) all HASH_DEBUG=1

@@ -8,24 +8,26 @@
 #include <sys/time.h>   /* for 'gettimeofday' */
 #include "uthash.h"
 
-/* Windows doesn't have gettimeofday() */
-#if ( defined __MINGW32__ )
+/* Windows doesn't have gettimeofday. While Cygwin and some 
+ * versions of MinGW supply one, it is very coarse. This substitute
+ * gives much more accurate elapsed times under Windows. */
+#if (( defined __CYGWIN__ ) || ( defined __MINGW32__ ))
 #include <windows.h>
-#include <sys/time.h>
-
-void __stdcall GetSystemTimeAsFileTime(FILETIME*);
-
-void gettimeofday(struct timeval* p, void* tz /* IGNORED */)
-{
-  union {
-    long long ns100; /*time since 1 Jan 1601 in 100ns units */
-    FILETIME ft;
-  } now;
-
-  GetSystemTimeAsFileTime( &(now.ft) );
-  p->tv_usec=(long)((now.ns100 / 10LL) % 1000000LL );
-  p->tv_sec= (long)((now.ns100-(116444736000000000LL))/10000000LL);
+void win_gettimeofday(struct timeval* p, void* tz /* IGNORED */) {
+  LARGE_INTEGER q;
+  static long long freq;
+  static long long cyg_timer;
+  QueryPerformanceFrequency(&q);
+  freq = q.QuadPart;
+  QueryPerformanceCounter(&q);
+  cyg_timer = q.QuadPart;
+  p->tv_sec = (long)(cyg_timer / freq);
+  p->tv_usec = (long)(((cyg_timer % freq) * 1000000) / freq);
 }
+#define gettimeofday win_gettimeofday
+#define MODE (O_RDONLY|O_BINARY)
+#else
+#define MODE (O_RDONLY)
 #endif
 
 #ifndef timersub
@@ -47,14 +49,14 @@ typedef struct stat_key {
 } stat_key;
 
 int main(int argc, char *argv[]) {
-    int dups=0, rc, fd, done=0, err=0;
+    int dups=0, rc, fd, done=0, err=0, want;
     unsigned keylen;
     char *filename = "/dev/stdin"; 
     stat_key *keyt, *keytmp, *keys=NULL, *keys2=NULL;
     struct timeval start_tm, end_tm, elapsed_tm, elapsed_tm2, elapsed_tm3;
 
     if (argc > 1) filename=argv[1];
-    fd=open(filename,O_RDONLY);
+    fd=open(filename,MODE);
 
     if ( fd == -1 ) {
         fprintf(stderr,"open failed %s: %s\n", filename, strerror(errno));
@@ -62,13 +64,19 @@ int main(int argc, char *argv[]) {
     }
 
     while (!done) {
-          rc = read(fd,&keylen,sizeof(int));
-          if (rc != sizeof(int)) {
+
+          want = sizeof(int);
+          readmore1:
+          rc = read(fd,&keylen,want);
+          if (rc != want) {
               if (rc == 0) done=1;
-              else err=1;
-              if (rc == -1) fprintf(stderr,"read failed: %s\n", strerror(errno));
-              else if (rc > 0) fprintf(stderr,"incomplete file\n");
+              else if (rc == -1) {
+                fprintf(stderr,"read failed: %s\n", strerror(errno));
+                err=1;
+              }
+              else if (rc > 0) { want -= rc; goto readmore1; }
           }
+
           if (done || err) break;
   
           if ( (keyt = (stat_key*)malloc(sizeof(stat_key))) == NULL) {
@@ -83,11 +91,17 @@ int main(int argc, char *argv[]) {
           }
           keyt->len = keylen;
   
-          rc = read(fd,keyt->key,keylen);
-          if (rc != (int)keylen) {
-              if (rc == -1) fprintf(stderr,"read failed: %s\n", strerror(errno));
-              else if (rc >= 0) fprintf(stderr,"incomplete file\n");
-              err=1;
+          want = keylen;
+          readmore2:
+          rc = read(fd,keyt->key,want);
+          if (rc != want) {
+              if (rc == -1) {
+                fprintf(stderr,"read failed: %s\n", strerror(errno));
+                err=1;
+              } else if (rc == 0) {
+                fprintf(stderr,"incomplete file\n");
+                err=1;
+              } else if (rc >= 0) { want -= rc; goto readmore2; }
           }
           if (err) break;
   
