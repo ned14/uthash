@@ -11,12 +11,12 @@ ns_t *head = NULL;
 
 int main() {
   char *keys[] = {"eins", "zwei", "drei"};
-  int i;
+  unsigned i;
   ns_t *nsp;
 
   for(i=0; i < sizeof(keys)/sizeof(keys[0]); i++) {
     printf("adding key %s\n", keys[i]);
-    nsp = malloc(sizeof(ns_t));
+    nsp = (ns_t*)malloc(sizeof(ns_t));
     nsp->name = keys[i];
     HASH_ADD_KEYPTR(hh,head,nsp->name,strlen(nsp->name),nsp);
   }

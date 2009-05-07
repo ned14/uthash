@@ -16,7 +16,7 @@ int main(void) {
       test = NULL;
       HASH_FIND(hh, tests, &a, sizeof(a), test);
       if (! test) {
-        test = malloc(sizeof(struct test_t));
+        test = (struct test_t*)malloc(sizeof(struct test_t));
         memset(test, 0, sizeof(struct test_t));
         test->a = a;
         HASH_ADD(hh, tests, a, sizeof(a), test);

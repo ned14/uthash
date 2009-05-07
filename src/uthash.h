@@ -272,7 +272,7 @@ do {                                                                           \
   char *_hs_key=(char*)key;                                                    \
   hashv = 0;                                                                   \
   for(_sx_i=0; _sx_i < keylen; _sx_i++)                                        \
-      hashv ^= (hashv << 5) + (hashv >> 2) + _hs_key[_sx_i];                       \
+      hashv ^= (hashv << 5) + (hashv >> 2) + _hs_key[_sx_i];                   \
   bkt = hashv & (num_bkts-1);                                                  \
 } while (0)
 
@@ -282,7 +282,7 @@ do {                                                                           \
   char *_hf_key=(char*)key;                                                    \
   hashv = 2166136261UL;                                                        \
   for(_fn_i=0; _fn_i < keylen; _fn_i++)                                        \
-      hashv = (hashv * 16777619) ^ _hf_key[_fn_i];                                 \
+      hashv = (hashv * 16777619) ^ _hf_key[_fn_i];                             \
   bkt = hashv & (num_bkts-1);                                                  \
 } while(0);
  
@@ -292,7 +292,7 @@ do {                                                                           \
   char *_ho_key=(char*)key;                                                    \
   hashv = 0;                                                                   \
   for(_ho_i=0; _ho_i < keylen; _ho_i++) {                                      \
-      hashv += _ho_key[_ho_i];                                                     \
+      hashv += _ho_key[_ho_i];                                                 \
       hashv += (hashv << 10);                                                  \
       hashv ^= (hashv >> 6);                                                   \
   }                                                                            \
@@ -562,7 +562,7 @@ do {                                                                           \
 /* This function selects items from one hash into another hash. 
  * The end result is that the selected items have dual presence 
  * in both hashes. There is no copy of the items made; rather 
- * they are woven into the new hash through a secondary hash 
+ * they are added into the new hash through a secondary hash 
  * hash handle that must be present in the structure. */
 #define HASH_SELECT(hh_dst, dst, hh_src, src, cond)                            \
 do {                                                                           \
@@ -601,10 +601,6 @@ do {                                                                           \
   }                                                                            \
   HASH_FSCK(hh_dst,dst);                                                       \
 } while (0)
-
-#define HASH_SELECT1(hh_dst,dst,hh_src,src) \
-do { \
-} while(0)
 
 #define HASH_CLEAR(hh,head)                                                    \
 do {                                                                           \

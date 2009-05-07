@@ -25,6 +25,7 @@ This software supports these basic operations on items in a hash table:
 4. count
 5. iterate
 6. sort
+7. select
 
 Is it fast?
 ~~~~~~~~~~~
@@ -149,8 +150,8 @@ initialization. It can be named anything, but you can simplify matters by
 naming it `hh`. This allows you to use the easier "convenience" macros to add,
 find and delete items.
 
-Add, find, delete, count, sort, iterate
----------------------------------------
+Hash operations
+---------------
 
 This section introduces the uthash macros by example. For a more succinct
 listing, see <<Appendix_F,Appendix F: Macro Reference>>. 
@@ -267,7 +268,12 @@ in the hash table).
 
 Delete all items
 ~~~~~~~~~~~~~~~~
-To delete all the structures in a hash table, you need to iteratively delete.
+To delete all the structures in a hash table, you can either iteratively delete
+the items (if you plan to free each one or need to other per-element work), or
+you can delete all the items in a single operation.
+
+Iterative deletion
+^^^^^^^^^^^^^^^^^^
 It's easy: just keep deleting the first item. If you plan to free it, copy the
 pointer beforehand since the delete will advance the "first item" to the next.
 
@@ -284,10 +290,14 @@ void delete_all() {
 }
 ----------------------------------------------------------------------
 
-If you only want to delete all the items, but not free them, you can write this
-even more concisely as 
+All-at-once deletion
+^^^^^^^^^^^^^^^^^^^^
+If you only want to delete all the items, but not free them or do any
+per-element clean up, you can do this more efficiently in a single operation:
 
-  while (users) HASH_DEL(users,users);
+  HASH_CLEAR(users);
+
+Afterward, the list head (here, `users`) will be set to `NULL`.
 
 Count items
 ~~~~~~~~~~~
@@ -370,6 +380,13 @@ void sort_by_id() {
 When the items in the hash are sorted, the first item may change position.  In
 the example above, `users` may point to a different structure after calling
 `HASH_SORT`.
+
+Select
+~~~~~~
+A special 'select' operation is provided that inserts those items from a source
+hash that satisfy a given condition into a second hash. This insertion is done
+with somewhat more efficiency than if this were using `HASH_ADD`, namely because
+the hash function is not recalculated for keys of the selected items.
 
 A complete example
 ~~~~~~~~~~~~~~~~~~
@@ -1080,10 +1097,13 @@ Checks performed in `-DHASH_DEBUG=1` mode:
 
 .Macro debugging:
 ********************************************************************************
-Sometimes it's difficult to interpret a compiler warning when all it has
-is a warning and a line number containing a macro call. In the case of uthash,
-the macro can expand to dozens of lines. In this case, it is helpful to expand
-the macros to get a more precise idea of the line number where the error occurs.
+Sometimes it's difficult to interpret a compiler warning on a line which
+contains a macro call.  In the case of uthash, one macro can expand to dozens of
+lines. In this case, it is helpful to expand the macros and then recompile.
+By doing so, the warning message will refer to the exact line within the macro.
+
+Here is an example of how to expand the macros and then recompile. This uses the
+`test1.c` program in the `tests/` subdirectory.
 
   gcc -E -I../src test1.c > /tmp/a.c
   egrep -v '^#' /tmp/a.c > /tmp/b.c
@@ -1091,8 +1111,7 @@ the macros to get a more precise idea of the line number where the error occurs.
   gcc -o /tmp/b /tmp/b.c
 
 The last line compiles the original program (test1.c) with all macros expanded.
-So any compiler error or warning will have a line number that can be used to
-pinpoint the offending line precisely within the expanded macro call.
+If there was a warning, the referenced line number can be checked in `/tmp/b.c`.
 ********************************************************************************
 
 Appendix E: Thread safety

@@ -4,28 +4,28 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="generator" content="AsciiDoc 8.3.4" />
-<title>utlist macros</title>
+<title><em>utlist</em>: linked list macros for C structures</title>
 <link rel="stylesheet" href="./tdh.css" type="text/css" />
 <link rel="stylesheet" href="./tdh-quirks.css" type="text/css" />
 </head>
 <body>
 <div id="header">
-<h1>utlist macros</h1>
+<h1><em>utlist</em>: linked list macros for C structures</h1>
 <span id="author">Troy D. Hanson</span><br />
 <span id="email"><tt>&lt;<a href="mailto:thanson@users.sourceforge.net">thanson@users.sourceforge.net</a>&gt;</tt></span><br />
 <span id="revision">version 1.0,</span>
-April 2009
+May 2009
 </div>
 <div id="preamble">
 <div class="sectionbody">
-<a style="float: right; padding-right: 50px;" href="http://sourceforge.net/projects/uthash"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=163879&amp;type=13" width="120" height="30" alt="Get uthash at SourceForge.net. Fast, secure and Free Open Source software downloads" /></a>
+<a style="float: right; padding-right: 50px" href="http://sourceforge.net/projects/uthash"><img style="border: 0" src="http://sflogo.sourceforge.net/sflogo.php?group_id=163879&amp;type=13" width="120" height="30" alt="uthash at SourceForge.net" /></a>
   <div id="topnav" style="font-size: 9pt; font-family: sans-serif;">
   <a style="padding: 8px;" href="index.html">uthash home</a>
   >>  utlist macros
   </div>
 </div>
 </div>
-<h2 id="_linked_list_macros">Linked list macros</h2>
+<h2 id="_introduction">Introduction</h2>
 <div class="sectionbody">
 <div id="toc"></div>
 <script>
@@ -108,58 +108,91 @@ function generate_TOC() {
   }
 }
 </script>
-<div class="paragraph"><p>A set of general-purpose linked list macros for C structures are included with
-uthash in <tt>src/utlist.h</tt>.  To use these macros in your own C program, all you
-need to do is copy <tt>utlist.h</tt> into your source directory and use it in your
-programs.</p></div>
+<div class="paragraph"><p>A set of general-purpose <em>linked list</em> macros for C structures are included with
+uthash in <tt>src/utlist.h</tt>.  To use these macros in your own C program, just
+copy <tt>utlist.h</tt> into your source directory and use it in your programs.</p></div>
 <div class="literalblock">
 <div class="content">
 <pre><tt>#include "utlist.h"</tt></pre>
 </div></div>
+<div class="paragraph"><p>These macros support the basic linked list operations: adding and deleting
+elements, sorting them and iterating over them.</p></div>
 <h3 id="_download">Download</h3><div style="clear:left"></div>
-<div class="paragraph"><p>To download the <tt>utlist.h</tt> header file, click the link to download on the
-<a href="http://uthash.sourceforge.net">uthash home page</a>. After you untar the package,
+<div class="paragraph"><p>To download the <tt>utlist.h</tt> header file, follow the link to download on the
+<a href="http://uthash.sourceforge.net">uthash home page</a>. Untar the package, and
 look in the <tt>src/</tt> directory for <tt>utlist.h</tt>.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>tar -xjf uthash-1.6.tar.bz2
+cd uthash-1.6/src
+cp utlist.h &lt;destdir&gt;</tt></pre>
+</div></div>
 <h3 id="_bsd_licensed">BSD licensed</h3><div style="clear:left"></div>
 <div class="paragraph"><p>This software is made available under the
 <a href="license.html">revised BSD license</a>.
 It is free and open source.</p></div>
-<h3 id="_types_of_lists">Types of lists</h3><div style="clear:left"></div>
-<div class="paragraph"><p>There are three types of linked lists supported.</p></div>
+<h3 id="_platforms">Platforms</h3><div style="clear:left"></div>
+<div class="paragraph"><p>The <em>utlist</em> macros have been tested on:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-singly-linked lists,
+Linux,
 </p>
 </li>
 <li>
 <p>
-doubly-linked lists, and
+Mac OS X, and
 </p>
 </li>
 <li>
 <p>
-circular, doubly-linked lists
+Windows, using Cygwin or MinGW.
 </p>
 </li>
 </ul></div>
-<div class="paragraph"><p>A quirk of the doubly-linked list macros is that the head element has its <tt>prev</tt>
-member pointing back to the list tail-- even for a non-circular list.
-Internally, this detail allows items to be appended to a doubly-linked list in
-constant time.</p></div>
+</div>
+<h2 id="_using_utlist">Using utlist</h2>
+<div class="sectionbody">
+<h3 id="_types_of_lists">Types of lists</h3><div style="clear:left"></div>
+<div class="paragraph"><p>Three types of linked lists are supported:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<strong>singly-linked</strong> lists,
+</p>
+</li>
+<li>
+<p>
+<strong>doubly-linked</strong> lists, and
+</p>
+</li>
+<li>
+<p>
+<strong>circular, doubly-linked</strong> lists
+</p>
+</li>
+</ul></div>
+<h4 id="_efficiency">Efficiency</h4>
+<div class="paragraph"><p>For all types of lists, prepending elements and deleting elements are
+constant-time operations. Appending to a singly-linked list is an <em>O(n)</em>
+operation but appending to a doubly-linked list is constant time using these
+macros.  (This is because, in the utlist implementation of the doubly-linked
+list, the head element&#8217;s <tt>prev</tt> member points back to the list tail, even when
+the list is non-circular). Sorting is an <em>O(n log(n))</em> operation.</p></div>
 <h3 id="_list_elements">List elements</h3><div style="clear:left"></div>
-<div class="paragraph"><p>You can use any structure with these macros, provided that the structure
-contains a <tt>next</tt> pointer. Naturally, if you want to use a doubly-linked list,
+<div class="paragraph"><p>You can use any structure with these macros, as long as the structure
+contains a <tt>next</tt> pointer. If you want to make a doubly-linked list,
 the element also needs to have a <tt>prev</tt> pointer.</p></div>
 <div class="literalblock">
 <div class="content">
 <pre><tt>typedef struct {
-    char name[10];
-    struct element *next, *prev;
+    char *name;
+    struct element *prev; /* needed for a doubly-linked list only */
+    struct element *next; /* needed for singly- or doubly-linked lists */
 } element;</tt></pre>
 </div></div>
-<div class="paragraph"><p>You can name your structure anything-- <tt>element</tt> is just used as an example.
-All the elements of a particular list have to be of the same type.</p></div>
+<div class="paragraph"><p>You can name your structure anything. In the example above it is called <tt>element</tt>.
+Within a particular list, all elements must be of the same type.</p></div>
 <h3 id="_list_head">List head</h3><div style="clear:left"></div>
 <div class="paragraph"><p>The list head is simply a pointer to your element structure. You can name it
 anything. <strong>It must be initialized to <tt>NULL</tt></strong>.</p></div>
@@ -168,10 +201,10 @@ anything. <strong>It must be initialized to <tt>NULL</tt></strong>.</p></div>
 <pre><tt>element *head = NULL;</tt></pre>
 </div></div>
 <h3 id="_list_operations">List operations</h3><div style="clear:left"></div>
-<div class="paragraph"><p>The lists support inserting or deleting elements, sorting the elements and of
-course, iterating over them.</p></div>
+<div class="paragraph"><p>The lists support inserting or deleting elements, sorting the elements and
+iterating over them.</p></div>
 <div class="tableblock">
-<table rules="none"
+<table rules="cols"
 width="90%"
 frame="border"
 cellspacing="0" cellpadding="4">
@@ -180,45 +213,49 @@ cellspacing="0" cellpadding="4">
 <col width="33%" />
 <thead valign="top">
 <tr>
-<th align="left">Singly-linked        </th>
-<th align="left"> Doubly-linked          </th>
-<th align="left"> Circular, doubly-linked</th>
+<th align="center">Singly-linked             </th>
+<th align="center"> Doubly-linked              </th>
+<th align="center"> Circular, doubly-linked</th>
 </tr>
 </thead>
 <tbody valign="top">
 <tr>
-<td align="left"><p class="table"><tt>LL_PREPEND(head,add)</tt></p></td>
-<td align="left"><p class="table"><tt>DL_PREPEND(head,add)</tt></p></td>
-<td align="left"><p class="table"><tt>CDL_PREPEND(head,add)</tt></p></td>
+<td align="center"><p class="table"><tt>LL_PREPEND(head,add);</tt></p></td>
+<td align="center"><p class="table"><tt>DL_PREPEND(head,add);</tt></p></td>
+<td align="center"><p class="table"><tt>CDL_PREPEND(head,add;</tt></p></td>
 </tr>
 <tr>
-<td align="left"><p class="table"><tt>LL_APPEND(head,add)</tt></p></td>
-<td align="left"><p class="table"><tt>DL_APPEND(head,add)</tt></p></td>
-<td align="left"><p class="table"><tt></tt></p></td>
+<td align="center"><p class="table"><tt>LL_APPEND(head,add);</tt></p></td>
+<td align="center"><p class="table"><tt>DL_APPEND(head,add);</tt></p></td>
+<td align="center"><p class="table"><tt></tt></p></td>
 </tr>
 <tr>
-<td align="left"><p class="table"><tt>LL_DELETE(head,del)</tt></p></td>
-<td align="left"><p class="table"><tt>DL_DELETE(head,del)</tt></p></td>
-<td align="left"><p class="table"><tt>CDL_DELETE(head,del)</tt></p></td>
+<td align="center"><p class="table"><tt>LL_DELETE(head,del);</tt></p></td>
+<td align="center"><p class="table"><tt>DL_DELETE(head,del);</tt></p></td>
+<td align="center"><p class="table"><tt>CDL_DELETE(head,del);</tt></p></td>
 </tr>
 <tr>
-<td align="left"><p class="table"><tt>LL_SORT(head,cmp)</tt></p></td>
-<td align="left"><p class="table"><tt>DL_SORT(head,cmp)</tt></p></td>
-<td align="left"><p class="table"><tt>CDL_SORT(head,cmp)</tt></p></td>
+<td align="center"><p class="table"><tt>LL_SORT(head,cmp);</tt></p></td>
+<td align="center"><p class="table"><tt>DL_SORT(head,cmp);</tt></p></td>
+<td align="center"><p class="table"><tt>CDL_SORT(head,cmp);</tt></p></td>
 </tr>
 <tr>
-<td align="left"><p class="table"><tt>LL_FOREACH(head,elt)</tt></p></td>
-<td align="left"><p class="table"><tt>DL_FOREACH(head,elt)</tt></p></td>
-<td align="left"><p class="table"><tt>CDL_FOREACH(head,elt)</tt></p></td>
+<td align="center"><p class="table"><tt>LL_FOREACH(head,elt) {&#8230;}</tt></p></td>
+<td align="center"><p class="table"><tt>DL_FOREACH(head,elt) {&#8230;}</tt></p></td>
+<td align="center"><p class="table"><tt>CDL_FOREACH(head,elt) {&#8230;}</tt></p></td>
 </tr>
 </tbody>
 </table>
 </div>
 <div class="paragraph"><p><em>Prepend</em> means to insert an element in front of the existing list head (if any),
 changing the list head to the new element. <em>Append</em> means to add an element at the
-end of the list, so it becomes the new tail element.  The <em>foreach</em> operation
-is for easy iteration over the list from the head to the tail. A usage example
-is shown below.</p></div>
+end of the list, so it becomes the new tail element.</p></div>
+<div class="paragraph"><p>The <em>sort</em> operation never moves the elements in memory; rather it only adjusts
+the list order by altering the <tt>prev</tt> and <tt>next</tt> pointers in each element. Also
+the sort operation can change the list head to point to a new element.</p></div>
+<div class="paragraph"><p>The <em>foreach</em> operation is for easy iteration over the list from the head to the
+tail. A usage example is shown below. You can of course just use the <tt>prev</tt> and
+<tt>next</tt> pointers directly instead of using the <em>foreach</em> macros.</p></div>
 <div class="paragraph"><p>The parameters shown in the table above are explained here:</p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
@@ -261,8 +298,9 @@ cmp
 <p>
   pointer to comparison function which accepts two arguments-- these are
   pointers to two element structures to be compared. The comparison function
-  must return an  int specifying whether the first item should sort before,
-  equal to, or after the second item (like <tt>strcmp</tt>).
+  must return an <tt>int</tt> that is negative, zero, or positive, which specifies
+  whether the first item should sort before, equal to, or after the second item,
+  respectively. (In other words, the same convention that is used by <tt>strcmp</tt>).
 </p>
 </dd>
 </dl></div>
@@ -318,7 +356,7 @@ int main(int argc, char *argv[]) {
 <div id="footer">
 <div id="footer-text">
 Version 1.0<br />
-Last updated 2009-04-30 21:18:45 EDT
+Last updated 2009-05-06 16:50:31 EDT
 </div>
 </div>
 </body>

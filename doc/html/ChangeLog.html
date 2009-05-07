@@ -390,13 +390,20 @@ div#toc a:visited { color: blue; }
 </div>
 <div id="preamble">
 <div class="sectionbody">
-<a style="float: right; padding-right: 50px" href="http://sourceforge.net/projects/uthash"><img style="border: 0" src="http://sflogo.sourceforge.net/sflogo.php?group_id=163879&amp;type=13" width="120" height="30" alt="Get uthash at SourceForge.net. Fast, secure and Free Open Source software downloads" /></a>
+<a style="float: right; padding-right: 50px" href="http://sourceforge.net/projects/uthash"><img style="border: 0" src="http://sflogo.sourceforge.net/sflogo.php?group_id=163879&amp;type=13" width="120" height="30" alt="uthash at SourceForge.net" /></a>
 <div class="paragraph"><p>Click to return to the <a href="file:index.html">uthash home page</a>.</p></div>
 </div>
 </div>
 <h2 id="_version_1_6_2009_05_01">Version 1.6 (2009-05-01)</h2>
 <div class="sectionbody">
 <div class="ulist"><ul>
+<li>
+<p>
+a new, separate header called <a href="utlist.html">utlist.h</a> is included which
+  provides <em>linked list macros</em> for C structures, similar in style to the
+  uthash macros
+</p>
+</li>
 <li>
 <p>
 a new <tt>HASH_SELECT</tt> operation inserts those elements from one hash that
@@ -413,8 +420,14 @@ a new <tt>HASH_CLEAR</tt> operation clears a hash table in one step. Previously,
 </li>
 <li>
 <p>
-fixed casting in <tt>HASH_FNV</tt>, <tt>HASH_SAX</tt> and <tt>HASH_OAT</tt> for non-char keys (thanks,
-  Alfred Heisner!)
+Under Cygwin and MinGW, the <tt>keystats</tt> utility now has much better elapsed time
+  accuracy (thanks, Alfred Heisner!)
+</p>
+</li>
+<li>
+<p>
+fixed casting in <tt>HASH_FNV</tt>, <tt>HASH_SAX</tt> and <tt>HASH_OAT</tt> for non-char keys (also
+  thanks to Alfred Heisner!)
 </p>
 </li>
 <li>
@@ -425,9 +438,8 @@ fixed a compile-time error if the final argument to <tt>HASH_ADD_KEYPTR</tt> was
 </li>
 <li>
 <p>
-a new, separate header called <a href="utlist.html">utlist.h</a> is included which
-  provides <em>linked list macros</em> for C structures, similar in style to the
-  uthash macros
+added a <tt>tests/all_funcs</tt> script which executes the test suite using every
+  supported hash function
 </p>
 </li>
 </ul></div>
@@ -631,7 +643,7 @@ Initial release
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2009-05-04 19:39:20 EDT
+Last updated 2009-05-06 16:37:47 EDT
 </div>
 </div>
 </body>
