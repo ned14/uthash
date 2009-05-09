@@ -1044,66 +1044,121 @@ FNV   90.3%       1219        512    0%  ok        107         97            31
 SAX   88.7%       1219        512    0%  ok        111        109            32
 OAT   87.2%       1219        256    0%  ok         99        138            26
 JEN   86.7%       1219        256    0%  ok         87        130            27
-BER   86.2%       1219        256    0%  ok        121        129            27
-
-[NOTE]
-The number 3 in `-DHASH_EMIT_KEYS=3` is a file descriptor. Any file descriptor
-that your program doesn't use for its own purposes can be used instead of 3.
-The data-collection mode enabled by `-DHASH_EMIT_KEYS=x` should not be used in
-production code.
-
-Usually, you should just pick the first hash function that is listed. Here, this
-is `MUR`.  This is the function that provides the most even distribution for
-your keys. If several have the same `ideal%`, then choose the fastest one
-according to the `find_usec` column.
-
-keystats column reference
-~~~~~~~~~~~~~~~~~~~~~~~~~
-fcn::
+BER   86.2%       1219        256    0%  ok        121        129            27</tt></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">The number 3 in <tt>-DHASH_EMIT_KEYS=3</tt> is a file descriptor. Any file descriptor
+that your program doesn&#8217;t use for its own purposes can be used instead of 3.
+The data-collection mode enabled by <tt>-DHASH_EMIT_KEYS=x</tt> should not be used in
+production code.</td>
+</tr></table>
+</div>
+<div class="paragraph"><p>Usually, you should just pick the first hash function that is listed. Here, this
+is <tt>MUR</tt>.  This is the function that provides the most even distribution for
+your keys. If several have the same <tt>ideal%</tt>, then choose the fastest one
+according to the <tt>find_usec</tt> column.</p></div>
+<h3 id="_keystats_column_reference">keystats column reference</h3><div style="clear:left"></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+fcn
+</dt>
+<dd>
+<p>
     symbolic name of hash function
-ideal%::
+</p>
+</dd>
+<dt class="hdlist1">
+ideal%
+</dt>
+<dd>
+<p>
     The percentage of items in the hash table which can be looked up within an
     ideal number of steps. (Further explained below).
-#items::
+</p>
+</dd>
+<dt class="hdlist1">
+#items
+</dt>
+<dd>
+<p>
     the number of keys that were read in from the emitted key file
-#buckets::
+</p>
+</dd>
+<dt class="hdlist1">
+#buckets
+</dt>
+<dd>
+<p>
     the number of buckets in the hash after all the keys were added
-dup%::
+</p>
+</dd>
+<dt class="hdlist1">
+dup%
+</dt>
+<dd>
+<p>
     the percent of duplicate keys encountered in the emitted key file.
     Duplicates keys are filtered out to maintain key uniqueness. (Duplicates
     are normal.  For example, if the application adds an item to a hash,
     deletes it, then re-adds it, the key is written twice to the emitted file.)
-flags::
-    this is either `ok`, or `nx` (noexpand) if the expansion inhibited flag is
+</p>
+</dd>
+<dt class="hdlist1">
+flags
+</dt>
+<dd>
+<p>
+    this is either <tt>ok</tt>, or <tt>nx</tt> (noexpand) if the expansion inhibited flag is
     set, described in Appendix B.  It is not recommended to use a hash function
-    that has the `noexpand` flag set.
-add_usec::
+    that has the <tt>noexpand</tt> flag set.
+</p>
+</dd>
+<dt class="hdlist1">
+add_usec
+</dt>
+<dd>
+<p>
     the clock time in microseconds required to add all the keys to a hash
-find_usec::
+</p>
+</dd>
+<dt class="hdlist1">
+find_usec
+</dt>
+<dd>
+<p>
     the clock time in microseconds required to look up every key in the hash
-del-all usec::
+</p>
+</dd>
+<dt class="hdlist1">
+del-all usec
+</dt>
+<dd>
+<p>
     the clock time in microseconds required to delete every item in the hash
-
-ideal%
-~~~~~~
-
-.What is ideal%?
-*****************************************************************************
-The 'n' items in a hash are distributed into 'k' buckets. Ideally each bucket
-would contain an equal share '(n/k)' of the items. In other words, the maximum
-linear position of any item in a bucket chain would be 'n/k' if every bucket is
+</p>
+</dd>
+</dl></div>
+<h3 id="_ideal">ideal%</h3><div style="clear:left"></div>
+<div class="sidebarblock">
+<div class="sidebar-content">
+<div class="sidebar-title">What is ideal%?</div>
+<div class="paragraph"><p>The <em>n</em> items in a hash are distributed into <em>k</em> buckets. Ideally each bucket
+would contain an equal share <em>(n/k)</em> of the items. In other words, the maximum
+linear position of any item in a bucket chain would be <em>n/k</em> if every bucket is
 equally used. If some buckets are overused and others are underused, the
-overused buckets will contain items whose linear position surpasses 'n/k'.
-Such items are considered non-ideal.
-
-As you might guess, `ideal%` is the percentage of ideal items in the hash. These
-items have favorable linear positions in their bucket chains.  As `ideal%`
-approaches 100%, the hash table approaches constant-time lookup performance.
-*****************************************************************************
-
-[[Appendix_B]]
-Appendix B: Expansion internals</tt></pre>
+overused buckets will contain items whose linear position surpasses <em>n/k</em>.
+Such items are considered non-ideal.</p></div>
+<div class="paragraph"><p>As you might guess, <tt>ideal%</tt> is the percentage of ideal items in the hash. These
+items have favorable linear positions in their bucket chains.  As <tt>ideal%</tt>
+approaches 100%, the hash table approaches constant-time lookup performance.</p></div>
 </div></div>
+</div>
+<h2 id="Appendix_B">Appendix B: Expansion internals</h2>
+<div class="sectionbody">
 <div class="paragraph"><p>Internally this hash manages the number of buckets, with the goal of having
 enough buckets so that each one contains only a small number of items.</p></div>
 <div class="sidebarblock">
@@ -1537,7 +1592,7 @@ condition
 <div id="footer">
 <div id="footer-text">
 Version 1.6<br />
-Last updated 2009-05-08 23:34:11 EDT
+Last updated 2009-05-08 23:57:45 EDT
 </div>
 </div>
 </body>
