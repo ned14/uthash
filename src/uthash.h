@@ -24,8 +24,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef UTHASH_H
 #define UTHASH_H 
 
-#include <string.h> /* memcmp,strlen */
-#include <stddef.h> /* ptrdiff_t */
+#include <string.h>   /* memcmp,strlen */
+#include <stddef.h>   /* ptrdiff_t */
+#include <inttypes.h> /* uint32_t etc */
 
 #define UTHASH_VERSION 1.6
 
@@ -246,11 +247,11 @@ do {                                                                           \
 #define HASH_EMIT_KEY(hh,head,keyptr,fieldlen)                    
 #endif
 
-/* default to Jenkins unless specified e.g. DHASH_FUNCTION=HASH_SAX */
+/* default to MurmurHash unless overridden e.g. DHASH_FUNCTION=HASH_SAX */
 #ifdef HASH_FUNCTION 
 #define HASH_FCN HASH_FUNCTION
 #else
-#define HASH_FCN HASH_JEN
+#define HASH_FCN HASH_MUR
 #endif
 
 /* The Bernstein hash function, used in Perl prior to v5.6 */
@@ -356,6 +357,94 @@ do {                                                                           \
   bkt = hashv & (num_bkts-1);                                                  \
 } while(0)
 
+/* The Paul Hsieh hash function */
+#undef get16bits
+#if (defined(__GNUC__) && defined(__i386__)) || defined(__WATCOMC__)           \
+  || defined(_MSC_VER) || defined (__BORLANDC__) || defined (__TURBOC__)
+#define get16bits(d) (*((const uint16_t *) (d)))
+#endif
+
+#if !defined (get16bits)
+#define get16bits(d) ((((uint32_t)(((const uint8_t *)(d))[1])) << 8)\
+                       +(uint32_t)(((const uint8_t *)(d))[0]) )
+#endif
+#define HASH_SFH(key,keylen,num_bkts,hashv,bkt)                                \
+do {                                                                           \
+  char *_sfh_key=(char*)key;                                                   \
+  hashv = 0xcafebabe;                                                          \
+  uint32_t _sfh_tmp, _sfh_len = keylen;                                        \
+                                                                               \
+  int _sfh_rem = _sfh_len & 3;                                                 \
+  _sfh_len >>= 2;                                                              \
+                                                                               \
+  /* Main loop */                                                              \
+  for (;_sfh_len > 0; _sfh_len--) {                                            \
+    hashv    += get16bits (_sfh_key);                                          \
+    _sfh_tmp       = (get16bits (_sfh_key+2) << 11) ^ hashv;                   \
+    hashv     = (hashv << 16) ^ _sfh_tmp;                                      \
+    _sfh_key += 2*sizeof (uint16_t);                                           \
+    hashv    += hashv >> 11;                                                   \
+  }                                                                            \
+                                                                               \
+  /* Handle end cases */                                                       \
+  switch (_sfh_rem) {                                                          \
+    case 3: hashv += get16bits (_sfh_key);                                     \
+            hashv ^= hashv << 16;                                              \
+            hashv ^= _sfh_key[sizeof (uint16_t)] << 18;                        \
+            hashv += hashv >> 11;                                              \
+            break;                                                             \
+    case 2: hashv += get16bits (_sfh_key);                                     \
+            hashv ^= hashv << 11;                                              \
+            hashv += hashv >> 17;                                              \
+            break;                                                             \
+    case 1: hashv += *_sfh_key;                                                \
+            hashv ^= hashv << 10;                                              \
+            hashv += hashv >> 1;                                               \
+  }                                                                            \
+                                                                               \
+    /* Force "avalanching" of final 127 bits */                                \
+    hashv ^= hashv << 3;                                                       \
+    hashv += hashv >> 5;                                                       \
+    hashv ^= hashv << 4;                                                       \
+    hashv += hashv >> 17;                                                      \
+    hashv ^= hashv << 25;                                                      \
+    hashv += hashv >> 6;                                                       \
+    bkt = hashv & (num_bkts-1);                                                \
+} while(0);
+
+/* Austin Appleby's MurmurHash */
+#define HASH_MUR(key,keylen,num_bkts,hashv,bkt)                                \
+do {                                                                           \
+  const unsigned int _mur_m = 0x5bd1e995;                                      \
+  const int _mur_r = 24;                                                       \
+  hashv = 0xcafebabe ^ keylen;                                                 \
+  char *_mur_key = (char *)key;                                                \
+  uint32_t _mur_tmp, _mur_len = keylen;                                        \
+                                                                               \
+  for (;_mur_len >= 4; _mur_len-=4) {                                          \
+    _mur_tmp = *(uint32_t *)_mur_key;                                          \
+    _mur_tmp *= _mur_m;                                                        \
+    _mur_tmp ^= _mur_tmp >> _mur_r;                                            \
+    _mur_tmp *= _mur_m;                                                        \
+    hashv *= _mur_m;                                                           \
+    hashv ^= _mur_tmp;                                                         \
+    _mur_key += 4;                                                             \
+  }                                                                            \
+                                                                               \
+  switch(_mur_len)                                                             \
+  {                                                                            \
+    case 3: hashv ^= _mur_key[2] << 16;                                        \
+    case 2: hashv ^= _mur_key[1] << 8;                                         \
+    case 1: hashv ^= _mur_key[0];                                              \
+            hashv *= _mur_m;                                                   \
+  };                                                                           \
+                                                                               \
+  hashv ^= hashv >> 13;                                                        \
+  hashv *= _mur_m;                                                             \
+  hashv ^= hashv >> 15;                                                        \
+                                                                               \
+  bkt = hashv & (num_bkts-1);                                                  \
+} while(0)
 
 /* key comparison function; return 0 if keys equal */
 #define HASH_KEYCMP(a,b,len) memcmp(a,b,len) 

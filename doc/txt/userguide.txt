@@ -1,7 +1,7 @@
 uthash User Guide
 =================
 Troy D. Hanson <thanson@users.sourceforge.net>
-v1.5, April 2009
+v1.6, May 2009
 
 include::sflogo.txt[]
 include::topnav.txt[]
@@ -17,7 +17,7 @@ the language itself. This software provides a hash table for C structures.
 
 What can it do?
 ~~~~~~~~~~~~~~~~~
-This software supports these basic operations on items in a hash table:
+This software supports these operations on items in a hash table:
 
 1. add
 2. find
@@ -25,7 +25,7 @@ This software supports these basic operations on items in a hash table:
 4. count
 5. iterate
 6. sort
-7. select
+7. select (explained later)
 
 Is it fast?
 ~~~~~~~~~~~
@@ -295,7 +295,7 @@ All-at-once deletion
 If you only want to delete all the items, but not free them or do any
 per-element clean up, you can do this more efficiently in a single operation:
 
-  HASH_CLEAR(users);
+  HASH_CLEAR(hh,users);
 
 Afterward, the list head (here, `users`) will be set to `NULL`.
 
@@ -384,9 +384,48 @@ the example above, `users` may point to a different structure after calling
 Select
 ~~~~~~
 A special 'select' operation is provided that inserts those items from a source
-hash that satisfy a given condition into a second hash. This insertion is done
-with somewhat more efficiency than if this were using `HASH_ADD`, namely because
-the hash function is not recalculated for keys of the selected items.
+hash that satisfy a given condition into a destination hash. This insertion is
+done with somewhat more efficiency than if this were using `HASH_ADD`, namely
+because the hash function is not recalculated for keys of the selected items.
+This operation does not remove any items from the source hash. Rather the
+selected items obtain dual presence in both hashes.  The destination hash may
+already have items in it; the selected items are added to it. In order for a
+structure to be usable with `HASH_SELECT`, it must have two or more hash
+handles. (As described <<multihash,here>>, a structure can exist in many
+hash tables at the same time, but it must have a separate hash handle for each
+one).
+
+  user_t *users=NULL, *admins=NULL; /* two hash tables */
+
+  typedef struct {
+      int id;
+      UT_hash_handle hh;  /* handle for users hash */
+      UT_hash_handle ah;  /* handle for admins hash */
+  } user_t;
+
+Now suppose we have added some users, and want to select just the administrator
+users who have id's less than 1024.
+
+  #define is_admin(x) (((user_t*)x)->id < 1024)
+  HASH_SELECT(ah,admins,hh,users,is_admin);
+
+The first two parameters are the 'destination' hash handle and hash table, the
+second two parameters are the 'source' hash handle and hash table, and the last
+parameter is the 'select condition'. Here we used a macro `is_admin()` but we
+could just as well have used a function.
+
+  int is_admin(void *userv) {
+    user_t *user = (user_t*)userv; 
+    return (user->id < 1024) ? 1 : 0;
+  }
+
+If the select condition always evaluates to true, this operation is
+essentially a 'merge' of the source hash into the destination hash. Of course,
+the source hash remains unchanged under any use of `HASH_SELECT`. It only adds
+items to the destination hash selectively.
+
+The two hash handles must differ. An example of using `HASH_SELECT` is included
+in `tests/test36.c`.
 
 A complete example
 ~~~~~~~~~~~~~~~~~~
@@ -715,6 +754,7 @@ didn't zero-fill the structure, this padding would contain random values.  The
 random values would lead to `HASH_FIND` failures; as two "identical" keys will
 appear to mismatch if there are any differences within their padding.
 
+[[multihash]]
 Structures in multiple hash tables
 ----------------------------------
 
@@ -807,7 +847,7 @@ print the keys in order. We'd define two sort functions, then use `HASH_SRT`:
 Appendix A: Built-in hash functions
 -----------------------------------
 Internally, a hash function transforms a key into a bucket number.  You don't
-have to take any action to use the default hash function, Jenkin's hash. 
+have to take any action to use the default hash function, MurmurHash.
 
 Some programs may benefit from using another of the built-in hash functions.
 There is a simple analysis utility included with uthash to help you determine
@@ -823,11 +863,13 @@ below. E.g.,
 [width="50%",cols="^5m,20",grid="none",options="header"]
 |===============================================================================
 |Symbol |   Name    
-|JEN    |   Jenkins (default)
+|JEN    |   Jenkins
 |BER    |   Bernstein
 |SAX    |   Shift-Add-Xor
 |OAT    |   One-at-a-time
 |FNV    |   Fowler/Noll/Vo
+|SFH    |   Paul Hsieh 
+|MUR    |   Austin Appleby's MurmurHash (default)
 |===============================================================================
 
 Which hash function is best?
@@ -851,21 +893,22 @@ We'll use `test14.c` to demonstrate the data-collection and analysis steps
 % ./keystats test14.keys
 fcn  ideal%     #items   #buckets  dup%  fl   add_usec  find_usec  del-all usec
 ---  ------ ---------- ---------- -----  -- ---------- ----------  ------------
-FNV   90.3%       1219        512    0%  ok        244        136            44
-SAX   88.7%       1219        512    0%  ok        201        145            46
-OAT   87.2%       1219        256    0%  ok        166        214            40
-JEN   86.7%       1219        256    0%  ok        266        221            40
-BER   86.2%       1219        256    0%  ok        171        155            45
---------------------------------------------------------------------------------
+MUR   93.0%       1219        256    0%  ok         77        118            25
+SFH   91.6%       1219        256    0%  ok         92        131            25
+FNV   90.3%       1219        512    0%  ok        107         97            31
+SAX   88.7%       1219        512    0%  ok        111        109            32
+OAT   87.2%       1219        256    0%  ok         99        138            26
+JEN   86.7%       1219        256    0%  ok         87        130            27
+BER   86.2%       1219        256    0%  ok        121        129            27
 
 [NOTE]
-The value 3 in `-DHASH_EMIT_KEYS=3` is a file descriptor. Any file descriptor
+The number 3 in `-DHASH_EMIT_KEYS=3` is a file descriptor. Any file descriptor
 that your program doesn't use for its own purposes can be used instead of 3. 
 The data-collection mode enabled by `-DHASH_EMIT_KEYS=x` should not be used in
 production code. 
 
 Usually, you should just pick the first hash function that is listed. Here, this
-is `FNV`.  This is the function that provides the most even distribution for
+is `MUR`.  This is the function that provides the most even distribution for
 your keys. If several have the same `ideal%`, then choose the fastest one
 according to the `find_usec` column.
 
@@ -1189,6 +1232,8 @@ than `hh`, or if your key's data type isn't `int` or `char[]`.
 |HASH_DELETE    | (hh_name, head, item_ptr)
 |HASH_SRT       | (hh_name, head, cmp)
 |HASH_CNT       | (hh_name, head)
+|HASH_CLEAR     | (hh_name, head)
+|HASH_SELECT    | (dst_hh_name, dst_head, src_hh_name, src_head, condition)
 |===============================================================================
 
 [NOTE]
@@ -1225,6 +1270,11 @@ cmp::
     pointer to comparison function which accepts two arguments (pointers to
     items to compare) and returns an int specifying whether the first item
     should sort before, equal to, or after the second item (like `strcmp`).
+condition::
+    a function or macro which accepts a single argument-- a void pointer to a
+    structure, which needs to be cast to the appropriate structure type. The
+    function or macro should return (or evaluate to) a non-zero value if the
+    structure should be "selected" for addition to the destination hash.
 
 // vim: set tw=80 wm=2 syntax=asciidoc: 
 

@@ -13,8 +13,8 @@
 <h1>uthash User Guide</h1>
 <span id="author">Troy D. Hanson</span><br />
 <span id="email"><tt>&lt;<a href="mailto:thanson@users.sourceforge.net">thanson@users.sourceforge.net</a>&gt;</tt></span><br />
-<span id="revision">version 1.5,</span>
-April 2009
+<span id="revision">version 1.6,</span>
+May 2009
 </div>
 <div id="preamble">
 <div class="sectionbody">
@@ -115,7 +115,7 @@ are that you know a hash is used for looking up items using a key. In scripting
 languages like Perl, hashes are used all the time.  In C, hashes don&#8217;t exist in
 the language itself. This software provides a hash table for C structures.</p></div>
 <h3 id="_what_can_it_do">What can it do?</h3><div style="clear:left"></div>
-<div class="paragraph"><p>This software supports these basic operations on items in a hash table:</p></div>
+<div class="paragraph"><p>This software supports these operations on items in a hash table:</p></div>
 <div class="olist arabic"><ol class="arabic">
 <li>
 <p>
@@ -145,6 +145,11 @@ iterate
 <li>
 <p>
 sort
+</p>
+</li>
+<li>
+<p>
+select (explained later)
 </p>
 </li>
 </ol></div>
@@ -287,7 +292,7 @@ initialization. It can be named anything, but you can simplify matters by
 naming it <tt>hh</tt>. This allows you to use the easier "convenience" macros to add,
 find and delete items.</p></div>
 </div>
-<h2 id="_add_find_delete_count_sort_iterate">Add, find, delete, count, sort, iterate</h2>
+<h2 id="_hash_operations">Hash operations</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>This section introduces the uthash macros by example. For a more succinct
 listing, see <a href="#Appendix_F">Appendix F: Macro Reference</a>.</p></div>
@@ -413,9 +418,9 @@ pointer beforehand since the delete will advance the "first item" to the next.</
 per-element clean up, you can do this more efficiently in a single operation:</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><tt>HASH_CLEAR(users);</tt></pre>
+<pre><tt>HASH_CLEAR(hh,users);</tt></pre>
 </div></div>
-<div class="paragraph"><p>Afterward, the list head-- here, <tt>users</tt>-- will be set to <tt>NULL</tt>.</p></div>
+<div class="paragraph"><p>Afterward, the list head (here, <tt>users</tt>) will be set to <tt>NULL</tt>.</p></div>
 <h3 id="_count_items">Count items</h3><div style="clear:left"></div>
 <div class="paragraph"><p>The number of items in the hash table can be obtained using <tt>HASH_COUNT</tt>:</p></div>
 <div class="listingblock">
@@ -487,6 +492,54 @@ void sort_by_id() {
 <div class="paragraph"><p>When the items in the hash are sorted, the first item may change position.  In
 the example above, <tt>users</tt> may point to a different structure after calling
 <tt>HASH_SORT</tt>.</p></div>
+<h3 id="_select">Select</h3><div style="clear:left"></div>
+<div class="paragraph"><p>A special <em>select</em> operation is provided that inserts those items from a source
+hash that satisfy a given condition into a destination hash. This insertion is
+done with somewhat more efficiency than if this were using <tt>HASH_ADD</tt>, namely
+because the hash function is not recalculated for keys of the selected items.
+This operation does not remove any items from the source hash. Rather the
+selected items obtain dual presence in both hashes.  The destination hash may
+already have items in it; the selected items are added to it. In order for a
+structure to be usable with <tt>HASH_SELECT</tt>, it must have two or more hash
+handles. (As described <a href="#multihash">here</a>, a structure can exist in many
+hash tables at the same time, but it must have a separate hash handle for each
+one).</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>user_t *users=NULL, *admins=NULL; /* two hash tables */</tt></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>typedef struct {
+    int id;
+    UT_hash_handle hh;  /* handle for users hash */
+    UT_hash_handle ah;  /* handle for admins hash */
+} user_t;</tt></pre>
+</div></div>
+<div class="paragraph"><p>Now suppose we have added some users, and want to select just the administrator
+users who have id&#8217;s less than 1024.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>#define is_admin(x) (((user_t*)x)-&gt;id &lt; 1024)
+HASH_SELECT(ah,admins,hh,users,is_admin);</tt></pre>
+</div></div>
+<div class="paragraph"><p>The first two parameters are the <em>destination</em> hash handle and hash table, the
+second two parameters are the <em>source</em> hash handle and hash table, and the last
+parameter is the <em>select condition</em>. Here we used a macro <tt>is_admin()</tt> but we
+could just as well have used a function.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>int is_admin(void *userv) {
+  user_t *user = (user_t*)userv;
+  return (user-&gt;id &lt; 1024) ? 1 : 0;
+}</tt></pre>
+</div></div>
+<div class="paragraph"><p>If the select condition always evaluates to true, this operation is
+essentially a <em>merge</em> of the source hash into the destination hash. Of course,
+the source hash remains unchanged under any use of <tt>HASH_SELECT</tt>. It only adds
+items to the destination hash selectively.</p></div>
+<div class="paragraph"><p>The two hash handles must differ. An example of using <tt>HASH_SELECT</tt> is included
+in <tt>tests/test36.c</tt>.</p></div>
 <h3 id="_a_complete_example">A complete example</h3><div style="clear:left"></div>
 <div class="paragraph"><p>We&#8217;ll repeat all the code and embellish it with a <tt>main()</tt> function to form a
 working example.</p></div>
@@ -804,7 +857,7 @@ didn&#8217;t zero-fill the structure, this padding would contain random values. 
 random values would lead to <tt>HASH_FIND</tt> failures; as two "identical" keys will
 appear to mismatch if there are any differences within their padding.</p></div>
 </div>
-<h2 id="_structures_in_multiple_hash_tables">Structures in multiple hash tables</h2>
+<h2 id="multihash">Structures in multiple hash tables</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>A structure can be added to multiple hash tables. A few reasons you might do
 this include:</p></div>
@@ -908,7 +961,7 @@ HASH_SRT(hh2, users_by_name, sort_by_name);</tt></pre>
 <h2 id="Appendix_A">Appendix A: Built-in hash functions</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Internally, a hash function transforms a key into a bucket number.  You don&#8217;t
-have to take any action to use the default hash function, Jenkin&#8217;s hash.</p></div>
+have to take any action to use the default hash function, MurmurHash.</p></div>
 <div class="paragraph"><p>Some programs may benefit from using another of the built-in hash functions.
 There is a simple analysis utility included with uthash to help you determine
 if another hash function will give you better performance.</p></div>
@@ -936,7 +989,7 @@ cellspacing="0" cellpadding="4">
 <tbody valign="top">
 <tr>
 <td align="center"><p class="table"><tt>JEN</tt></p></td>
-<td align="left"><p class="table">Jenkins (default)</p></td>
+<td align="left"><p class="table">Jenkins</p></td>
 </tr>
 <tr>
 <td align="center"><p class="table"><tt>BER</tt></p></td>
@@ -953,6 +1006,14 @@ cellspacing="0" cellpadding="4">
 <tr>
 <td align="center"><p class="table"><tt>FNV</tt></p></td>
 <td align="left"><p class="table">Fowler/Noll/Vo</p></td>
+</tr>
+<tr>
+<td align="center"><p class="table"><tt>SFH</tt></p></td>
+<td align="left"><p class="table">Paul Hsieh</p></td>
+</tr>
+<tr>
+<td align="center"><p class="table"><tt>MUR</tt></p></td>
+<td align="left"><p class="table">Austin Appleby&#8217;s MurmurHash (default)</p></td>
 </tr>
 </tbody>
 </table>
@@ -977,125 +1038,72 @@ make</tt></pre>
 % ./keystats test14.keys
 fcn  ideal%     #items   #buckets  dup%  fl   add_usec  find_usec  del-all usec
 ---  ------ ---------- ---------- -----  -- ---------- ----------  ------------
-FNV   90.3%       1219        512    0%  ok        244        136            44
-SAX   88.7%       1219        512    0%  ok        201        145            46
-OAT   87.2%       1219        256    0%  ok        166        214            40
-JEN   86.7%       1219        256    0%  ok        266        221            40
-BER   86.2%       1219        256    0%  ok        171        155            45</tt></pre>
-</div></div>
-<div class="admonitionblock">
-<table><tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">The value 3 in <tt>-DHASH_EMIT_KEYS=3</tt> is a file descriptor. Any file descriptor
-that your program doesn&#8217;t use for its own purposes can be used instead of 3.
-The data-collection mode enabled by <tt>-DHASH_EMIT_KEYS=x</tt> should not be used in
-production code.</td>
-</tr></table>
-</div>
-<div class="paragraph"><p>Usually, you should just pick the first hash function that is listed. Here, this
-is <tt>FNV</tt>.  This is the function that provides the most even distribution for
-your keys. If several have the same <tt>ideal%</tt>, then choose the fastest one
-according to the <tt>find_usec</tt> column.</p></div>
-<h3 id="_keystats_column_reference">keystats column reference</h3><div style="clear:left"></div>
-<div class="dlist"><dl>
-<dt class="hdlist1">
-fcn
-</dt>
-<dd>
-<p>
+MUR   93.0%       1219        256    0%  ok         77        118            25
+SFH   91.6%       1219        256    0%  ok         92        131            25
+FNV   90.3%       1219        512    0%  ok        107         97            31
+SAX   88.7%       1219        512    0%  ok        111        109            32
+OAT   87.2%       1219        256    0%  ok         99        138            26
+JEN   86.7%       1219        256    0%  ok         87        130            27
+BER   86.2%       1219        256    0%  ok        121        129            27
+
+[NOTE]
+The number 3 in `-DHASH_EMIT_KEYS=3` is a file descriptor. Any file descriptor
+that your program doesn't use for its own purposes can be used instead of 3.
+The data-collection mode enabled by `-DHASH_EMIT_KEYS=x` should not be used in
+production code.
+
+Usually, you should just pick the first hash function that is listed. Here, this
+is `MUR`.  This is the function that provides the most even distribution for
+your keys. If several have the same `ideal%`, then choose the fastest one
+according to the `find_usec` column.
+
+keystats column reference
+~~~~~~~~~~~~~~~~~~~~~~~~~
+fcn::
     symbolic name of hash function
-</p>
-</dd>
-<dt class="hdlist1">
-ideal%
-</dt>
-<dd>
-<p>
+ideal%::
     The percentage of items in the hash table which can be looked up within an
     ideal number of steps. (Further explained below).
-</p>
-</dd>
-<dt class="hdlist1">
-#items
-</dt>
-<dd>
-<p>
+#items::
     the number of keys that were read in from the emitted key file
-</p>
-</dd>
-<dt class="hdlist1">
-#buckets
-</dt>
-<dd>
-<p>
+#buckets::
     the number of buckets in the hash after all the keys were added
-</p>
-</dd>
-<dt class="hdlist1">
-dup%
-</dt>
-<dd>
-<p>
+dup%::
     the percent of duplicate keys encountered in the emitted key file.
     Duplicates keys are filtered out to maintain key uniqueness. (Duplicates
     are normal.  For example, if the application adds an item to a hash,
     deletes it, then re-adds it, the key is written twice to the emitted file.)
-</p>
-</dd>
-<dt class="hdlist1">
-flags
-</dt>
-<dd>
-<p>
-    this is either <tt>ok</tt>, or <tt>nx</tt> (noexpand) if the expansion inhibited flag is
+flags::
+    this is either `ok`, or `nx` (noexpand) if the expansion inhibited flag is
     set, described in Appendix B.  It is not recommended to use a hash function
-    that has the <tt>noexpand</tt> flag set.
-</p>
-</dd>
-<dt class="hdlist1">
-add_usec
-</dt>
-<dd>
-<p>
+    that has the `noexpand` flag set.
+add_usec::
     the clock time in microseconds required to add all the keys to a hash
-</p>
-</dd>
-<dt class="hdlist1">
-find_usec
-</dt>
-<dd>
-<p>
+find_usec::
     the clock time in microseconds required to look up every key in the hash
-</p>
-</dd>
-<dt class="hdlist1">
-del-all usec
-</dt>
-<dd>
-<p>
+del-all usec::
     the clock time in microseconds required to delete every item in the hash
-</p>
-</dd>
-</dl></div>
-<h3 id="_ideal">ideal%</h3><div style="clear:left"></div>
-<div class="sidebarblock">
-<div class="sidebar-content">
-<div class="sidebar-title">What is ideal%?</div>
-<div class="paragraph"><p>The <em>n</em> items in a hash are distributed into <em>k</em> buckets. Ideally each bucket
-would contain an equal share <em>(n/k)</em> of the items. In other words, the maximum
-linear position of any item in a bucket chain would be <em>n/k</em> if every bucket is
+
+ideal%
+~~~~~~
+
+.What is ideal%?
+*****************************************************************************
+The 'n' items in a hash are distributed into 'k' buckets. Ideally each bucket
+would contain an equal share '(n/k)' of the items. In other words, the maximum
+linear position of any item in a bucket chain would be 'n/k' if every bucket is
 equally used. If some buckets are overused and others are underused, the
-overused buckets will contain items whose linear position surpasses <em>n/k</em>.
-Such items are considered non-ideal.</p></div>
-<div class="paragraph"><p>As you might guess, <tt>ideal%</tt> is the percentage of ideal items in the hash. These
-items have favorable linear positions in their bucket chains.  As <tt>ideal%</tt>
-approaches 100%, the hash table approaches constant-time lookup performance.</p></div>
+overused buckets will contain items whose linear position surpasses 'n/k'.
+Such items are considered non-ideal.
+
+As you might guess, `ideal%` is the percentage of ideal items in the hash. These
+items have favorable linear positions in their bucket chains.  As `ideal%`
+approaches 100%, the hash table approaches constant-time lookup performance.
+*****************************************************************************
+
+[[Appendix_B]]
+Appendix B: Expansion internals</tt></pre>
 </div></div>
-</div>
-<h2 id="Appendix_B">Appendix B: Expansion internals</h2>
-<div class="sectionbody">
 <div class="paragraph"><p>Internally this hash manages the number of buckets, with the goal of having
 enough buckets so that each one contains only a small number of items.</p></div>
 <div class="sidebarblock">
@@ -1422,6 +1430,14 @@ cellspacing="0" cellpadding="4">
 <td align="left"><p class="table"><tt>HASH_CNT</tt></p></td>
 <td align="left"><p class="table"><tt>(hh_name, head)</tt></p></td>
 </tr>
+<tr>
+<td align="left"><p class="table"><tt>HASH_CLEAR</tt></p></td>
+<td align="left"><p class="table"><tt>(hh_name, head)</tt></p></td>
+</tr>
+<tr>
+<td align="left"><p class="table"><tt>HASH_SELECT</tt></p></td>
+<td align="left"><p class="table"><tt>(dst_hh_name, dst_head, src_hh_name, src_head, condition)</tt></p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1505,12 +1521,23 @@ cmp
     should sort before, equal to, or after the second item (like <tt>strcmp</tt>).
 </p>
 </dd>
+<dt class="hdlist1">
+condition
+</dt>
+<dd>
+<p>
+    a function or macro which accepts a single argument-- a void pointer to a
+    structure, which needs to be cast to the appropriate structure type. The
+    function or macro should return (or evaluate to) a non-zero value if the
+    structure should be "selected" for addition to the destination hash.
+</p>
+</dd>
 </dl></div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Version 1.5<br />
-Last updated 2009-05-06 17:07:38 EDT
+Version 1.6<br />
+Last updated 2009-05-08 23:34:11 EDT
 </div>
 </div>
 </body>

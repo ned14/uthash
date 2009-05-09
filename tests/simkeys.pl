@@ -13,7 +13,8 @@ use strict;
 use warnings;
 
 
-for my $len (10,100,1000,10000,100000,1000000) {
+#for my $len (10,100,1000,10000,100000,1000000) {
+for my $len (100) {
    open OUTFILE, ">simkeys$len.dat" or die "can't open: $!\n";
    # we'll do 100 keys of $len
    print "keylen $len\n";
