@@ -396,13 +396,41 @@ div#toc a:visited { color: blue; }
 </div>
 <h2 id="_version_1_6_2009_05_08">Version 1.6 (2009-05-08)</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Special thanks to Alfred Heisner for contributing several major enhancements:
-* Support for two new hash functions:
-  - the Paul Hsieh hash function (<tt>HASH_SFH</tt>)
-  - Austin Appleby&#8217;s MurmurHash function (<tt>HASH_MUR</tt>)
-* Because of its excellent performance, MurmurHash is now the default hash function.
-* <tt>keystats</tt> now has much better elapsed time accuracy under Cygwin and MinGW
-* fixed casting in <tt>HASH_FNV</tt>, <tt>HASH_SAX</tt> and <tt>HASH_OAT</tt> for non-char keys</p></div>
+<div class="paragraph"><p>Special thanks to Alfred Heisner for contributing several enhancements:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+Support for two new hash functions:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+the Paul Hsieh hash function (<tt>HASH_SFH</tt>)
+</p>
+</li>
+<li>
+<p>
+Austin Appleby&#8217;s MurmurHash function (<tt>HASH_MUR</tt>)
+</p>
+</li>
+</ul></div>
+</li>
+<li>
+<p>
+Because of its excellent performance, MurmurHash is now the default hash function.
+</p>
+</li>
+<li>
+<p>
+<tt>keystats</tt> now has much better elapsed time accuracy under Cygwin and MinGW
+</p>
+</li>
+<li>
+<p>
+fixed casting in <tt>HASH_FNV</tt>, <tt>HASH_SAX</tt> and <tt>HASH_OAT</tt> for non-char keys
+</p>
+</li>
+</ul></div>
 <div class="paragraph"><p>This release also includes:</p></div>
 <div class="ulist"><ul>
 <li>
@@ -430,6 +458,9 @@ added another test script <tt>tests/all_funcs</tt> which executes the test suite
   using every supported hash function
 </p>
 </li>
+</ul></div>
+<div class="paragraph"><p>And lastly,</p></div>
+<div class="ulist"><ul>
 <li>
 <p>
 a new, separate header called <a href="utlist.html">utlist.h</a> is included which
@@ -638,7 +669,7 @@ Initial release
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2009-05-08 23:34:14 EDT
+Last updated 2009-05-08 23:44:27 EDT
 </div>
 </div>
 </body>

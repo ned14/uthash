@@ -7,7 +7,8 @@ Click to return to the file:index.html[uthash home page].
 
 Version 1.6 (2009-05-08)
 --------------------------
-Special thanks to Alfred Heisner for contributing several major enhancements:
+Special thanks to Alfred Heisner for contributing several enhancements:
+
 * Support for two new hash functions:
   - the Paul Hsieh hash function (`HASH_SFH`) 
   - Austin Appleby's MurmurHash function (`HASH_MUR`) 
@@ -26,6 +27,9 @@ This release also includes:
   `HASH_ADD_KEYPTR` was a pointer to an array member like `&a[i]`
 * added another test script `tests/all_funcs` which executes the test suite 
   using every supported hash function
+
+And lastly,
+
 * a new, separate header called link:utlist.html[utlist.h] is included which
   provides 'linked list macros' for C structures, similar in style to the
   uthash macros
