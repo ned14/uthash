@@ -3,7 +3,7 @@ uthash ChangeLog
 
 include::sflogo.txt[]
 
-Click to return to the file:index.html[uthash home page].
+Click to return to the link:index.html[uthash home page].
 
 Version 1.6 (2009-05-08)
 --------------------------

@@ -1,5 +1,5 @@
-'utlist': linked list macros for C structures
-=============================================
+utlist: linked list macros for C structures
+===========================================
 Troy D. Hanson <thanson@users.sourceforge.net>
 v1.0, May 2009
 
