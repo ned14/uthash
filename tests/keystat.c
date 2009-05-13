@@ -8,6 +8,8 @@
 #include <sys/time.h>   /* for 'gettimeofday' */
 #include "uthash.h"
 
+#define UNALIGNED_KEYS 0
+
 /* Windows doesn't have gettimeofday. While Cygwin and some 
  * versions of MinGW supply one, it is very coarse. This substitute
  * gives much more accurate elapsed times under Windows. */
@@ -49,9 +51,9 @@ typedef struct stat_key {
 } stat_key;
 
 int main(int argc, char *argv[]) {
-    int dups=0, rc, fd, done=0, err=0, want;
+    int dups=0, rc, fd, done=0, err=0, want, i=0, padding=0;
     unsigned keylen;
-    char *filename = "/dev/stdin"; 
+    char *filename = "/dev/stdin", *dst; 
     stat_key *keyt, *keytmp, *keys=NULL, *keys2=NULL;
     struct timeval start_tm, end_tm, elapsed_tm, elapsed_tm2, elapsed_tm3;
 
@@ -63,18 +65,19 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    while (!done) {
+    for(i=0; !done; i++) {
 
           want = sizeof(int);
+          dst = (char*)&keylen;
           readmore1:
-          rc = read(fd,&keylen,want);
+          rc = read(fd,dst,want);
           if (rc != want) {
               if (rc == 0) done=1;
               else if (rc == -1) {
                 fprintf(stderr,"read failed: %s\n", strerror(errno));
                 err=1;
               }
-              else if (rc > 0) { want -= rc; goto readmore1; }
+              else if (rc > 0) { want -= rc; dst += rc; goto readmore1; }
           }
 
           if (done || err) break;
@@ -85,15 +88,20 @@ int main(int argc, char *argv[]) {
           }
   
           /* read key */
-          if ( (keyt->key = (char*)malloc(keylen)) == NULL) {
+#ifdef UNALIGNED_KEYS
+          padding = i%8;
+#endif
+          if ( (keyt->key = (char*)malloc(padding+keylen)) == NULL) {
               fprintf(stderr,"out of memory\n");
               exit(-1);
           }
+          keyt->key += padding; /* forcibly alter the alignment of key */
           keyt->len = keylen;
   
           want = keylen;
+          dst = keyt->key;
           readmore2:
-          rc = read(fd,keyt->key,want);
+          rc = read(fd,dst,want);
           if (rc != want) {
               if (rc == -1) {
                 fprintf(stderr,"read failed: %s\n", strerror(errno));
@@ -101,7 +109,7 @@ int main(int argc, char *argv[]) {
               } else if (rc == 0) {
                 fprintf(stderr,"incomplete file\n");
                 err=1;
-              } else if (rc >= 0) { want -= rc; goto readmore2; }
+              } else if (rc >= 0) { want -= rc; dst += rc; goto readmore2; }
           }
           if (err) break;
   
@@ -109,7 +117,7 @@ int main(int argc, char *argv[]) {
           HASH_FIND(hh,keys,keyt->key,keylen,keytmp);
           if (keytmp) {
               dups++;
-              free(keyt->key);
+              free(keyt->key - padding);
             free(keyt);
           } else {
             HASH_ADD_KEYPTR(hh,keys,keyt->key,keylen,keyt);
