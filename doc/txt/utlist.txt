@@ -43,6 +43,10 @@ The 'utlist' macros have been tested on:
  * Mac OS X, and 
  * Windows, using Cygwin or MinGW.
 
+Some of the macros use the `__typeof__` extension. This is supported by the GNU
+compilers as well as some others. Portability may not extend to all C compilers
+however.
+
 Using utlist
 ------------
 
