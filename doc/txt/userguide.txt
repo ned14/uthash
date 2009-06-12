@@ -847,7 +847,7 @@ print the keys in order. We'd define two sort functions, then use `HASH_SRT`:
 Appendix A: Built-in hash functions
 -----------------------------------
 Internally, a hash function transforms a key into a bucket number.  You don't
-have to take any action to use the default hash function, MurmurHash.
+have to take any action to use the default hash function, currently Jenkin's.
 
 Some programs may benefit from using another of the built-in hash functions.
 There is a simple analysis utility included with uthash to help you determine
@@ -863,13 +863,12 @@ below. E.g.,
 [width="50%",cols="^5m,20",grid="none",options="header"]
 |===============================================================================
 |Symbol |   Name    
-|JEN    |   Jenkins
+|JEN    |   Jenkins (default)
 |BER    |   Bernstein
 |SAX    |   Shift-Add-Xor
 |OAT    |   One-at-a-time
 |FNV    |   Fowler/Noll/Vo
 |SFH    |   Paul Hsieh 
-|MUR    |   Austin Appleby's MurmurHash (default)
 |===============================================================================
 
 Which hash function is best?

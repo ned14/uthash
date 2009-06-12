@@ -394,6 +394,28 @@ div#toc a:visited { color: blue; }
 <div class="paragraph"><p>Click to return to the <a href="index.html">uthash home page</a>.</p></div>
 </div>
 </div>
+<h2 id="_version_1_7_2009_06_11">Version 1.7 (2009-06-11)</h2>
+<div class="sectionbody">
+<div class="ulist"><ul>
+<li>
+<p>
+The MurmurHash has been removed, and Jenkin&#8217;s hash is once again the default.
+  While MurmurHash performed well, it&#8217;s unsafe with regard to the strict
+  aliasing rule. This results in incorrect code when compiled with optimization.
+  It&#8217;s not possible to enable <tt>-fno-strict-aliasing</tt> from within a header file.
+</p>
+</li>
+<li>
+<p>
+The linked list macros in <tt>utlist.h</tt> now comply with the strict-aliasing
+  rule so they generate correct code under high optimization levels (O2 or O3).
+  The use of the <tt><em>typeof</em></tt> extension, which was originally a GNU extension,
+  may reduce portability to other compilers that do not support this extension.
+  This extension is used in the singly-linked list macros and the sort macros.
+</p>
+</li>
+</ul></div>
+</div>
 <h2 id="_version_1_6_2009_05_08">Version 1.6 (2009-05-08)</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Special thanks to Alfred Heisner for contributing several enhancements:</p></div>
@@ -669,7 +691,7 @@ Initial release
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2009-05-12 23:03:19 EDT
+Last updated 2009-06-11 23:32:35 EDT
 </div>
 </div>
 </body>

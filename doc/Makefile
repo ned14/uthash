@@ -12,7 +12,7 @@ changelog:	txt/ChangeLog.txt
 .PHONY: pdf
 
 pdf: txt/userguide.txt
-	a2x -f pdf $<
+	a2x --format=pdf $<
 	mv txt/userguide.pdf pdf/
 	cd html && ln -sf ../pdf/userguide.pdf userguide.pdf
 	rm txt/userguide.xml

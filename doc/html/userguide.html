@@ -13,8 +13,8 @@
 <h1>uthash User Guide</h1>
 <span id="author">Troy D. Hanson</span><br />
 <span id="email"><tt>&lt;<a href="mailto:thanson@users.sourceforge.net">thanson@users.sourceforge.net</a>&gt;</tt></span><br />
-<span id="revision">version 1.6,</span>
-May 2009
+<span id="revision">version 1.7,</span>
+June 2009
 </div>
 <div id="preamble">
 <div class="sectionbody">
@@ -961,7 +961,7 @@ HASH_SRT(hh2, users_by_name, sort_by_name);</tt></pre>
 <h2 id="Appendix_A">Appendix A: Built-in hash functions</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Internally, a hash function transforms a key into a bucket number.  You don&#8217;t
-have to take any action to use the default hash function, MurmurHash.</p></div>
+have to take any action to use the default hash function, currently Jenkin&#8217;s.</p></div>
 <div class="paragraph"><p>Some programs may benefit from using another of the built-in hash functions.
 There is a simple analysis utility included with uthash to help you determine
 if another hash function will give you better performance.</p></div>
@@ -989,7 +989,7 @@ cellspacing="0" cellpadding="4">
 <tbody valign="top">
 <tr>
 <td align="center"><p class="table"><tt>JEN</tt></p></td>
-<td align="left"><p class="table">Jenkins</p></td>
+<td align="left"><p class="table">Jenkins (default)</p></td>
 </tr>
 <tr>
 <td align="center"><p class="table"><tt>BER</tt></p></td>
@@ -1010,10 +1010,6 @@ cellspacing="0" cellpadding="4">
 <tr>
 <td align="center"><p class="table"><tt>SFH</tt></p></td>
 <td align="left"><p class="table">Paul Hsieh</p></td>
-</tr>
-<tr>
-<td align="center"><p class="table"><tt>MUR</tt></p></td>
-<td align="left"><p class="table">Austin Appleby&#8217;s MurmurHash (default)</p></td>
 </tr>
 </tbody>
 </table>
@@ -1591,8 +1587,8 @@ condition
 </div>
 <div id="footer">
 <div id="footer-text">
-Version 1.6<br />
-Last updated 2009-05-12 23:03:16 EDT
+Version 1.7<br />
+Last updated 2009-06-11 23:32:31 EDT
 </div>
 </div>
 </body>
