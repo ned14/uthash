@@ -5,8 +5,12 @@ include::sflogo.txt[]
 
 Click to return to the link:index.html[uthash home page].
 
-Version 1.7 (2009-06-01)
+Version 1.7 (2009-06-11)
 --------------------------
+* The MurmurHash has been removed, and Jenkin's hash is once again the default.
+  While MurmurHash performed well, it's unsafe with regard to the strict
+  aliasing rule. This results in incorrect code when compiled with optimization.
+  It's not possible to enable `-fno-strict-aliasing` from within a header file.
 * The linked list macros in `utlist.h` now comply with the strict-aliasing
   rule so they generate correct code under high optimization levels (O2 or O3).
   The use of the `__typeof__` extension, which was originally a GNU extension,
