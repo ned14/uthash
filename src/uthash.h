@@ -247,11 +247,11 @@ do {                                                                           \
 #define HASH_EMIT_KEY(hh,head,keyptr,fieldlen)                    
 #endif
 
-/* default to MurmurHash unless overridden e.g. DHASH_FUNCTION=HASH_SAX */
+/* default to Jenkin's hash unless overridden e.g. DHASH_FUNCTION=HASH_SAX */
 #ifdef HASH_FUNCTION 
 #define HASH_FCN HASH_FUNCTION
 #else
-#define HASH_FCN HASH_MUR
+#define HASH_FCN HASH_JEN
 #endif
 
 /* The Bernstein hash function, used in Perl prior to v5.6 */
@@ -371,11 +371,11 @@ do {                                                                           \
 #define HASH_SFH(key,keylen,num_bkts,hashv,bkt)                                \
 do {                                                                           \
   char *_sfh_key=(char*)key;                                                   \
-  hashv = 0xcafebabe;                                                          \
   uint32_t _sfh_tmp, _sfh_len = keylen;                                        \
                                                                                \
   int _sfh_rem = _sfh_len & 3;                                                 \
   _sfh_len >>= 2;                                                              \
+  hashv = 0xcafebabe;                                                          \
                                                                                \
   /* Main loop */                                                              \
   for (;_sfh_len > 0; _sfh_len--) {                                            \
@@ -411,154 +411,6 @@ do {                                                                           \
     hashv += hashv >> 6;                                                       \
     bkt = hashv & (num_bkts-1);                                                \
 } while(0);
-
-/* The MurmurHash exploits some CPU's (e.g. x86) tolerance for unaligned reads.
- * For other types of CPU's (e.g. Sparc) an unaligned read causes a bus error.
- * So MurmurHash comes in two versions, the faster unaligned one and the slower
- * aligned one. We only use the faster one on CPU's where we know it's safe. 
- *
- * Note the preprocessor built-in defines can be emitted using:
- *
- *   gcc -m64 -dM -E - < /dev/null                  (on gcc)
- *   cc -## a.c (where a.c is a simple test file)   (Sun Studio)
- */
-
-#if (defined(__i386__) || defined(__x86_64__)) 
-#define HASH_MUR HASH_MUR_UNALIGNED
-#else
-#define HASH_MUR HASH_MUR_ALIGNED
-#endif
-
-/* Appleby's MurmurHash fast version for unaligned-tolerant archs like i386 */
-#define HASH_MUR_UNALIGNED(key,keylen,num_bkts,hashv,bkt)                      \
-do {                                                                           \
-  const unsigned int _mur_m = 0x5bd1e995;                                      \
-  const int _mur_r = 24;                                                       \
-  hashv = 0xcafebabe ^ keylen;                                                 \
-  char *_mur_key = (char *)key;                                                \
-  uint32_t _mur_tmp, _mur_len = keylen;                                        \
-                                                                               \
-  for (;_mur_len >= 4; _mur_len-=4) {                                          \
-    _mur_tmp = *(uint32_t *)_mur_key;                                          \
-    _mur_tmp *= _mur_m;                                                        \
-    _mur_tmp ^= _mur_tmp >> _mur_r;                                            \
-    _mur_tmp *= _mur_m;                                                        \
-    hashv *= _mur_m;                                                           \
-    hashv ^= _mur_tmp;                                                         \
-    _mur_key += 4;                                                             \
-  }                                                                            \
-                                                                               \
-  switch(_mur_len)                                                             \
-  {                                                                            \
-    case 3: hashv ^= _mur_key[2] << 16;                                        \
-    case 2: hashv ^= _mur_key[1] << 8;                                         \
-    case 1: hashv ^= _mur_key[0];                                              \
-            hashv *= _mur_m;                                                   \
-  };                                                                           \
-                                                                               \
-  hashv ^= hashv >> 13;                                                        \
-  hashv *= _mur_m;                                                             \
-  hashv ^= hashv >> 15;                                                        \
-                                                                               \
-  bkt = hashv & (num_bkts-1);                                                  \
-} while(0)
-
-/* Appleby's MurmurHash version for alignment-sensitive archs like Sparc */
-#define HASH_MUR_ALIGNED(key,keylen,num_bkts,hashv,bkt)                      \
-do {                                                                           \
-  const unsigned int _mur_m = 0x5bd1e995;                                      \
-  const int _mur_r = 24;                                                       \
-  hashv = 0xcafebabe ^ keylen;                                                 \
-  char *_mur_key = (char *)key;                                                \
-  uint32_t _mur_len = keylen;                                        \
-  int _mur_align = (long)_mur_key & 3;                                          \
-  \
-  if (_mur_align && (_mur_len >= 4)) { \
-    unsigned _mur_t = 0, _mur_d = 0; \
-    switch(_mur_align) { \
-      case 1: _mur_t |= _mur_key[2] << 16; \
-      case 2: _mur_t |= _mur_key[1] << 8; \
-      case 3: _mur_t |= _mur_key[0]; \
-    } \
-    _mur_t <<= (8 * _mur_align); \
-    _mur_key += 4-_mur_align; \
-    _mur_len -= 4-_mur_align; \
-    int _mur_sl = 8 * (4-_mur_align); \
-    int _mur_sr = 8 * _mur_align; \
-                                                                               \
-    for (;_mur_len >= 4; _mur_len-=4) {                                          \
-      _mur_d = *(unsigned *)_mur_key;                                          \
-      _mur_t = (_mur_t >> _mur_sr) | (_mur_d << _mur_sl);                     \
-      unsigned _mur_k = _mur_t; \
-      _mur_k *= _mur_m; \
-      _mur_k ^= _mur_k >> _mur_r; \
-      _mur_k *= _mur_m; \
-      hashv *= _mur_m; \
-      hashv ^= _mur_k; \
-      _mur_t = _mur_d; \
-      _mur_key += 4;                                                             \
-    }                                                                            \
-    _mur_d = 0; \
-    if(_mur_len >= _mur_align) { \
-      switch(_mur_align) { \
-        case 3: _mur_d |= _mur_key[2] << 16; \
-        case 2: _mur_d |= _mur_key[1] << 8; \
-        case 1: _mur_d |= _mur_key[0]; \
-      } \
-      unsigned _mur_k = (_mur_t >> _mur_sr) | (_mur_d << _mur_sl); \
-      _mur_k *= _mur_m; \
-      _mur_k ^= _mur_k >> _mur_r; \
-      _mur_k *= _mur_m; \
-      hashv *= _mur_m; \
-      hashv ^= _mur_k; \
-      _mur_k += _mur_align; \
-      _mur_len -= _mur_align; \
-   \
-      switch(_mur_len)                                                             \
-      {                                                                            \
-        case 3: hashv ^= _mur_key[2] << 16;                                        \
-        case 2: hashv ^= _mur_key[1] << 8;                                         \
-        case 1: hashv ^= _mur_key[0];                                              \
-                hashv *= _mur_m;                                                   \
-      }                                                                           \
-    } else { \
-      switch(_mur_len)                                                             \
-      {                                                                            \
-        case 3: _mur_d ^= _mur_key[2] << 16;                                        \
-        case 2: _mur_d ^= _mur_key[1] << 8;                                         \
-        case 1: _mur_d ^= _mur_key[0];                                              \
-        case 0: hashv ^= (_mur_t >> _mur_sr) | (_mur_d << _mur_sl);                  \
-        hashv *= _mur_m; \
-      } \
-    } \
-                                                                                 \
-    hashv ^= hashv >> 13;                                                        \
-    hashv *= _mur_m;                                                             \
-    hashv ^= hashv >> 15;                                                        \
-  } else { \
-    for (;_mur_len >= 4; _mur_len-=4) {                                          \
-      unsigned _mur_k = *(unsigned*)_mur_key; \
-      _mur_k *= _mur_m; \
-      _mur_k ^= _mur_k >> _mur_r; \
-      _mur_k *= _mur_m; \
-      hashv *= _mur_m; \
-      hashv ^= _mur_k; \
-      _mur_key += 4;                                                             \
-    } \
-    switch(_mur_len)                                                             \
-    {                                                                            \
-      case 3: hashv ^= _mur_key[2] << 16;                                        \
-      case 2: hashv ^= _mur_key[1] << 8;                                         \
-      case 1: hashv ^= _mur_key[0];                                              \
-      hashv *= _mur_m; \
-    } \
-                                                                                 \
-    hashv ^= hashv >> 13;                                                        \
-    hashv *= _mur_m;                                                             \
-    hashv ^= hashv >> 15;                                                        \
-  }                                                                            \
-  bkt = hashv & (num_bkts-1);                                                  \
-} while(0)
 
 /* key comparison function; return 0 if keys equal */
 #define HASH_KEYCMP(a,b,len) memcmp(a,b,len) 
