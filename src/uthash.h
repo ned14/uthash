@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stddef.h>   /* ptrdiff_t */
 #include <inttypes.h> /* uint32_t etc */
 
-#define UTHASH_VERSION 1.6
+#define UTHASH_VERSION 1.8
 
 /* C++ requires extra stringent casting */
 #if defined __cplusplus
