@@ -117,11 +117,11 @@ do {                                                                            
         }                                                                        \
         _ls_p = _ls_q;                                                           \
       }                                                                          \
+      if (is_double) {                                                     \
+        list->prev = _ls_tail;                                      \
+      }                                                                        \
       if (is_circular) {                                                         \
         _ls_tail->next = list;                                        \
-        if (is_double) {                                                     \
-          list->prev = _ls_tail;                                      \
-        }                                                                        \
       } else  {                                                                  \
         _ls_tail->next = NULL;                                               \
       }                                                                          \
