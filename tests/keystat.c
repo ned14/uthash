@@ -8,7 +8,14 @@
 #include <sys/time.h>   /* for 'gettimeofday' */
 #include "uthash.h"
 
+#undef uthash_noexpand_fyi
+#define uthash_noexpand_fyi(t) die()
 #define UNALIGNED_KEYS 0
+
+void die() {
+  fprintf(stderr,"expansion inhibited\n");
+  exit(-1);
+}
 
 /* Windows doesn't have gettimeofday. While Cygwin and some 
  * versions of MinGW supply one, it is very coarse. This substitute
@@ -50,14 +57,43 @@ typedef struct stat_key {
     UT_hash_handle hh, hh2;
 } stat_key;
 
+#define CHAIN_0  0
+#define CHAIN_5  1
+#define CHAIN_10  2
+#define CHAIN_20  3
+#define CHAIN_100 4
+#define CHAIN_MAX 5
+void hash_chain_len_histogram(UT_hash_table *tbl) {
+  unsigned i, bkt_hist[CHAIN_MAX+1];
+  double pct = 100.0/tbl->num_buckets;
+  memset(bkt_hist,0,sizeof(bkt_hist));
+  for(i=0; i < tbl->num_buckets; i++) {
+      unsigned count = tbl->buckets[i].count;
+      if (count == 0) bkt_hist[CHAIN_0]++;
+      else if (count < 5) bkt_hist[CHAIN_5]++;
+      else if (count < 10) bkt_hist[CHAIN_10]++;
+      else if (count < 20) bkt_hist[CHAIN_20]++;
+      else if (count < 100) bkt_hist[CHAIN_100]++;
+      else bkt_hist[CHAIN_MAX]++;
+  }
+  fprintf(stderr, "Buckets with     0 items: %.1f%%\n", bkt_hist[CHAIN_0 ]*pct);
+  fprintf(stderr, "Buckets with <   5 items: %.1f%%\n", bkt_hist[CHAIN_5 ]*pct);
+  fprintf(stderr, "Buckets with <  10 items: %.1f%%\n", bkt_hist[CHAIN_10]*pct);
+  fprintf(stderr, "Buckets with <  20 items: %.1f%%\n", bkt_hist[CHAIN_20]*pct);
+  fprintf(stderr, "Buckets with < 100 items: %.1f%%\n", bkt_hist[CHAIN_100]*pct);
+  fprintf(stderr, "Buckets with > 100 items: %.1f%%\n", bkt_hist[CHAIN_MAX]*pct);
+}
+
 int main(int argc, char *argv[]) {
-    int dups=0, rc, fd, done=0, err=0, want, i=0, padding=0;
-    unsigned keylen;
+    int dups=0, rc, fd, done=0, err=0, want, i=0, padding=0, v=1, percent=100;
+    unsigned keylen, max_keylen=0, verbose=0;
     char *filename = "/dev/stdin", *dst; 
     stat_key *keyt, *keytmp, *keys=NULL, *keys2=NULL;
     struct timeval start_tm, end_tm, elapsed_tm, elapsed_tm2, elapsed_tm3;
 
-    if (argc > 1) filename=argv[1];
+    if ((argc >= 3) && !strcmp(argv[1],"-p")) {percent = atoi(argv[2]); v = 3;}
+    if ((argc >= v) && !strcmp(argv[v],"-v")) {verbose=1; v++;}
+    if (argc >= v) filename=argv[v];
     fd=open(filename,MODE);
 
     if ( fd == -1 ) {
@@ -81,6 +117,7 @@ int main(int argc, char *argv[]) {
           }
 
           if (done || err) break;
+          if (keylen > max_keylen) max_keylen=keylen;
   
           if ( (keyt = (stat_key*)malloc(sizeof(stat_key))) == NULL) {
               fprintf(stderr,"out of memory\n");
@@ -112,6 +149,12 @@ int main(int argc, char *argv[]) {
               } else if (rc >= 0) { want -= rc; dst += rc; goto readmore2; }
           }
           if (err) break;
+          /* if percent was set to something less than 100%, skip some keys*/
+          if (((rand()*1.0) / RAND_MAX) > ((percent*1.0)/100)) { 
+            free(keyt->key-padding);
+            free(keyt);
+            continue;
+          }
   
           /* eliminate dups */
           HASH_FIND(hh,keys,keyt->key,keylen,keytmp);
@@ -122,6 +165,15 @@ int main(int argc, char *argv[]) {
           } else {
             HASH_ADD_KEYPTR(hh,keys,keyt->key,keylen,keyt);
           }
+    }
+
+    if (verbose) {
+      unsigned key_count = HASH_COUNT(keys);
+      fprintf(stderr,"max key length: %u\n", max_keylen);
+      fprintf(stderr,"number unique keys: %u\n", key_count);
+      fprintf(stderr,"keystats memory: %u\n", 
+        (unsigned)((sizeof(stat_key)+max_keylen)*key_count));
+      hash_chain_len_histogram(keys->hh.tbl);
     }
 
     /* add all keys to a new hash, so we can measure add time w/o malloc */

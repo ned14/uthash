@@ -4,15 +4,19 @@ use strict;
 
 use FindBin;
 
-die "no input file specified\n" unless @ARGV;
+sub usage {
+  print "usage: keystats [-v] keyfile\n";
+  print "usage: keystats [-p <pct> [-v]] keyfile\n";
+  exit -1;
+}
 
-my $keyfile = shift @ARGV;
-die "no such file: $keyfile\n" unless -f $keyfile;
+usage if ((@ARGV == 0) or ($ARGV[0] eq '-h'));
 
 my @exes = glob "$FindBin::Bin/keystat.???";
 my %stats;
 for my $exe (@exes) {
-    $stats{$exe} = `$exe $keyfile`;
+    $stats{$exe} = `$exe @ARGV`;
+    delete $stats{$exe} if ($? != 0); # omit hash functions that fail to produce stats (nx)
 }
 
 print( "fcn  ideal%     #items   #buckets  dup%  fl   add_usec  find_usec  del-all usec\n");
