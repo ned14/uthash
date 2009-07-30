@@ -55,15 +55,61 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /* calculate the element whose hash handle address is hhe */
 #define ELMT_FROM_HH(tbl,hhp) ((void*)(((char*)hhp) - (tbl)->hho))
 
+#ifdef HASH_TLCACHE
+#define HASH_MIN(a,b) (((a) < (b)) ? (a) : (b))
+#define HASH_TLCACHE_LOOKUP(tbl,keyptr,keylen_in,out) \
+do { \
+  unsigned _tlcache_idx; \
+  UT_hash_tlcache_entry *_tlc; \
+  for(_tlcache_idx=0; _tlcache_idx < HASH_MIN(HASH_TLCACHE,tbl->tlcache_idx); _tlcache_idx++) { \
+    _tlc = &tbl->tlcache[_tlcache_idx]; \
+    if ((_tlc->keylen == keylen_in) &&  \
+        (!memcmp(_tlc->keyl,keyptr,HASH_MIN(keylen_in,sizeof(_tlc->keyl))))) { \
+          if (keylen_in > sizeof(_tlc->keyl)) { \
+            if (!memcmp(_tlc->hhi->key, keyptr, keylen_in)) { \
+              out = TYPEOF(out)ELMT_FROM_HH(tbl,_tlc->hhi); \
+              if (1) fprintf(stderr,"found tlcache hit (alt)\n"); \
+              break; \
+            } \
+          } else { \
+            out = TYPEOF(out)ELMT_FROM_HH(tbl,_tlc->hhi); \
+            if (1) fprintf(stderr,"found tlcache hit (std)\n"); \
+            break; \
+          } \
+    } \
+  } \
+} while(0)
+#define HASH_TLCACHE_INSERT(tbl,keyptr,keylen_in,hhi_in) \
+do { \
+    UT_hash_tlcache_entry *_tlc; \
+    _tlc = &tbl->tlcache[(tbl->tlcache_idx++) % HASH_TLCACHE]; \
+    _tlc->keylen = keylen_in; \
+    memcpy(&_tlc->keyl, keyptr, sizeof(_tlc->keyl)); \
+    _tlc->hhi = hhi_in; \
+} while(0)
+#define HASH_TLCACHE_INVALIDATE(hh,head) \
+do { \
+  if (head) { \
+    (head)->hh.tbl->tlcache_idx=0; \
+  } \
+} while(0)
+#else
+#define HASH_TLCACHE_LOOKUP(tbl,keyptr,keylen_in,out)
+#define HASH_TLCACHE_INSERT(tbl,keyptr,keylen_in,hhi_in)
+#define HASH_TLCACHE_INVALIDATE(hh,head) 
+#endif
+
 #define HASH_FIND(hh,head,keyptr,keylen,out)                                   \
 do {                                                                           \
   unsigned _hf_bkt,_hf_hashv;                                                  \
-  out=TYPEOF(out)head;                                                         \
+  out=TYPEOF(out)NULL;                                                         \
   if (head) {                                                                  \
+     HASH_TLCACHE_LOOKUP((head)->hh.tbl,keyptr,keylen,out); \
+     if (out) break; \
      HASH_FCN(keyptr,keylen, (head)->hh.tbl->num_buckets, _hf_hashv, _hf_bkt); \
      HASH_FIND_IN_BKT((head)->hh.tbl, hh, (head)->hh.tbl->buckets[ _hf_bkt ],  \
                       keyptr,keylen,out);                                      \
-  }                                                                            \
+  } \
 } while (0)
 
 #define HASH_MAKE_TABLE(hh,head)                                               \
@@ -157,6 +203,7 @@ do {                                                                           \
         HASH_DEL_IN_BKT(hh,(head)->hh.tbl->buckets[_hd_bkt], _hd_hh_del);      \
         (head)->hh.tbl->num_items--;                                           \
     }                                                                          \
+    HASH_TLCACHE_INVALIDATE(hh,head); \
     HASH_FSCK(hh,head);                                                        \
 } while (0)
 
@@ -420,7 +467,10 @@ do {                                                                           \
 out = TYPEOF(out)((head.hh_head) ? ELMT_FROM_HH(tbl,head.hh_head) : NULL);     \
 while (out) {                                                                  \
     if (out->hh.keylen == keylen_in) {                                         \
-        if ((HASH_KEYCMP(out->hh.key,keyptr,keylen_in)) == 0) break;           \
+        if ((HASH_KEYCMP(out->hh.key,keyptr,keylen_in)) == 0) { \
+          HASH_TLCACHE_INSERT(tbl,keyptr,keylen_in,&((out)->hh)); \
+          break;           \
+        } \
     }                                                                          \
     out= TYPEOF(out)((out->hh.hh_next) ?                                       \
                      ELMT_FROM_HH(tbl,out->hh.hh_next) : NULL);                \
@@ -690,6 +740,12 @@ typedef struct UT_hash_bucket {
 
 } UT_hash_bucket;
 
+typedef struct UT_hash_tlcache_entry {
+  unsigned keylen;
+  unsigned char keyl[sizeof(long)]; /* first (4 or 8) bytes of key */
+  struct UT_hash_handle *hhi;              /* hh of item having that key */
+} UT_hash_tlcache_entry;
+
 typedef struct UT_hash_table {
    UT_hash_bucket *buckets;
    unsigned num_buckets, log2_num_buckets;
@@ -714,6 +770,12 @@ typedef struct UT_hash_table {
     * the hash will still work, albeit no longer in constant time. */
    unsigned ineff_expands, noexpand;
 
+#ifdef HASH_TLCACHE
+   /* a temporal locality cache which avoids hashing the key, and instead
+    * first attempts a simple key match against a array of recently found keys */
+   unsigned tlcache_idx;
+   UT_hash_tlcache_entry tlcache[HASH_TLCACHE];
+#endif
 
 } UT_hash_table;
 
