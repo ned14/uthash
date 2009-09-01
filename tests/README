@@ -16,7 +16,7 @@ test11: read dat file of names into hash, sort them and print
 test12: create hash with string keys, add 10 items, lookup each item
 test13: make 10-item hash, delete items with even keys, reverse print others
 test14: read dat file of names into hash, read file again and lookup each one
-test15: build string-keyed hash of 3 items, lookup one item 
+test15: build string-keyed hash of 3 items, lookup one item (c.f. test40.c)
 test16: hash on aggregate key, iterate, lookup, using generalized macros
 test17: sort, add more items, sort again
 test18: test pathological HASH_DEL(a,a) scenario (single head,deletee variable)
@@ -41,6 +41,7 @@ test36: HASH_SELECT
 test37: HASH_CLEAR
 test38: find-or-add test on integer keys in short loop
 test39: HASH_ADD_KEYPTR then HASH_FIND using array element as key pointer
+test40: HASH_ADD_KEYPTR on string keys; pointer equivalent to test15.c
 
 Other Make targets
 ================================================================================

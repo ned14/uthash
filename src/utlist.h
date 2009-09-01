@@ -24,7 +24,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef UTLIST_H
 #define UTLIST_H
 
-#define UTLIST_VERSION 1.7
+#define UTLIST_VERSION 1.8
 
 /* 
  * This file contains macros to manipulate singly and doubly-linked lists.
@@ -58,13 +58,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 /******************************************************************************
- * The LISTSORT macro is an adaptation of Simon Tatham's O(n log(n)) mergesort*
+ * The sort macro is an adaptation of Simon Tatham's O(n log(n)) mergesort    *
  * Unwieldy variable names used here to avoid shadowing passed-in variables.  *
  *****************************************************************************/
-#define LL_SORT(l,cmp)  LISTSORT(l,0,0,cmp)
-#define DL_SORT(l,cmp)  LISTSORT(l,0,1,cmp)
-#define CDL_SORT(l,cmp) LISTSORT(l,1,1,cmp)
-#define LISTSORT(list, is_circular, is_double, cmp)                             \
+#define LL_SORT(list, cmp)                             \
 do {                                                                             \
   __typeof__(list) _ls_p, _ls_q, _ls_e, _ls_tail, _ls_oldhead;              \
   int _ls_insize, _ls_nmerges, _ls_psize, _ls_qsize, _ls_i, _ls_looping;         \
@@ -83,48 +80,140 @@ do {                                                                            
         _ls_psize = 0;                                                           \
         for (_ls_i = 0; _ls_i < _ls_insize; _ls_i++) {                           \
           _ls_psize++;                                                           \
-          if (is_circular)  {                                                    \
-            _ls_q = ((_ls_q->next == _ls_oldhead) ? NULL : _ls_q->next); \
-          } else  {                                                              \
-            _ls_q = _ls_q->next;                                             \
-          }                                                                      \
+          _ls_q = _ls_q->next;                                             \
           if (!_ls_q) break;                                                     \
         }                                                                        \
         _ls_qsize = _ls_insize;                                                  \
         while (_ls_psize > 0 || (_ls_qsize > 0 && _ls_q)) {                      \
           if (_ls_psize == 0) {                                                  \
             _ls_e = _ls_q; _ls_q = _ls_q->next; _ls_qsize--;                 \
-            if (is_circular && _ls_q == _ls_oldhead) { _ls_q = NULL; }           \
           } else if (_ls_qsize == 0 || !_ls_q) {                                 \
             _ls_e = _ls_p; _ls_p = _ls_p->next; _ls_psize--;                 \
-            if (is_circular && (_ls_p == _ls_oldhead)) { _ls_p = NULL; }         \
           } else if (cmp(_ls_p,_ls_q) <= 0) {          \
             _ls_e = _ls_p; _ls_p = _ls_p->next; _ls_psize--;                 \
-            if (is_circular && (_ls_p == _ls_oldhead)) { _ls_p = NULL; }         \
           } else {                                                               \
             _ls_e = _ls_q; _ls_q = _ls_q->next; _ls_qsize--;                 \
-            if (is_circular && (_ls_q == _ls_oldhead)) { _ls_q = NULL; }         \
           }                                                                      \
           if (_ls_tail) {                                                        \
             _ls_tail->next = _ls_e;                                   \
           } else {                                                               \
             list = _ls_e;                                           \
           }                                                                      \
-          if (is_double) {                                                   \
-            _ls_e->prev = _ls_tail;                                   \
-          }                                                                      \
           _ls_tail = _ls_e;                                                      \
         }                                                                        \
         _ls_p = _ls_q;                                                           \
       }                                                                          \
-      if (is_double) {                                                     \
-        list->prev = _ls_tail;                                      \
-      }                                                                        \
-      if (is_circular) {                                                         \
-        _ls_tail->next = list;                                        \
-      } else  {                                                                  \
-        _ls_tail->next = NULL;                                               \
+      _ls_tail->next = NULL;                                               \
+      if (_ls_nmerges <= 1) {                                                    \
+        _ls_looping=0;                                                           \
       }                                                                          \
+      _ls_insize *= 2;                                                           \
+    }                                                                            \
+  }                                                                              \
+} while (0)
+
+#define DL_SORT(list, cmp)                             \
+do {                                                                             \
+  __typeof__(list) _ls_p, _ls_q, _ls_e, _ls_tail, _ls_oldhead;              \
+  int _ls_insize, _ls_nmerges, _ls_psize, _ls_qsize, _ls_i, _ls_looping;         \
+  if (list) {                                                                    \
+    _ls_insize = 1;                                                              \
+    _ls_looping = 1;                                                             \
+    while (_ls_looping) {                                                        \
+      _ls_p = list;                                                              \
+      _ls_oldhead = list;                                                        \
+      list = NULL;                                                               \
+      _ls_tail = NULL;                                                           \
+      _ls_nmerges = 0;                                                           \
+      while (_ls_p) {                                                            \
+        _ls_nmerges++;                                                           \
+        _ls_q = _ls_p;                                                           \
+        _ls_psize = 0;                                                           \
+        for (_ls_i = 0; _ls_i < _ls_insize; _ls_i++) {                           \
+          _ls_psize++;                                                           \
+          _ls_q = _ls_q->next;                                             \
+          if (!_ls_q) break;                                                     \
+        }                                                                        \
+        _ls_qsize = _ls_insize;                                                  \
+        while (_ls_psize > 0 || (_ls_qsize > 0 && _ls_q)) {                      \
+          if (_ls_psize == 0) {                                                  \
+            _ls_e = _ls_q; _ls_q = _ls_q->next; _ls_qsize--;                 \
+          } else if (_ls_qsize == 0 || !_ls_q) {                                 \
+            _ls_e = _ls_p; _ls_p = _ls_p->next; _ls_psize--;                 \
+          } else if (cmp(_ls_p,_ls_q) <= 0) {          \
+            _ls_e = _ls_p; _ls_p = _ls_p->next; _ls_psize--;                 \
+          } else {                                                               \
+            _ls_e = _ls_q; _ls_q = _ls_q->next; _ls_qsize--;                 \
+          }                                                                      \
+          if (_ls_tail) {                                                        \
+            _ls_tail->next = _ls_e;                                   \
+          } else {                                                               \
+            list = _ls_e;                                           \
+          }                                                                      \
+          _ls_e->prev = _ls_tail;                                   \
+          _ls_tail = _ls_e;                                                      \
+        }                                                                        \
+        _ls_p = _ls_q;                                                           \
+      }                                                                          \
+      list->prev = _ls_tail;                                      \
+      _ls_tail->next = NULL;                                               \
+      if (_ls_nmerges <= 1) {                                                    \
+        _ls_looping=0;                                                           \
+      }                                                                          \
+      _ls_insize *= 2;                                                           \
+    }                                                                            \
+  }                                                                              \
+} while (0)
+
+#define CDL_SORT(list, cmp)                             \
+do {                                                                             \
+  __typeof__(list) _ls_p, _ls_q, _ls_e, _ls_tail, _ls_oldhead;              \
+  int _ls_insize, _ls_nmerges, _ls_psize, _ls_qsize, _ls_i, _ls_looping;         \
+  if (list) {                                                                    \
+    _ls_insize = 1;                                                              \
+    _ls_looping = 1;                                                             \
+    while (_ls_looping) {                                                        \
+      _ls_p = list;                                                              \
+      _ls_oldhead = list;                                                        \
+      list = NULL;                                                               \
+      _ls_tail = NULL;                                                           \
+      _ls_nmerges = 0;                                                           \
+      while (_ls_p) {                                                            \
+        _ls_nmerges++;                                                           \
+        _ls_q = _ls_p;                                                           \
+        _ls_psize = 0;                                                           \
+        for (_ls_i = 0; _ls_i < _ls_insize; _ls_i++) {                           \
+          _ls_psize++;                                                           \
+          _ls_q = ((_ls_q->next == _ls_oldhead) ? NULL : _ls_q->next); \
+          if (!_ls_q) break;                                                     \
+        }                                                                        \
+        _ls_qsize = _ls_insize;                                                  \
+        while (_ls_psize > 0 || (_ls_qsize > 0 && _ls_q)) {                      \
+          if (_ls_psize == 0) {                                                  \
+            _ls_e = _ls_q; _ls_q = _ls_q->next; _ls_qsize--;                 \
+            if (_ls_q == _ls_oldhead) { _ls_q = NULL; }           \
+          } else if (_ls_qsize == 0 || !_ls_q) {                                 \
+            _ls_e = _ls_p; _ls_p = _ls_p->next; _ls_psize--;                 \
+            if (_ls_p == _ls_oldhead) { _ls_p = NULL; }         \
+          } else if (cmp(_ls_p,_ls_q) <= 0) {          \
+            _ls_e = _ls_p; _ls_p = _ls_p->next; _ls_psize--;                 \
+            if (_ls_p == _ls_oldhead) { _ls_p = NULL; }         \
+          } else {                                                               \
+            _ls_e = _ls_q; _ls_q = _ls_q->next; _ls_qsize--;                 \
+            if (_ls_q == _ls_oldhead) { _ls_q = NULL; }         \
+          }                                                                      \
+          if (_ls_tail) {                                                        \
+            _ls_tail->next = _ls_e;                                   \
+          } else {                                                               \
+            list = _ls_e;                                           \
+          }                                                                      \
+          _ls_e->prev = _ls_tail;                                   \
+          _ls_tail = _ls_e;                                                      \
+        }                                                                        \
+        _ls_p = _ls_q;                                                           \
+      }                                                                          \
+      list->prev = _ls_tail;                                      \
+      _ls_tail->next = list;                                        \
       if (_ls_nmerges <= 1) {                                                    \
         _ls_looping=0;                                                           \
       }                                                                          \

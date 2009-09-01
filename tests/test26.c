@@ -7,7 +7,7 @@
 
 typedef struct el {
     char bname[BUFLEN];
-    struct el *next, *prev;
+    struct el *next;
 } el;
 
 int namecmp(el *a, el *b) {

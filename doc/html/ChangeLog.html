@@ -394,6 +394,46 @@ div#toc a:visited { color: blue; }
 <div class="paragraph"><p>Click to return to the <a href="index.html">uthash home page</a>.</p></div>
 </div>
 </div>
+<h2 id="_version_1_8_2009_09_01">Version 1.8 (2009-09-01)</h2>
+<div class="sectionbody">
+<div class="ulist"><ul>
+<li>
+<p>
+Added the Bloom filter (FINESSE)
+</p>
+</li>
+<li>
+<p>
+Added the <tt>hashscan</tt> utility (TODO)
+</p>
+</li>
+<li>
+<p>
+Unified the bucket/table malloc hooks; now there is only one malloc hook
+</p>
+</li>
+<li>
+<p>
+Organized the manual into regular and advanced sections (TODO)
+</p>
+</li>
+<li>
+<p>
+Fixed a bug in <tt>utlist.h</tt> where sorting a singly-linked list threw a
+  compile-time error.
+</p>
+</li>
+<li>
+<p>
+Fixed a bug in <tt>utlist.h</tt> where a doubly-linked list that is sorted
+  did not maintain the special <tt>head&#8594;prev</tt> pointer back to the list tail.
+  Most non-circular, doubly-linked lists do not have <tt>head&#8594;prev</tt> point to the
+  list tail, but utlist does, in order to support appending to the list in
+  constant-time.
+</p>
+</li>
+</ul></div>
+</div>
 <h2 id="_version_1_7_2009_06_11">Version 1.7 (2009-06-11)</h2>
 <div class="sectionbody">
 <div class="ulist"><ul>
@@ -691,7 +731,7 @@ Initial release
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2009-06-11 23:32:35 EDT
+Last updated 2009-08-31 17:04:09 EDT
 </div>
 </div>
 </body>

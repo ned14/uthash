@@ -1,7 +1,7 @@
 uthash User Guide
 =================
 Troy D. Hanson <thanson@users.sourceforge.net>
-v1.7, June 2009
+v1.8, September 2009
 
 include::sflogo.txt[]
 include::topnav.txt[]
@@ -32,11 +32,11 @@ Is it fast?
 Add, find and delete are normally constant-time operations. This is influenced
 by your key domain and the hash function. 
 
-This hash aims to be minimalistic and efficient. It's around 600 lines of C.
+This hash aims to be minimalistic and efficient. It's around 800 lines of C.
 It inlines automatically because it's implemented as macros. It's fast as long
 as the hash function is suited to your keys. You can use the default hash
 function, or easily compare performance and choose from among several other
-<<Appendix_A,built-in hash functions>>. 
+<<hash_functions,built-in hash functions>>. 
 
 Is it a library?
 ~~~~~~~~~~~~~~~~
@@ -154,7 +154,7 @@ Hash operations
 ---------------
 
 This section introduces the uthash macros by example. For a more succinct
-listing, see <<Appendix_F,Appendix F: Macro Reference>>. 
+listing, see <<Macro_reference,Macro Reference>>. 
 
 .Convenience vs. general macros:
 *****************************************************************************
@@ -381,52 +381,6 @@ When the items in the hash are sorted, the first item may change position.  In
 the example above, `users` may point to a different structure after calling
 `HASH_SORT`.
 
-Select
-~~~~~~
-A special 'select' operation is provided that inserts those items from a source
-hash that satisfy a given condition into a destination hash. This insertion is
-done with somewhat more efficiency than if this were using `HASH_ADD`, namely
-because the hash function is not recalculated for keys of the selected items.
-This operation does not remove any items from the source hash. Rather the
-selected items obtain dual presence in both hashes.  The destination hash may
-already have items in it; the selected items are added to it. In order for a
-structure to be usable with `HASH_SELECT`, it must have two or more hash
-handles. (As described <<multihash,here>>, a structure can exist in many
-hash tables at the same time, but it must have a separate hash handle for each
-one).
-
-  user_t *users=NULL, *admins=NULL; /* two hash tables */
-
-  typedef struct {
-      int id;
-      UT_hash_handle hh;  /* handle for users hash */
-      UT_hash_handle ah;  /* handle for admins hash */
-  } user_t;
-
-Now suppose we have added some users, and want to select just the administrator
-users who have id's less than 1024.
-
-  #define is_admin(x) (((user_t*)x)->id < 1024)
-  HASH_SELECT(ah,admins,hh,users,is_admin);
-
-The first two parameters are the 'destination' hash handle and hash table, the
-second two parameters are the 'source' hash handle and hash table, and the last
-parameter is the 'select condition'. Here we used a macro `is_admin()` but we
-could just as well have used a function.
-
-  int is_admin(void *userv) {
-    user_t *user = (user_t*)userv; 
-    return (user->id < 1024) ? 1 : 0;
-  }
-
-If the select condition always evaluates to true, this operation is
-essentially a 'merge' of the source hash into the destination hash. Of course,
-the source hash remains unchanged under any use of `HASH_SELECT`. It only adds
-items to the destination hash selectively.
-
-The two hash handles must differ. An example of using `HASH_SELECT` is included
-in `tests/test36.c`.
-
 A complete example
 ~~~~~~~~~~~~~~~~~~
 
@@ -570,8 +524,10 @@ int main(int argc, char *argv[]) {
 This program is included in the distribution in `tests/example.c`. You can run
 `make example` in that directory to compile it easily.
 
-Kinds of keys
--------------
+Standard key types
+------------------
+This section goes into specifics of how to work with different kinds of keys.
+You can use any type of key-- integers, strings, pointers, etc. 
 
 Integer keys
 ~~~~~~~~~~~~
@@ -582,19 +538,23 @@ the same for all types of keys).
 
 String keys
 ~~~~~~~~~~~
-String keys are handled almost the same as integer keys. The convenience macros
-for dealing with string keys are called `HASH_ADD_STR` and `HASH_FIND_STR`.
+If your structure has a string key, the operations to use depend on whether your
+structure 'points to' the key (`char *`) or the string resides `within` the
+structure (`char a[10]`).
 
 [NOTE]
 .char[ ] vs. char* 
 ================================================================================
-The string is 'within' the structure in the next example-- `name` is a
-`char[10]` field.  If instead our structure merely 'pointed' to the key (i.e.,
-`name` was declared `char *`), we'd use `HASH_ADD_KEYPTR`, described in
-<<Appendix_F,Appendix F>>.
+The string is 'within' the structure in the first example below-- `name` is a
+`char[10]` field.  If instead the structure 'points' to the key (i.e., `name` is
+declared `char *`), as in the second example below, use `HASH_ADD_KEYPTR`
+described in the <<Macro_reference,Macro reference>>.
 ================================================================================
 
-.A string-keyed hash
+String 'within' structure
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.A string-keyed hash (string within structure)
 ----------------------------------------------------------------------
 #include <string.h>  /* strcpy */
 #include <stdlib.h>  /* malloc */
@@ -602,7 +562,7 @@ The string is 'within' the structure in the next example-- `name` is a
 #include "uthash.h"
 
 struct my_struct {
-    char name[10];             /* key */
+    char name[10];             /* key (string is WITHIN the structure) */
     int id;                    
     UT_hash_handle hh;         /* makes this structure hashable */
 };
@@ -628,6 +588,43 @@ int main(int argc, char *argv[]) {
 This example is included in the distribution in `tests/test15.c`. It prints:
 
     betty's id is 2
+
+String 'pointer' in structure
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Now, here is the same example but using a `char *` key instead of `char [ ]`:
+
+.A string-keyed hash (structure points to string)
+----------------------------------------------------------------------
+#include <string.h>  /* strcpy */
+#include <stdlib.h>  /* malloc */
+#include <stdio.h>   /* printf */
+#include "uthash.h"
+
+struct my_struct {
+    char *name;                /* key (structure POINTS TO string */
+    int id;                    
+    UT_hash_handle hh;         /* makes this structure hashable */
+};
+
+
+int main(int argc, char *argv[]) {
+    char **n, *names[] = { "joe", "bob", "betty", NULL };
+    struct my_struct *s, *users = NULL;
+    int i=0;
+
+    for (n = names; *n != NULL; n++) {
+        s = (struct my_struct*)malloc(sizeof(struct my_struct));
+        s->name = *n;
+        s->id = i++;
+        HASH_ADD_KEYPTR( hh, users, s->name, strlen(s->name), s );  
+    }
+
+    HASH_FIND_STR( users, "betty", s);
+    if (s) printf("betty's id is %d\n", s->id);
+   return 0;
+}
+----------------------------------------------------------------------
 
 Binary keys
 ~~~~~~~~~~~
@@ -663,10 +660,13 @@ int main(int argc, char *argv[]) {
 
 Note that the general macros require the name of the `UT_hash_handle` to be
 passed as the first argument (here, this is `hh`). The general macros are 
-documented in <<Appendix_F,Appendix F: Macro Reference>>. 
+documented in <<Macro_reference,Macro Reference>>. 
 
-Multi-field keys
-~~~~~~~~~~~~~~~~
+Advanced Topics
+---------------
+
+Compound keys
+~~~~~~~~~~~~~
 Your key can even comprise multiple contiguous fields. 
 
 .A multi-field key
@@ -755,10 +755,9 @@ random values would lead to `HASH_FIND` failures; as two "identical" keys will
 appear to mismatch if there are any differences within their padding.
 
 [[multihash]]
-Structures in multiple hash tables
-----------------------------------
-
-A structure can be added to multiple hash tables. A few reasons you might do
+Items in several hash tables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+A structure can be added to more than one hash table. A few reasons you might do
 this include:
 
 - each hash table may use an alternative key; 
@@ -771,18 +770,21 @@ which it might be added. You can name them anything. E.g.,
 
   UT_hash_handle hh1, hh2;
 
-Alternative keys on the same structure
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-You might create a hash table keyed on an ID field, and another hash table
-keyed on username (if they are unique). You can add the same user structure to
-both hash tables, then look up a user by either their unique ID or username.
+Items with alternative keys
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+You might create a hash table keyed on an ID field, and another hash table keyed
+on username (if usernames are unique). You can add the same user structure to
+both hash tables (without duplication of the structure), allowing lookup of a
+user structure by their name or ID.  The way to achieve this is to have a
+separate `UT_hash_handle` for each hash to which the structure may be added.
 
 .A structure with two alternative keys
 ----------------------------------------------------------------------
 struct my_struct {
-    int id;                    /* key 1 */
-    char username[10];         /* key 2 */
-    UT_hash_handle hh1,hh2;    /* makes this structure hashable */
+    int id;                    /* usual key */
+    char username[10];         /* alternative key */
+    UT_hash_handle hh1;        /* handle for first hash table */
+    UT_hash_handle hh2;        /* handle for second hash table */
 };
 ----------------------------------------------------------------------
 
@@ -822,11 +824,16 @@ always used with the `users_by_name` hash table).
 ----------------------------------------------------------------------
 
 
-Multiple sort orders
-~~~~~~~~~~~~~~~~~~~~
-Extending the previous example, suppose we have many users in our `users_by_id`
-and our `users_by_name` hash, and that we want to sort each hash so that we can 
-print the keys in order. We'd define two sort functions, then use `HASH_SRT`:
+Several sort orders
+~~~~~~~~~~~~~~~~~~~
+It comes as no suprise that two hash tables can have different sort orders, but
+this fact can also be used advantageously to sort the 'same items' in several
+ways. This is based on the ability to store a structure in several hash tables.
+
+Extending the previous example, suppose we have many users. We have added each
+user structure to the `users_by_id` hash table and the `users_by_name` hash table.
+(To reiterate, this is done without the need to have two copies of each structure).
+Now we can define two sort functions, then use `HASH_SRT`.
 
   int sort_by_id(struct my_struct *a, struct my_struct *b) {
     if (a->id == b->id) return 0;
@@ -840,12 +847,73 @@ print the keys in order. We'd define two sort functions, then use `HASH_SRT`:
   HASH_SRT(hh1, users_by_id, sort_by_id);
   HASH_SRT(hh2, users_by_name, sort_by_name);
 
-  /* now iterate over users_by_id and users_by_name in sorted order */
+Now iterating over the items in `users_by_id` will traverse them in id-order
+while, naturally, iterating over `users_by_name` will traverse them in
+name-order. The items are fully forward-and-backward linked in each order.
+So even for one set of users, we might store them in two hash tables to provide
+easy iteration in two different sort orders.
+
+Bloom filter (faster misses)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Programs that generate a fair miss rate (`HASH_FIND` that result in `NULL`) may
+benefit from the built-in Bloom filter support. This is disabled by default,
+because programs that generate only hits would incur a slight penalty from it.
+
+To enable the Bloom filter simply compile with this option,
+
+  -DHASH_BLOOM=27
+
+where the 
+
+Select
+~~~~~~
+An experimental 'select' operation is provided that inserts those items from a
+source hash that satisfy a given condition into a destination hash. This
+insertion is done with somewhat more efficiency than if this were using
+`HASH_ADD`, namely because the hash function is not recalculated for keys of the
+selected items.  This operation does not remove any items from the source hash.
+Rather the selected items obtain dual presence in both hashes.  The destination
+hash may already have items in it; the selected items are added to it. In order
+for a structure to be usable with `HASH_SELECT`, it must have two or more hash
+handles. (As described <<multihash,here>>, a structure can exist in many
+hash tables at the same time; it must have a separate hash handle for each one).
+
+  user_t *users=NULL, *admins=NULL; /* two hash tables */
+
+  typedef struct {
+      int id;
+      UT_hash_handle hh;  /* handle for users hash */
+      UT_hash_handle ah;  /* handle for admins hash */
+  } user_t;
+
+Now suppose we have added some users, and want to select just the administrator
+users who have id's less than 1024.
+
+  #define is_admin(x) (((user_t*)x)->id < 1024)
+  HASH_SELECT(ah,admins,hh,users,is_admin);
+
+The first two parameters are the 'destination' hash handle and hash table, the
+second two parameters are the 'source' hash handle and hash table, and the last
+parameter is the 'select condition'. Here we used a macro `is_admin()` but we
+could just as well have used a function.
+
+  int is_admin(void *userv) {
+    user_t *user = (user_t*)userv; 
+    return (user->id < 1024) ? 1 : 0;
+  }
+
+If the select condition always evaluates to true, this operation is
+essentially a 'merge' of the source hash into the destination hash. Of course,
+the source hash remains unchanged under any use of `HASH_SELECT`. It only adds
+items to the destination hash selectively.
+
+The two hash handles must differ. An example of using `HASH_SELECT` is included
+in `tests/test36.c`.
 
 
-[[Appendix_A]]
-Appendix A: Built-in hash functions
------------------------------------
+[[hash_functions]]
+Built-in hash functions
+~~~~~~~~~~~~~~~~~~~~~~~
 Internally, a hash function transforms a key into a bucket number.  You don't
 have to take any action to use the default hash function, currently Jenkin's.
 
@@ -872,7 +940,7 @@ below. E.g.,
 |===============================================================================
 
 Which hash function is best?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 You can easily determine the best hash function for your key domain. To do so,
 you'll need to run your program once in a data-collection pass, and then run
 the collected data through an included analysis utility.
@@ -892,7 +960,6 @@ We'll use `test14.c` to demonstrate the data-collection and analysis steps
 % ./keystats test14.keys
 fcn  ideal%     #items   #buckets  dup%  fl   add_usec  find_usec  del-all usec
 ---  ------ ---------- ---------- -----  -- ---------- ----------  ------------
-MUR   93.0%       1219        256    0%  ok         77        118            25
 SFH   91.6%       1219        256    0%  ok         92        131            25
 FNV   90.3%       1219        512    0%  ok        107         97            31
 SAX   88.7%       1219        512    0%  ok        111        109            32
@@ -908,12 +975,12 @@ The data-collection mode enabled by `-DHASH_EMIT_KEYS=x` should not be used in
 production code. 
 
 Usually, you should just pick the first hash function that is listed. Here, this
-is `MUR`.  This is the function that provides the most even distribution for
+is `SFH`.  This is the function that provides the most even distribution for
 your keys. If several have the same `ideal%`, then choose the fastest one
 according to the `find_usec` column.
 
 keystats column reference
-~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^
 fcn::
     symbolic name of hash function
 ideal%::
@@ -930,8 +997,8 @@ dup%::
     deletes it, then re-adds it, the key is written twice to the emitted file.)  
 flags::
     this is either `ok`, or `nx` (noexpand) if the expansion inhibited flag is
-    set, described in Appendix B.  It is not recommended to use a hash function
-    that has the `noexpand` flag set.
+    set, described in <<expansion,Expansion internals>>.  It is not recommended
+    to use a hash function that has the `noexpand` flag set.
 add_usec::
     the clock time in microseconds required to add all the keys to a hash
 find_usec::
@@ -940,7 +1007,7 @@ del-all usec::
     the clock time in microseconds required to delete every item in the hash
 
 ideal%
-~~~~~~
+^^^^^^
 
 .What is ideal%?
 *****************************************************************************
@@ -956,9 +1023,9 @@ items have favorable linear positions in their bucket chains.  As `ideal%`
 approaches 100%, the hash table approaches constant-time lookup performance.
 *****************************************************************************
 
-[[Appendix_B]]
-Appendix B: Expansion internals
--------------------------------
+[[expansion]]
+Expansion internals
+~~~~~~~~~~~~~~~~~~~
 Internally this hash manages the number of buckets, with the goal of having
 enough buckets so that each one contains only a small number of items.  
 
@@ -971,7 +1038,7 @@ by increasing the number of buckets as needed.
 ********************************************************************************
 
 Normal expansion
-~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^
 This hash attempts to keep fewer than 10 items in each bucket. When an item is
 added that would cause a bucket to exceed this number, the number of buckets in
 the hash is doubled and the items are redistributed into the new buckets. In an
@@ -981,7 +1048,7 @@ Bucket expansion occurs automatically and invisibly as needed. There is
 no need for the application to know when it occurs. 
 
 Per-bucket expansion threshold
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+++++++++++++++++++++++++++++++
 Normally all buckets share the same threshold (10 items) at which point bucket
 expansion is triggered. During the process of bucket expansion, uthash can
 adjust this expansion-trigger threshold on a per-bucket basis if it sees that
@@ -995,7 +1062,7 @@ buckets but has good overall distribution. However, if the overall distribution
 gets too bad, uthash changes tactics.
 
 Inhibited expansion
-~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^
 You usually don't need to know or worry about this, particularly if you used
 the `keystats` utility during development to select a good hash for your keys.
 
@@ -1017,14 +1084,14 @@ inhibited' flag remains in effect as long as the hash has items in it.
 Inhibited expansion may cause `HASH_FIND` to exhibit worse than constant-time
 performance. 
 
-Appendix C: Hooks
------------------
+Hooks
+~~~~~
 You don't need to use these hooks- they are only here if you want to modify
 the behavior of uthash.  Hooks can be used to change how uthash allocates 
 memory, and to run code in response to certain internal events. 
 
 malloc/free
-~~~~~~~~~~~
+^^^^^^^^^^^
 By default this hash implementation uses `malloc` and `free` to manage memory.
 If your application uses its own custom allocator, this hash can use them too.
 
@@ -1032,33 +1099,19 @@ If your application uses its own custom allocator, this hash can use them too.
 ----------------------------------------------------------------------------
 #include "uthash.h"
 
-
 /* undefine the defaults */
-#undef uthash_bkt_malloc
-#undef uthash_bkt_free
-#undef uthash_tbl_malloc
-#undef uthash_tbl_free
+#undef uthash_malloc
+#undef uthash_free
 
 /* re-define, specifying alternate functions */
-#define uthash_bkt_malloc(sz) my_malloc(sz)  /* for UT_hash_bucket */
-#define uthash_bkt_free(ptr) my_free(ptr)    
-#define uthash_tbl_malloc(sz) my_malloc(sz)  /* for UT_hash_table  */
-#define uthash_tbl_free(ptr) my_free(ptr)    
+#define uthash_malloc(sz) my_malloc(sz) 
+#define uthash_free(ptr) my_free(ptr)    
 
 ...
 ----------------------------------------------------------------------------
 
-Why are there two pairs of malloc/free functions?
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-One deals with `UT_hash_bucket` structures, the other with `UT_hash_table`
-structures.  While the two structures don't 'need' to have their own allocation
-and free functions (indeed, the default is just to use `malloc` and `free` for
-both), they exist separately for each structure for convenient integration with
-pool or "slab" type allocators. This type of allocator provides a separate pool
-for each structure.
-
 Out of memory
-~~~~~~~~~~~~~
+^^^^^^^^^^^^^
 If memory allocation fails (i.e., the malloc function returned `NULL`), the
 default behavior is to terminate the process by calling `exit(-1)`. This can
 be modified by re-defining the `uthash_fatal` macro.
@@ -1066,11 +1119,12 @@ be modified by re-defining the `uthash_fatal` macro.
     #undef uthash_fatal
     #define uthash_fatal(msg) my_fatal_function(msg);
 
-The fatal function should terminate the process; uthash does not support
-"returning a failure" if memory cannot be allocated.
+The fatal function should terminate the process or `longjmp` back to a safe
+place. Uthash does not support "returning a failure" if memory cannot be
+allocated.
 
 Internal events
-~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^
 There is no need for the application to set these hooks or take action in
 response to these events. They are mainly for diagnostic purposes.
 
@@ -1078,8 +1132,8 @@ These two hooks are "notification" hooks which get executed if uthash is
 expanding buckets, or setting the 'bucket expansion inhibited' flag. Normally
 both of these hooks are undefined and thus compile away to nothing. 
 
-Expansion notification
-^^^^^^^^^^^^^^^^^^^^^^
+Expansion
++++++++++
 There is a hook for the bucket expansion event.  
 
 .Bucket expansion hook
@@ -1092,8 +1146,8 @@ There is a hook for the bucket expansion event.
 ...
 ----------------------------------------------------------------------------
 
-Expansion-inhibited notification
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Expansion-inhibition
+++++++++++++++++++++
 This hook can be defined to code to execute in the event that uthash decides to
 set the 'bucket expansion inhibited' flag. 
 
@@ -1108,8 +1162,8 @@ set the 'bucket expansion inhibited' flag.
 ----------------------------------------------------------------------------
 
 
-Appendix D: Debug mode
-----------------------
+Debug mode
+~~~~~~~~~~
 If a program that uses this hash is compiled with `-DHASH_DEBUG=1`, a special
 internal consistency-checking mode is activated.  In this mode, the integrity
 of the whole hash is checked following every add or delete operation.  This is
@@ -1157,8 +1211,8 @@ The last line compiles the original program (test1.c) with all macros expanded.
 If there was a warning, the referenced line number can be checked in `/tmp/b.c`.
 ********************************************************************************
 
-Appendix E: Thread safety
--------------------------
+Thread safety
+~~~~~~~~~~~~~
 You can use uthash in a threaded program. But you must do the locking. Use a
 read-write lock to protect against concurrent writes. It is ok to have
 concurrent readers (since uthash 1.5). 
@@ -1188,9 +1242,9 @@ reduce reader concurrency to a single thread at a time.
 An example program using uthash with a read-write lock is included in
 `tests/threads/test1.c`.
 
-[[Appendix_F]]
-Appendix F: Macro reference
----------------------------
+[[Macro_reference]]
+Macro reference
+---------------
 
 Convenience macros
 ~~~~~~~~~~~~~~~~~~

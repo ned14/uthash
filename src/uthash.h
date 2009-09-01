@@ -39,10 +39,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 #define uthash_fatal(msg) exit(-1)        /* fatal error (out of memory,etc) */
-#define uthash_bkt_malloc(sz) malloc(sz)  /* malloc fcn for UT_hash_bucket's */
-#define uthash_bkt_free(ptr) free(ptr)    /* free fcn for UT_hash_bucket's   */
-#define uthash_tbl_malloc(sz) malloc(sz)  /* malloc fcn for UT_hash_table    */
-#define uthash_tbl_free(ptr) free(ptr)    /* free fcn for UT_hash_table      */
+#define uthash_malloc(sz) malloc(sz)      /* malloc fcn                      */
+#define uthash_free(ptr) free(ptr)        /* free fcn                        */
 
 #define uthash_noexpand_fyi(tbl)          /* can be defined to log noexpand  */
 #define uthash_expand_fyi(tbl)            /* can be defined to log expands   */
@@ -55,66 +53,54 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /* calculate the element whose hash handle address is hhe */
 #define ELMT_FROM_HH(tbl,hhp) ((void*)(((char*)hhp) - (tbl)->hho))
 
-#ifdef HASH_TLCACHE
-#define HASH_MIN(a,b) (((a) < (b)) ? (a) : (b))
-#define HASH_TLCACHE_LOOKUP(tbl,keyptr,keylen_in,out) \
-do { \
-  unsigned _tlcache_idx; \
-  UT_hash_tlcache_entry *_tlc; \
-  for(_tlcache_idx=0; _tlcache_idx < HASH_MIN(HASH_TLCACHE,tbl->tlcache_idx); _tlcache_idx++) { \
-    _tlc = &tbl->tlcache[_tlcache_idx]; \
-    if ((_tlc->keylen == keylen_in) &&  \
-        (!memcmp(_tlc->keyl,keyptr,HASH_MIN(keylen_in,sizeof(_tlc->keyl))))) { \
-          if (keylen_in > sizeof(_tlc->keyl)) { \
-            if (!memcmp(_tlc->hhi->key, keyptr, keylen_in)) { \
-              out = TYPEOF(out)ELMT_FROM_HH(tbl,_tlc->hhi); \
-              if (1) fprintf(stderr,"found tlcache hit (alt)\n"); \
-              break; \
-            } \
-          } else { \
-            out = TYPEOF(out)ELMT_FROM_HH(tbl,_tlc->hhi); \
-            if (1) fprintf(stderr,"found tlcache hit (std)\n"); \
-            break; \
-          } \
-    } \
-  } \
-} while(0)
-#define HASH_TLCACHE_INSERT(tbl,keyptr,keylen_in,hhi_in) \
-do { \
-    UT_hash_tlcache_entry *_tlc; \
-    _tlc = &tbl->tlcache[(tbl->tlcache_idx++) % HASH_TLCACHE]; \
-    _tlc->keylen = keylen_in; \
-    memcpy(&_tlc->keyl, keyptr, sizeof(_tlc->keyl)); \
-    _tlc->hhi = hhi_in; \
-} while(0)
-#define HASH_TLCACHE_INVALIDATE(hh,head) \
-do { \
-  if (head) { \
-    (head)->hh.tbl->tlcache_idx=0; \
-  } \
-} while(0)
-#else
-#define HASH_TLCACHE_LOOKUP(tbl,keyptr,keylen_in,out)
-#define HASH_TLCACHE_INSERT(tbl,keyptr,keylen_in,hhi_in)
-#define HASH_TLCACHE_INVALIDATE(hh,head) 
-#endif
-
 #define HASH_FIND(hh,head,keyptr,keylen,out)                                   \
 do {                                                                           \
   unsigned _hf_bkt,_hf_hashv;                                                  \
   out=TYPEOF(out)NULL;                                                         \
   if (head) {                                                                  \
-     HASH_TLCACHE_LOOKUP((head)->hh.tbl,keyptr,keylen,out); \
-     if (out) break; \
      HASH_FCN(keyptr,keylen, (head)->hh.tbl->num_buckets, _hf_hashv, _hf_bkt); \
-     HASH_FIND_IN_BKT((head)->hh.tbl, hh, (head)->hh.tbl->buckets[ _hf_bkt ],  \
-                      keyptr,keylen,out);                                      \
-  } \
+     if (HASH_BLOOM_TEST((head)->hh.tbl, _hf_hashv)) { \
+       HASH_FIND_IN_BKT((head)->hh.tbl, hh, (head)->hh.tbl->buckets[ _hf_bkt ],  \
+                        keyptr,keylen,out);                                      \
+     } \
+  }                                                                            \
 } while (0)
+
+#ifdef HASH_BLOOM
+#define HASH_BLOOM_BITLEN (1ULL << HASH_BLOOM)
+#define HASH_BLOOM_BYTELEN (HASH_BLOOM_BITLEN/8) + ((HASH_BLOOM_BITLEN%8) ? 1:0)
+#define HASH_BLOOM_MAKE(tbl) \
+do { \
+  (tbl)->bloom_nbits = HASH_BLOOM; \
+  (tbl)->bloom_bv = (uint8_t*)uthash_malloc(HASH_BLOOM_BYTELEN); \
+  if (!((tbl)->bloom_bv))  { uthash_fatal( "out of memory"); }                  \
+  memset((tbl)->bloom_bv, 0, HASH_BLOOM_BYTELEN); \
+} while (0);
+
+#define HASH_BLOOM_FREE(tbl) \
+do { \
+  uthash_free((tbl)->bloom_bv); \
+} while (0);
+
+#define HASH_BLOOM_BITSET(bv,idx) (bv[(idx)/8] |= (1 << ((idx)%8)))
+#define HASH_BLOOM_BITTEST(bv,idx) (bv[(idx)/8] & (1 << ((idx)%8)))
+
+#define HASH_BLOOM_ADD(tbl,hashv) \
+  HASH_BLOOM_BITSET((tbl)->bloom_bv, (hashv & (uint32_t)((1ULL << (tbl)->bloom_nbits) - 1)))
+
+#define HASH_BLOOM_TEST(tbl,hashv) \
+  HASH_BLOOM_BITTEST((tbl)->bloom_bv, (hashv & (uint32_t)((1ULL << (tbl)->bloom_nbits) - 1)))
+
+#else
+#define HASH_BLOOM_MAKE(tbl) 
+#define HASH_BLOOM_FREE(tbl) 
+#define HASH_BLOOM_ADD(tbl,hashv) 
+#define HASH_BLOOM_TEST(tbl,hashv) (1)
+#endif
 
 #define HASH_MAKE_TABLE(hh,head)                                               \
 do {                                                                           \
-  (head)->hh.tbl = (UT_hash_table*)uthash_tbl_malloc(                          \
+  (head)->hh.tbl = (UT_hash_table*)uthash_malloc(                          \
                   sizeof(UT_hash_table));                                      \
   if (!((head)->hh.tbl))  { uthash_fatal( "out of memory"); }                  \
   memset((head)->hh.tbl, 0, sizeof(UT_hash_table));                            \
@@ -122,11 +108,12 @@ do {                                                                           \
   (head)->hh.tbl->num_buckets = HASH_INITIAL_NUM_BUCKETS;                      \
   (head)->hh.tbl->log2_num_buckets = HASH_INITIAL_NUM_BUCKETS_LOG2;            \
   (head)->hh.tbl->hho = (char*)(&(head)->hh) - (char*)(head);                  \
-  (head)->hh.tbl->buckets = (UT_hash_bucket*)uthash_bkt_malloc(                \
+  (head)->hh.tbl->buckets = (UT_hash_bucket*)uthash_malloc(                \
           HASH_INITIAL_NUM_BUCKETS*sizeof(struct UT_hash_bucket));             \
   if (! (head)->hh.tbl->buckets) { uthash_fatal( "out of memory"); }           \
   memset((head)->hh.tbl->buckets, 0,                                           \
           HASH_INITIAL_NUM_BUCKETS*sizeof(struct UT_hash_bucket));             \
+  HASH_BLOOM_MAKE((head)->hh.tbl); \
 } while(0)
 
 #define HASH_ADD(hh,head,fieldname,keylen_in,add)                              \
@@ -152,6 +139,7 @@ do {                                                                           \
  HASH_FCN(keyptr,keylen_in, (head)->hh.tbl->num_buckets,                       \
          (add)->hh.hashv, _ha_bkt);                                            \
  HASH_ADD_TO_BKT((head)->hh.tbl->buckets[_ha_bkt],&(add)->hh);                 \
+ HASH_BLOOM_ADD((head)->hh.tbl,(add)->hh.hashv); \
  HASH_EMIT_KEY(hh,head,keyptr,keylen_in);                                      \
  HASH_FSCK(hh,head);                                                           \
 } while(0)
@@ -178,8 +166,9 @@ do {                                                                           \
     unsigned _hd_bkt;                                                          \
     struct UT_hash_handle *_hd_hh_del;                                         \
     if ( ((delptr)->hh.prev == NULL) && ((delptr)->hh.next == NULL) )  {       \
-        uthash_bkt_free((head)->hh.tbl->buckets );                             \
-        uthash_tbl_free((head)->hh.tbl);                                       \
+        uthash_free((head)->hh.tbl->buckets );                             \
+        HASH_BLOOM_FREE((head)->hh.tbl); \
+        uthash_free((head)->hh.tbl);                                       \
         head = NULL;                                                           \
     } else {                                                                   \
         _hd_hh_del = &((delptr)->hh);                                          \
@@ -203,7 +192,6 @@ do {                                                                           \
         HASH_DEL_IN_BKT(hh,(head)->hh.tbl->buckets[_hd_bkt], _hd_hh_del);      \
         (head)->hh.tbl->num_items--;                                           \
     }                                                                          \
-    HASH_TLCACHE_INVALIDATE(hh,head); \
     HASH_FSCK(hh,head);                                                        \
 } while (0)
 
@@ -467,10 +455,7 @@ do {                                                                           \
 out = TYPEOF(out)((head.hh_head) ? ELMT_FROM_HH(tbl,head.hh_head) : NULL);     \
 while (out) {                                                                  \
     if (out->hh.keylen == keylen_in) {                                         \
-        if ((HASH_KEYCMP(out->hh.key,keyptr,keylen_in)) == 0) { \
-          HASH_TLCACHE_INSERT(tbl,keyptr,keylen_in,&((out)->hh)); \
-          break;           \
-        } \
+        if ((HASH_KEYCMP(out->hh.key,keyptr,keylen_in)) == 0) break;           \
     }                                                                          \
     out= TYPEOF(out)((out->hh.hh_next) ?                                       \
                      ELMT_FROM_HH(tbl,out->hh.hh_next) : NULL);                \
@@ -538,7 +523,7 @@ do {                                                                           \
     unsigned _he_bkt_i;                                                        \
     struct UT_hash_handle *_he_thh, *_he_hh_nxt;                               \
     UT_hash_bucket *_he_new_buckets, *_he_newbkt;                              \
-    _he_new_buckets = (UT_hash_bucket*)uthash_bkt_malloc(                      \
+    _he_new_buckets = (UT_hash_bucket*)uthash_malloc(                      \
              2 * tbl->num_buckets * sizeof(struct UT_hash_bucket));            \
     if (!_he_new_buckets) { uthash_fatal( "out of memory"); }                  \
     memset(_he_new_buckets, 0,                                                 \
@@ -569,7 +554,7 @@ do {                                                                           \
     }                                                                          \
     tbl->num_buckets *= 2;                                                     \
     tbl->log2_num_buckets++;                                                   \
-    uthash_bkt_free( tbl->buckets );                                           \
+    uthash_free( tbl->buckets );                                           \
     tbl->buckets = _he_new_buckets;                                            \
     tbl->ineff_expands = (tbl->nonideal_items > (tbl->num_items >> 1)) ?       \
         (tbl->ineff_expands+1) : 0;                                            \
@@ -710,8 +695,8 @@ do {                                                                           \
 #define HASH_CLEAR(hh,head)                                                    \
 do {                                                                           \
   if (head) {                                                                  \
-    uthash_bkt_free((head)->hh.tbl->buckets );                                 \
-    uthash_tbl_free((head)->hh.tbl);                                           \
+    uthash_free((head)->hh.tbl->buckets );                                 \
+    uthash_free((head)->hh.tbl);                                           \
     (head)=NULL;                                                               \
   }                                                                            \
 } while(0)
@@ -740,12 +725,6 @@ typedef struct UT_hash_bucket {
 
 } UT_hash_bucket;
 
-typedef struct UT_hash_tlcache_entry {
-  unsigned keylen;
-  unsigned char keyl[sizeof(long)]; /* first (4 or 8) bytes of key */
-  struct UT_hash_handle *hhi;              /* hh of item having that key */
-} UT_hash_tlcache_entry;
-
 typedef struct UT_hash_table {
    UT_hash_bucket *buckets;
    unsigned num_buckets, log2_num_buckets;
@@ -770,11 +749,9 @@ typedef struct UT_hash_table {
     * the hash will still work, albeit no longer in constant time. */
    unsigned ineff_expands, noexpand;
 
-#ifdef HASH_TLCACHE
-   /* a temporal locality cache which avoids hashing the key, and instead
-    * first attempts a simple key match against a array of recently found keys */
-   unsigned tlcache_idx;
-   UT_hash_tlcache_entry tlcache[HASH_TLCACHE];
+#ifdef HASH_BLOOM
+   uint8_t *bloom_bv;
+   char bloom_nbits;
 #endif
 
 } UT_hash_table;
