@@ -109,8 +109,8 @@ Your structure
 --------------
 
 In uthash, a hash table is comprised of structures. Each structure represents a
-key-value association. One or more of the structure fields constitute the key;
-the structure itself is the value.
+key-value association. One or more of the structure fields constitute the key.
+The structure pointer itself is the value.
 
 .Defining a structure that can be hashed
 ----------------------------------------------------------------------
@@ -122,6 +122,11 @@ struct my_struct {
     UT_hash_handle hh;         /* makes this structure hashable */
 };
 ----------------------------------------------------------------------
+
+Note that, in uthash, your structure will never be moved or copied into another
+location when you add it into a hash table. This means that you can keep other
+data structures that safely point to your structure-- regardless of whether you
+add or delete it from a hash table during your program's lifetime.
 
 The key
 ~~~~~~~
@@ -858,12 +863,33 @@ Bloom filter (faster misses)
 Programs that generate a fair miss rate (`HASH_FIND` that result in `NULL`) may
 benefit from the built-in Bloom filter support. This is disabled by default,
 because programs that generate only hits would incur a slight penalty from it.
+Also, programs that do deletes should not use the Bloom filter-- while the
+program would operate correctly, the deletes diminish the benefit of the filter.
 
-To enable the Bloom filter simply compile with this option,
+To enable the Bloom filter, simply compile with `-DHASH_BLOOM=n` like:
 
   -DHASH_BLOOM=27
 
-where the 
+where the number can be any value up to 32 which determines the amount of memory
+used by the filter, as shown below. Using more memory makes the filter more
+accurate and has the potential to speed up your program by making misses bail
+out faster. 
+
+.Bloom filter sizes for selected values of n
+[width="50%",cols="10m,30",grid="none",options="header"]
+|=====================================================================
+| n   | Bloom filter memory used per hash table
+| 16  | 8 kilobytes
+| 20  | 128 kilobytes
+| 24  | 2 megabytes
+| 28  | 32 megabytes
+| 32  | 512 megabytes
+|=====================================================================
+
+Bloom filters are only a performance feature; they do not change the results of
+hash operations in any way. The only way to gauge whether or not a Bloom filter
+is right for your program is to test it. Reasonable values for the size of the
+Bloom filter are 16-32 bits.
 
 Select
 ~~~~~~
@@ -1318,8 +1344,8 @@ key_ptr::
     `HASH_ADD_KEYPTR`, this is the address of the key of the item being added.
 item_ptr::
     pointer to the structure being added, deleted or looked up. This is an
-    input parameter for HASH_ADD and HASH_DELETE macros, and an output
-    parameter for HASH_FIND.
+    input parameter for `HASH_ADD` and `HASH_DELETE` macros, and an output
+    parameter for `HASH_FIND`.
 cmp::
     pointer to comparison function which accepts two arguments (pointers to
     items to compare) and returns an int specifying whether the first item

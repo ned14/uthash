@@ -7,17 +7,14 @@ Click to return to the link:index.html[uthash home page].
 
 Version 1.8 (2009-09-01)
 --------------------------
-* Added the Bloom filter (FINESSE)
+* Added Bloom filter support to speed up programs that have a fair miss rate
 * Added the `hashscan` utility (TODO)
 * Unified the bucket/table malloc hooks; now there is only one malloc hook
-* Organized the manual into regular and advanced sections (TODO)
+* Re-organized the manual into a main section and advanced topics section 
 * Fixed a bug in `utlist.h` where sorting a singly-linked list threw a 
   compile-time error. 
 * Fixed a bug in `utlist.h` where a doubly-linked list that is sorted
   did not maintain the special `head->prev` pointer back to the list tail.
-  Most non-circular, doubly-linked lists do not have `head->prev` point to the
-  list tail, but utlist does, in order to support appending to the list in
-  constant-time.
 
 Version 1.7 (2009-06-11)
 --------------------------

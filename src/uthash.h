@@ -114,6 +114,7 @@ do {                                                                           \
   memset((head)->hh.tbl->buckets, 0,                                           \
           HASH_INITIAL_NUM_BUCKETS*sizeof(struct UT_hash_bucket));             \
   HASH_BLOOM_MAKE((head)->hh.tbl); \
+  (head)->hh.tbl->signature = HASH_SIGNATURE; \
 } while(0)
 
 #define HASH_ADD(hh,head,fieldname,keylen_in,add)                              \
@@ -725,6 +726,9 @@ typedef struct UT_hash_bucket {
 
 } UT_hash_bucket;
 
+/* random signature used only to find hash tables in external analysis */
+#define HASH_SIGNATURE 0xa0111fe1
+
 typedef struct UT_hash_table {
    UT_hash_bucket *buckets;
    unsigned num_buckets, log2_num_buckets;
@@ -754,8 +758,8 @@ typedef struct UT_hash_table {
    char bloom_nbits;
 #endif
 
+   uint32_t signature; /* used only to find hash tables in external analysis */
 } UT_hash_table;
-
 
 typedef struct UT_hash_handle {
    struct UT_hash_table *tbl;

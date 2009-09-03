@@ -257,8 +257,8 @@ open-source software.</p></div>
 <h2 id="_your_structure">Your structure</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>In uthash, a hash table is comprised of structures. Each structure represents a
-key-value association. One or more of the structure fields constitute the key;
-the structure itself is the value.</p></div>
+key-value association. One or more of the structure fields constitute the key.
+The structure pointer itself is the value.</p></div>
 <div class="listingblock">
 <div class="title">Defining a structure that can be hashed</div>
 <div class="content">
@@ -270,6 +270,10 @@ struct my_struct {
     UT_hash_handle hh;         /* makes this structure hashable */
 };</tt></pre>
 </div></div>
+<div class="paragraph"><p>Note that, in uthash, your structure will never be moved or copied into another
+location when you add it into a hash table. This means that you can keep other
+data structures that safely point to your structure-- regardless of whether you
+add or delete it from a hash table during your program&#8217;s lifetime.</p></div>
 <h3 id="_the_key">The key</h3><div style="clear:left"></div>
 <div class="paragraph"><p>There are no restrictions on the data type or name of the key field. The key
 can also comprise multiple contiguous fields, having any names and data types.</p></div>
@@ -957,7 +961,62 @@ name-order. The items are fully forward-and-backward linked in each order.
 So even for one set of users, we might store them in two hash tables to provide
 easy iteration in two different sort orders.</p></div>
 <h3 id="_bloom_filter_faster_misses">Bloom filter (faster misses)</h3><div style="clear:left"></div>
-<div class="paragraph"><p>This is a</p></div>
+<div class="paragraph"><p>Programs that generate a fair miss rate (<tt>HASH_FIND</tt> that result in <tt>NULL</tt>) may
+benefit from the built-in Bloom filter support. This is disabled by default,
+because programs that generate only hits would incur a slight penalty from it.
+Also, programs that do deletes should not use the Bloom filter-- while the
+program would operate correctly, the deletes diminish the benefit of the filter.</p></div>
+<div class="paragraph"><p>To enable the Bloom filter, simply compile with <tt>-DHASH_BLOOM=n</tt> like:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>-DHASH_BLOOM=27</tt></pre>
+</div></div>
+<div class="paragraph"><p>where the number can be any value up to 32 which determines the amount of memory
+used by the filter, as shown below. Using more memory makes the filter more
+accurate and has the potential to speed up your program by making misses bail
+out faster.</p></div>
+<div class="tableblock">
+<table rules="none"
+width="50%"
+frame="border"
+cellspacing="0" cellpadding="4">
+<caption class="title">Bloom filter sizes for selected values of n</caption>
+<col width="25%" />
+<col width="75%" />
+<thead valign="top">
+<tr>
+<th align="left"> n   </th>
+<th align="left"> Bloom filter memory used per hash table</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr>
+<td align="left"><p class="table"><tt>16</tt></p></td>
+<td align="left"><p class="table">8 kilobytes</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table"><tt>20</tt></p></td>
+<td align="left"><p class="table">128 kilobytes</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table"><tt>24</tt></p></td>
+<td align="left"><p class="table">2 megabytes</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table"><tt>28</tt></p></td>
+<td align="left"><p class="table">32 megabytes</p></td>
+</tr>
+<tr>
+<td align="left"><p class="table"><tt>32</tt></p></td>
+<td align="left"><p class="table">512 megabytes</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="paragraph"><p>Bloom filters are only a performance feature; they do not change the results of
+hash operations in any way. The only way to gauge whether or not a Bloom filter
+is right for your program is to test it. Reasonable values for the size of the
+Bloom filter are 16-32 bits.</p></div>
 <h3 id="_select">Select</h3><div style="clear:left"></div>
 <div class="paragraph"><p>An experimental <em>select</em> operation is provided that inserts those items from a
 source hash that satisfy a given condition into a destination hash. This
@@ -1584,8 +1643,8 @@ item_ptr
 <dd>
 <p>
     pointer to the structure being added, deleted or looked up. This is an
-    input parameter for HASH_ADD and HASH_DELETE macros, and an output
-    parameter for HASH_FIND.
+    input parameter for <tt>HASH_ADD</tt> and <tt>HASH_DELETE</tt> macros, and an output
+    parameter for <tt>HASH_FIND</tt>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1614,7 +1673,7 @@ condition
 <div id="footer">
 <div id="footer-text">
 Version 1.8<br />
-Last updated 2009-08-31 18:18:32 EDT
+Last updated 2009-09-01 17:32:01 EDT
 </div>
 </div>
 </body>
