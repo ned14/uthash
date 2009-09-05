@@ -75,6 +75,7 @@ do { \
   (tbl)->bloom_bv = (uint8_t*)uthash_malloc(HASH_BLOOM_BYTELEN); \
   if (!((tbl)->bloom_bv))  { uthash_fatal( "out of memory"); }                  \
   memset((tbl)->bloom_bv, 0, HASH_BLOOM_BYTELEN); \
+  (tbl)->bloom_sig = HASH_BLOOM_SIGNATURE; \
 } while (0);
 
 #define HASH_BLOOM_FREE(tbl) \
@@ -82,11 +83,13 @@ do { \
   uthash_free((tbl)->bloom_bv); \
 } while (0);
 
-#define HASH_BLOOM_BITSET(bv,idx) (bv[(idx)/8] |= (1 << ((idx)%8)))
-#define HASH_BLOOM_BITTEST(bv,idx) (bv[(idx)/8] & (1 << ((idx)%8)))
+#define HASH_BLOOM_BITSET(bv,idx) (bv[(idx)/8] |= (1U << ((idx)%8)))
+#define HASH_BLOOM_BITTEST(bv,idx) (bv[(idx)/8] & (1U << ((idx)%8)))
 
-#define HASH_BLOOM_ADD(tbl,hashv) \
-  HASH_BLOOM_BITSET((tbl)->bloom_bv, (hashv & (uint32_t)((1ULL << (tbl)->bloom_nbits) - 1)))
+#define HASH_BLOOM_ADD(tbl,hashv) do { \
+  HASH_BLOOM_BITSET((tbl)->bloom_bv, (hashv & (uint32_t)((1ULL << (tbl)->bloom_nbits) - 1))); \
+  fprintf(stderr,"bloomset bit %u\n", (hashv & (uint32_t)((1ULL << (tbl)->bloom_nbits) - 1))); \
+} while(0)
 
 #define HASH_BLOOM_TEST(tbl,hashv) \
   HASH_BLOOM_BITTEST((tbl)->bloom_bv, (hashv & (uint32_t)((1ULL << (tbl)->bloom_nbits) - 1)))
@@ -728,6 +731,7 @@ typedef struct UT_hash_bucket {
 
 /* random signature used only to find hash tables in external analysis */
 #define HASH_SIGNATURE 0xa0111fe1
+#define HASH_BLOOM_SIGNATURE 0xb12220f2
 
 typedef struct UT_hash_table {
    UT_hash_bucket *buckets;
@@ -753,12 +757,13 @@ typedef struct UT_hash_table {
     * the hash will still work, albeit no longer in constant time. */
    unsigned ineff_expands, noexpand;
 
+   uint32_t signature; /* used only to find hash tables in external analysis */
 #ifdef HASH_BLOOM
+   uint32_t bloom_sig; /* used only to test bloom exists in external analysis */
    uint8_t *bloom_bv;
    char bloom_nbits;
 #endif
 
-   uint32_t signature; /* used only to find hash tables in external analysis */
 } UT_hash_table;
 
 typedef struct UT_hash_handle {
