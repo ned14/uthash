@@ -57,20 +57,24 @@ int getkeys=0;
 #define BER 2
 #define SFH 3
 #define SAX 4
-#define FNC 5
+#define FNV 5
 #define OAT 6
 #define MUR 7
+#define NUM_HASH_FUNCS 8 /* includes id 0, the non-function */
+char *hash_fcns[] = {"???","JEN","BER","SFH","SAX","FNV","OAT","MUR"};
+
 /* given a peer key/len/hashv, reverse engineer its hash function */
-char *infer_hash_function(char *key, size_t keylen, uint32_t hashv) {
+int infer_hash_function(char *key, size_t keylen, uint32_t hashv) {
   uint32_t obkt, ohashv, num_bkts=0x01000000; /* anything ok */
   /* BER SAX FNV OAT JEN SFH */
-  HASH_JEN(key,keylen,num_bkts,ohashv,obkt); if (ohashv == hashv) return "JEN";
-  HASH_BER(key,keylen,num_bkts,ohashv,obkt); if (ohashv == hashv) return "BER";
-  HASH_SFH(key,keylen,num_bkts,ohashv,obkt); if (ohashv == hashv) return "SFH";
-  HASH_SAX(key,keylen,num_bkts,ohashv,obkt); if (ohashv == hashv) return "SAX";
-  HASH_FNV(key,keylen,num_bkts,ohashv,obkt); if (ohashv == hashv) return "FNV";
-  HASH_OAT(key,keylen,num_bkts,ohashv,obkt); if (ohashv == hashv) return "OAT";
-  return "???";
+  HASH_JEN(key,keylen,num_bkts,ohashv,obkt); if (ohashv == hashv) return JEN;
+  HASH_BER(key,keylen,num_bkts,ohashv,obkt); if (ohashv == hashv) return BER;
+  HASH_SFH(key,keylen,num_bkts,ohashv,obkt); if (ohashv == hashv) return SFH;
+  HASH_SAX(key,keylen,num_bkts,ohashv,obkt); if (ohashv == hashv) return SAX;
+  HASH_FNV(key,keylen,num_bkts,ohashv,obkt); if (ohashv == hashv) return FNV;
+  HASH_OAT(key,keylen,num_bkts,ohashv,obkt); if (ohashv == hashv) return OAT;
+  HASH_MUR(key,keylen,num_bkts,ohashv,obkt); if (ohashv == hashv) return MUR;
+  return 0;
 }
 
 /* read peer's memory from addr for len bytes, store into our dst */
@@ -104,14 +108,16 @@ void found(int fd, char* peer_sig, pid_t pid) {
   char *peer_tbl, *peer_bloom_sig, *peer_bloom_nbits, *peer_bloombv_ptr, 
        *peer_bloombv, *peer_bkts, *peer_key, *peer_hh, *key=NULL,
        *hash_fcn=NULL, sat[10];
-  unsigned char *bloombv=NULL;
+  unsigned char *bloombv=NULL; 
   static int fileno=0;
   char keyfile[50];
   unsigned char bloom_nbits=0;
-  int keyfd=-1, mode=S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH, max_chain=0;
+  int keyfd=-1, mode=S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH, max_chain=0, 
+      hash_fcn_hits[NUM_HASH_FUNCS], hash_fcn_winner;
   uint32_t bloomsig;
   double bloom_sat=0;
   snprintf(sat,sizeof(sat),"         ");
+  for(i=0; i < NUM_HASH_FUNCS; i++) hash_fcn_hits[i]=0;
 
   if (getkeys) {
     snprintf(keyfile, sizeof(keyfile), "/tmp/%u-%u.key", (unsigned)pid,fileno++);
@@ -172,8 +178,7 @@ void found(int fd, char* peer_sig, pid_t pid) {
         fprintf(stderr, "failed to read peer memory\n");
         goto done;
       }
-      /* TODO take x samples before deciding which hash function it is */
-      if (!hash_fcn) hash_fcn=infer_hash_function(key,hh.keylen,hh.hashv);
+      hash_fcn_hits[infer_hash_function(key,hh.keylen,hh.hashv)]++;
       /* write the key if requested */
       if (getkeys) {
         write(keyfd, &hh.keylen, sizeof(unsigned));
@@ -219,6 +224,12 @@ void found(int fd, char* peer_sig, pid_t pid) {
     }
   }
 
+  /* choose apparent hash function */
+  hash_fcn_winner=0;
+  for(i=0;i<NUM_HASH_FUNCS;i++) {
+    if (hash_fcn_hits[i] > hash_fcn_hits[hash_fcn_winner]) hash_fcn_winner=i;
+  }
+  hash_fcn = hash_fcns[hash_fcn_winner];
 
 /*
 Address            items    ideal  buckets mxch/<10 fl bloom/sat fcn keys saved to
