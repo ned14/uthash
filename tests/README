@@ -57,6 +57,11 @@ keystats:  key statistics analyzer. See the User Guide (http://uthash.sf.net)
 emit_keys: reads a data file of unique strings, emits as keys w/HASH_EMIT_KEYS=1
 all_funcs: a script which executes the test suite with every hash function
 
+LINUX-ONLY
+----------
+hashscan:  tool to examine a running process and get info on its hash tables
+test_sleep:used as a subject for inspection by hashscan
+
 Manual performance testing
 ================================================================================
   # test performance characteristics on keys that are English dictionary words

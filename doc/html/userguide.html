@@ -156,7 +156,7 @@ select (explained later)
 <h3 id="_is_it_fast">Is it fast?</h3><div style="clear:left"></div>
 <div class="paragraph"><p>Add, find and delete are normally constant-time operations. This is influenced
 by your key domain and the hash function.</p></div>
-<div class="paragraph"><p>This hash aims to be minimalistic and efficient. It&#8217;s around 800 lines of C.
+<div class="paragraph"><p>This hash aims to be minimalistic and efficient. It&#8217;s around 900 lines of C.
 It inlines automatically because it&#8217;s implemented as macros. It&#8217;s fast as long
 as the hash function is suited to your keys. You can use the default hash
 function, or easily compare performance and choose from among several other
@@ -1116,8 +1116,25 @@ cellspacing="0" cellpadding="4">
 <td align="center"><p class="table"><tt>SFH</tt></p></td>
 <td align="left"><p class="table">Paul Hsieh</p></td>
 </tr>
+<tr>
+<td align="center"><p class="table"><tt>MUR</tt></p></td>
+<td align="left"><p class="table">MurmurHash (see note)</p></td>
+</tr>
 </tbody>
 </table>
+</div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">MurmurHash</div>
+<div class="paragraph"><p>A special symbol must be defined if you intend to use MurmurHash. To use it, add
+<tt>-DHASH_USING_NO_STRICT_ALIASING</tt> to your <tt>CFLAGS</tt>. And, if you are using
+the gcc compiler with optimization, add <tt>-fno-strict-aliasing</tt> to your <tt>CFLAGS</tt>.</p></div>
+</td>
+</tr></table>
 </div>
 <h4 id="_which_hash_function_is_best">Which hash function is best?</h4>
 <div class="paragraph"><p>You can easily determine the best hash function for your key domain. To do so,
@@ -1242,7 +1259,7 @@ del-all usec
 </p>
 </dd>
 </dl></div>
-<h4 id="_ideal">ideal%</h4>
+<h4 id="ideal">ideal%</h4>
 <div class="sidebarblock">
 <div class="sidebar-content">
 <div class="sidebar-title">What is ideal%?</div>
@@ -1255,6 +1272,136 @@ Such items are considered non-ideal.</p></div>
 <div class="paragraph"><p>As you might guess, <tt>ideal%</tt> is the percentage of ideal items in the hash. These
 items have favorable linear positions in their bucket chains.  As <tt>ideal%</tt>
 approaches 100%, the hash table approaches constant-time lookup performance.</p></div>
+</div></div>
+<h3 id="hashscan">hashscan</h3><div style="clear:left"></div>
+<div class="paragraph"><p>A <strong>Linux-only</strong> utility called <tt>hashscan</tt> is included in the <tt>tests/</tt> directory. It
+is built built automatically when you run <tt>make</tt> in that directory. This tool
+examines a running process and reports on the uthash tables that it finds in
+that program&#8217;s memory. It can also save the keys from each table in a format
+that can be fed into <tt>keystats</tt>.</p></div>
+<div class="paragraph"><p>Here is an example of using <tt>hashscan</tt>. First ensure that it is built:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>cd tests/
+make</tt></pre>
+</div></div>
+<div class="paragraph"><p>Since <tt>hashscan</tt> needs a running program to inspect, we&#8217;ll start up a simple
+program that makes a hash table and then sleeps as our test subject:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>./test_sleep &amp;
+pid: 9711</tt></pre>
+</div></div>
+<div class="paragraph"><p>Now that we have a test program, let&#8217;s run <tt>hashscan</tt> on it:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>./hashscan 9711
+Address            ideal    items  buckets mc fl bloom/sat fcn keys saved to
+------------------ ----- -------- -------- -- -- --------- --- -------------
+0x862e038            81%    10000     4096 11 ok 16    14% JEN</tt></pre>
+</div></div>
+<div class="paragraph"><p>If we wanted to copy out all its keys for external analysis using <tt>keystats</tt>,
+add the <tt>-k</tt> flag:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>./hashscan -k 9711
+Address            ideal    items  buckets mc fl bloom/sat fcn keys saved to
+------------------ ----- -------- -------- -- -- --------- --- -------------
+0x862e038            81%    10000     4096 11 ok 16    14% JEN /tmp/9711-0.key</tt></pre>
+</div></div>
+<div class="paragraph"><p>Now we could run <tt>./keystats /tmp/9711-0.key</tt> to analyze which hash function
+has the best characteristics on this set of keys.</p></div>
+<h4 id="_hashscan_column_reference">hashscan column reference</h4>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+Address
+</dt>
+<dd>
+<p>
+    virtual address of the hash table
+</p>
+</dd>
+<dt class="hdlist1">
+ideal
+</dt>
+<dd>
+<p>
+    The percentage of items in the table which can be looked up within an ideal
+    number of steps. See <a href="#ideal">[ideal]</a> in the <tt>keystats</tt> section.
+</p>
+</dd>
+<dt class="hdlist1">
+items
+</dt>
+<dd>
+<p>
+    number of items in the hash table
+</p>
+</dd>
+<dt class="hdlist1">
+buckets
+</dt>
+<dd>
+<p>
+    number of buckets in the hash table
+</p>
+</dd>
+<dt class="hdlist1">
+mc
+</dt>
+<dd>
+<p>
+    the maximum chain length found in the hash table (uthash usually tries to
+    keep fewer than 10 items in each bucket, or in some cases a multiple of 10)
+</p>
+</dd>
+<dt class="hdlist1">
+fl
+</dt>
+<dd>
+<p>
+    flags (either <tt>ok</tt>, or <tt>NX</tt> if the expansion-inhibited flag is set)
+</p>
+</dd>
+<dt class="hdlist1">
+bloom/sat
+</dt>
+<dd>
+<p>
+    if the hash table uses a Bloom filter, this is the size (as a power of two)
+    of the filter (e.g. 16 means the filter is 2^16 bits in size). The second
+    number is the "saturation" of the bits expressed as a percentage. The lower
+    the percentage, the more potential benefit to identify cache misses quickly.
+</p>
+</dd>
+<dt class="hdlist1">
+fcn
+</dt>
+<dd>
+<p>
+    symbolic name of hash function
+</p>
+</dd>
+<dt class="hdlist1">
+keys saved to
+</dt>
+<dd>
+<p>
+    file to which keys were saved, if any
+</p>
+</dd>
+</dl></div>
+<div class="sidebarblock">
+<div class="sidebar-content">
+<div class="sidebar-title">How hashscan works</div>
+<div class="paragraph"><p>When hashscan runs, it attaches itself to the target process, which suspends
+the target process momentarily. During this brief suspension, it scans the
+target&#8217;s virtual memory for the signature of a uthash hash table. It then
+checks if a valid hash table structure accompanies the signature and reports
+what it finds. When it detaches, the target process resumes running normally.
+The hashscan is performed "read-only"-- the target process is not modified.
+Since hashscan is analyzing a momentary snapshot of a running process, it may
+return different results from one run to another.</p></div>
 </div></div>
 <h3 id="expansion">Expansion internals</h3><div style="clear:left"></div>
 <div class="paragraph"><p>Internally this hash manages the number of buckets, with the goal of having
@@ -1673,7 +1820,7 @@ condition
 <div id="footer">
 <div id="footer-text">
 Version 1.8<br />
-Last updated 2009-09-01 17:32:01 EDT
+Last updated 2009-09-08 22:04:10 EDT
 </div>
 </div>
 </body>

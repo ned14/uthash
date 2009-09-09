@@ -394,17 +394,27 @@ div#toc a:visited { color: blue; }
 <div class="paragraph"><p>Click to return to the <a href="index.html">uthash home page</a>.</p></div>
 </div>
 </div>
-<h2 id="_version_1_8_2009_09_01">Version 1.8 (2009-09-01)</h2>
+<h2 id="_version_1_8_2009_09_08">Version 1.8 (2009-09-08)</h2>
 <div class="sectionbody">
 <div class="ulist"><ul>
 <li>
 <p>
-Added the Bloom filter (FINESSE)
+Added the <tt>hashscan</tt> utility that can report on the size and quality of
+  hash tables in a running process (Linux-only)
 </p>
 </li>
 <li>
 <p>
-Added the <tt>hashscan</tt> utility (TODO)
+Added Bloom filter support. This has the potential to speed up certain
+  types of programs that look up non-existant keys in sufficient numbers.
+</p>
+</li>
+<li>
+<p>
+Restored the MurmurHash, which can once again be used, if an additional
+  symbol is defined. This is a "safety" by which the user declares they
+  understand that <tt>-fno-strict-aliasing</tt> flag must be used if they are
+  using MurmurHash under gcc with optimization.
 </p>
 </li>
 <li>
@@ -414,7 +424,7 @@ Unified the bucket/table malloc hooks; now there is only one malloc hook
 </li>
 <li>
 <p>
-Organized the manual into regular and advanced sections (TODO)
+Re-organized the manual into a main section and advanced topics section
 </p>
 </li>
 <li>
@@ -427,9 +437,6 @@ Fixed a bug in <tt>utlist.h</tt> where sorting a singly-linked list threw a
 <p>
 Fixed a bug in <tt>utlist.h</tt> where a doubly-linked list that is sorted
   did not maintain the special <tt>head&#8594;prev</tt> pointer back to the list tail.
-  Most non-circular, doubly-linked lists do not have <tt>head&#8594;prev</tt> point to the
-  list tail, but utlist does, in order to support appending to the list in
-  constant-time.
 </p>
 </li>
 </ul></div>
@@ -731,7 +738,7 @@ Initial release
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2009-08-31 17:04:09 EDT
+Last updated 2009-09-08 22:01:07 EDT
 </div>
 </div>
 </body>

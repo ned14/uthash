@@ -5,10 +5,16 @@ include::sflogo.txt[]
 
 Click to return to the link:index.html[uthash home page].
 
-Version 1.8 (2009-09-01)
+Version 1.8 (2009-09-08)
 --------------------------
-* Added Bloom filter support to speed up programs that have a fair miss rate
-* Added the `hashscan` utility (TODO)
+* Added the `hashscan` utility that can report on the size and quality of 
+  hash tables in a running process (Linux-only)
+* Added Bloom filter support. This has the potential to speed up certain 
+  types of programs that look up non-existant keys in sufficient numbers.
+* Restored the MurmurHash, which can once again be used, if an additional 
+  symbol is defined. This is a "safety" by which the user declares they
+  understand that `-fno-strict-aliasing` flag must be used if they are 
+  using MurmurHash under gcc with optimization.
 * Unified the bucket/table malloc hooks; now there is only one malloc hook
 * Re-organized the manual into a main section and advanced topics section 
 * Fixed a bug in `utlist.h` where sorting a singly-linked list threw a 

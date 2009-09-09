@@ -52,6 +52,14 @@ int getkeys=0;
 #define vv(...)  do {if (verbose>0) printf(__VA_ARGS__);} while(0)
 #define vvv(...) do {if (verbose>1) printf(__VA_ARGS__);} while(0)
 
+/* these id's are arbitrary, only meaningful within this file */
+#define JEN 1
+#define BER 2
+#define SFH 3
+#define SAX 4
+#define FNC 5
+#define OAT 6
+#define MUR 7
 /* given a peer key/len/hashv, reverse engineer its hash function */
 char *infer_hash_function(char *key, size_t keylen, uint32_t hashv) {
   uint32_t obkt, ohashv, num_bkts=0x01000000; /* anything ok */
@@ -93,8 +101,9 @@ void found(int fd, char* peer_sig, pid_t pid) {
   UT_hash_bucket *bkts=NULL;
   UT_hash_handle hh;
   size_t i, bloom_len, bloom_bitlen,  bloom_on_bits=0,bloom_off_bits=0;
-  char *peer_tbl, *peer_bloom_sig, *peer_bloom_nbits, *peer_bloombv, *peer_bkts, *peer_key, *peer_hh, 
-       *key=NULL,*hash_fcn=NULL, sat[10];
+  char *peer_tbl, *peer_bloom_sig, *peer_bloom_nbits, *peer_bloombv_ptr, 
+       *peer_bloombv, *peer_bkts, *peer_key, *peer_hh, *key=NULL,
+       *hash_fcn=NULL, sat[10];
   unsigned char *bloombv=NULL;
   static int fileno=0;
   char keyfile[50];
@@ -114,7 +123,7 @@ void found(int fd, char* peer_sig, pid_t pid) {
 
   vv("found signature at peer %p\n", peer_sig);
   peer_tbl = tbl_from_sig_addr(peer_sig);
-  vv("reading table at peer %p\n", peer_tbl);
+  vvv("reading table at peer %p\n", peer_tbl);
 
   if ( (tbl = (UT_hash_table*)malloc(sizeof(UT_hash_table))) == NULL) {
     fprintf(stderr, "out of memory\n");
@@ -127,7 +136,7 @@ void found(int fd, char* peer_sig, pid_t pid) {
 
   /* got the table. how about the buckets */
   peer_bkts = (char*)tbl->buckets;
-  vv("reading buckets at peer %p\n", peer_bkts);
+  vvv("reading buckets at peer %p\n", peer_bkts);
   bkts = (UT_hash_bucket*)malloc(sizeof(UT_hash_bucket)*tbl->num_buckets);
   if (bkts == NULL) {
     fprintf(stderr, "out of memory\n");
@@ -138,13 +147,13 @@ void found(int fd, char* peer_sig, pid_t pid) {
     goto done;
   }
 
-  vv("scanning %u peer buckets\n", tbl->num_buckets);
+  vvv("scanning %u peer buckets\n", tbl->num_buckets);
   for(i=0; i < tbl->num_buckets; i++) {
-    vv("bucket %u has %u items\n",  i, bkts[i].count);
+    vvv("bucket %u has %u items\n",  i, bkts[i].count);
     if (bkts[i].count > max_chain) max_chain = bkts[i].count;
-    if (bkts[i].expand_mult) vv("  bucket %u has expand_mult %u\n",  i, bkts[i].expand_mult);
+    if (bkts[i].expand_mult) vvv("  bucket %u has expand_mult %u\n",  i, bkts[i].expand_mult);
 
-    vv("scanning bucket %u chain:\n",  i);
+    vvv("scanning bucket %u chain:\n",  i);
     peer_hh = (char*)bkts[i].hh_head;
     while(peer_hh) {
       if (read_mem(&hh, fd, (off_t)peer_hh, sizeof(hh)) != 0) {
@@ -154,7 +163,6 @@ void found(int fd, char* peer_sig, pid_t pid) {
       if ((char*)hh.tbl != peer_tbl) goto done;
       peer_hh = (char*)hh.hh_next;
       peer_key = hh.key;
-      vv(" peer key len %u\n", hh.keylen);
       /* malloc space to read the key, and read it */
       if ( (key = (char*)malloc(sizeof(hh.keylen))) == NULL) {
         fprintf(stderr, "out of memory\n");
@@ -164,6 +172,7 @@ void found(int fd, char* peer_sig, pid_t pid) {
         fprintf(stderr, "failed to read peer memory\n");
         goto done;
       }
+      /* TODO take x samples before deciding which hash function it is */
       if (!hash_fcn) hash_fcn=infer_hash_function(key,hh.keylen,hh.hashv);
       /* write the key if requested */
       if (getkeys) {
@@ -176,34 +185,34 @@ void found(int fd, char* peer_sig, pid_t pid) {
 
   /* does it have a bloom filter?  */
   peer_bloom_sig =   peer_tbl + offsetof(UT_hash_table, bloom_sig);
-  peer_bloombv =     peer_tbl + offsetof(UT_hash_table, bloom_bv);
+  peer_bloombv_ptr = peer_tbl + offsetof(UT_hash_table, bloom_bv);
   peer_bloom_nbits = peer_tbl + offsetof(UT_hash_table, bloom_nbits);
-  vv("looking for bloom signature at peer %p\n", peer_bloom_sig);
+  vvv("looking for bloom signature at peer %p\n", peer_bloom_sig);
   if ((read_mem(&bloomsig, fd, (off_t)peer_bloom_sig, sizeof(uint32_t)) == 0)  &&
       (bloomsig == HASH_BLOOM_SIGNATURE)) {
-    vv("bloom signature (%x) found\n",bloomsig);
+    vvv("bloom signature (%x) found\n",bloomsig);
     /* bloom found. get at bv, nbits */
     if (read_mem(&bloom_nbits, fd, (off_t)peer_bloom_nbits, sizeof(char)) == 0) {
        /* scan bloom filter, calculate saturation */
        bloom_bitlen = (1ULL << bloom_nbits);
        bloom_len = (bloom_bitlen / 8) + ((bloom_bitlen % 8) ? 1 : 0);
-       vv("bloom bitlen is %u, bloom_bytelen is %u\n", (unsigned)bloom_bitlen, (unsigned)bloom_len);
+       vvv("bloom bitlen is %u, bloom_bytelen is %u\n", (unsigned)bloom_bitlen, (unsigned)bloom_len);
        if ( (bloombv = (unsigned char*)malloc(bloom_len)) == NULL) {
           fprintf(stderr, "out of memory\n");
           exit(-1);
        }
-       vv("peer_bloombv at %p\n", peer_bloombv);
-       if (read_mem(bloombv, fd, (off_t)peer_bloombv, bloom_len) == 0) {
+       /* read the address of the bitvector in the peer, then read the bv itself */
+       if ((read_mem(&peer_bloombv, fd, (off_t)peer_bloombv_ptr, sizeof(void*)) == 0) && 
+          (read_mem(bloombv, fd, (off_t)peer_bloombv, bloom_len) == 0)) {
           /* calculate saturation */
-          vv("read peer bloom bitvector (%u bytes)\n", (unsigned)bloom_len);
+          vvv("read peer bloom bitvector from %p (%u bytes)\n", peer_bloombv, (unsigned)bloom_len);
           for(i=0; i < bloom_bitlen; i++) {
               if (HS_BIT_TEST(bloombv,(unsigned)i)) {
-                vvv("bit %u set\n",(unsigned)i);
+                /* vvv("bit %u set\n",(unsigned)i); */
                 bloom_on_bits++;
               } else bloom_off_bits++;
           }
-          vv("there were %u on_bits among %u total bits\n", (unsigned)bloom_on_bits, (unsigned)bloom_bitlen);
-          vv("there were %u off_bits among %u total bits\n", (unsigned)bloom_off_bits, (unsigned)bloom_bitlen);
+          vvv("there were %u on_bits among %u total bits\n", (unsigned)bloom_on_bits, (unsigned)bloom_bitlen);
           bloom_sat = bloom_on_bits * 100.0 / bloom_bitlen;
           snprintf(sat,sizeof(sat),"%2u %5.0f%%", bloom_nbits, bloom_sat);
        }
