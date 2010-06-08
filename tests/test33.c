@@ -10,7 +10,9 @@ typedef struct el {
     struct el *next, *prev;
 } el;
 
-int namecmp(el *a, el *b) {
+int namecmp(void *_a, void *_b) {
+    el *a = (el*)_a;
+    el *b = (el*)_b;
     return strcmp(a->bname,b->bname);
 }
 
@@ -32,7 +34,7 @@ int main(int argc, char *argv[]) {
         strncpy(name->bname,linebuf,BUFLEN);
         LL_PREPEND(head, name);
     }
-    /* LL_SORT(head, namecmp); */
+    LL_SORT(head, namecmp);
     LL_FOREACH(head,tmp) printf("%s", tmp->bname);
 
     fclose(file);

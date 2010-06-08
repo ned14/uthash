@@ -3,14 +3,14 @@
 #include "uthash.h"
 
 typedef struct {
-  char *name;
+  const char *name;
   UT_hash_handle hh;
 } ns_t;
 
 ns_t *head = NULL;
 
 int main() {
-  char *keys[] = {"eins", "zwei", "drei"};
+  const char *keys[] = {"eins", "zwei", "drei"};
   unsigned i;
   ns_t *nsp;
 

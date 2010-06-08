@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.3.4" />
+<meta name="generator" content="AsciiDoc 8.5.0" />
 <title>uthash ChangeLog</title>
 <style type="text/css">
 /* Debug borders */
@@ -91,7 +91,7 @@ span#author {
 }
 span#email {
 }
-span#revision {
+span#revnumber, span#revdate, span#revremark {
   font-family: sans-serif;
 }
 
@@ -118,8 +118,7 @@ div#preamble {
 div.tableblock, div.imageblock, div.exampleblock, div.verseblock,
 div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
 div.admonitionblock {
-  margin-right: 10%;
-  margin-top: 1.5em;
+  margin-top: 0.25em;
   margin-bottom: 1.5em;
 }
 div.admonitionblock {
@@ -160,9 +159,6 @@ div.sidebarblock > div.content {
   padding: 0.5em;
 }
 
-div.listingblock {
-  margin-right: 0%;
-}
 div.listingblock > div.content {
   border: 1px solid silver;
   background: #f4f4f4;
@@ -171,6 +167,7 @@ div.listingblock > div.content {
 
 div.quoteblock {
   padding-left: 2.0em;
+  margin-right: 10%;
 }
 div.quoteblock > div.attribution {
   padding-top: 0.5em;
@@ -179,6 +176,7 @@ div.quoteblock > div.attribution {
 
 div.verseblock {
   padding-left: 2.0em;
+  margin-right: 10%;
 }
 div.verseblock > div.content {
   white-space: pre;
@@ -211,8 +209,8 @@ div.exampleblock > div.content {
 }
 
 div.imageblock div.content { padding-left: 0; }
-div.imageblock img { border: 1px solid silver; }
 span.image img { border-style: none; }
+a.image:visited { color: white; }
 
 dl {
   margin-top: 0.8em;
@@ -394,6 +392,62 @@ div#toc a:visited { color: blue; }
 <div class="paragraph"><p>Click to return to the <a href="index.html">uthash home page</a>.</p></div>
 </div>
 </div>
+<h2 id="_version_1_9_1_2010_05_15">Version 1.9.1 (2010-05-15)</h2>
+<div class="sectionbody">
+<div class="ulist"><ul>
+<li>
+<p>
+Fix a redefinition warning when using <tt>uthash.h</tt> and <tt>utstring.h</tt> together
+</p>
+</li>
+<li>
+<p>
+Fix a bug in <tt>utstring_init</tt>
+</p>
+</li>
+<li>
+<p>
+Added <tt>HASH_FIND_PTR</tt> and <tt>HASH_ADD_PTR</tt> (thanks, Niall Douglas!)
+</p>
+</li>
+</ul></div>
+</div>
+<h2 id="_version_1_9_2010_03_31">Version 1.9 (2010-03-31)</h2>
+<div class="sectionbody">
+<div class="ulist"><ul>
+<li>
+<p>
+uthash now supports Visual Studio 2008 and 2010 in C or C++ code!
+</p>
+</li>
+<li>
+<p>
+new headers <a href="utarray.html">utarray.h</a> and <a href="utstring.html">utstring.h</a>
+        are now included. These implement dynamic arrays and strings using macros
+</p>
+</li>
+<li>
+<p>
+<a href="utlist.html">utlist.h</a> now has deletion-safe iterators and search macros
+</p>
+</li>
+<li>
+<p>
+the test suite now runs under Visual Studio (thanks again degski!)
+</p>
+</li>
+<li>
+<p>
+special thanks for suggesting utarray and utlist features to Charalampos P.!
+</p>
+</li>
+<li>
+<p>
+uthash has been downloaded 9,616 times
+</p>
+</li>
+</ul></div>
+</div>
 <h2 id="_version_1_8_2009_09_08">Version 1.8 (2009-09-08)</h2>
 <div class="sectionbody">
 <div class="ulist"><ul>
@@ -436,7 +490,7 @@ Fixed a bug in <tt>utlist.h</tt> where sorting a singly-linked list threw a
 <li>
 <p>
 Fixed a bug in <tt>utlist.h</tt> where a doubly-linked list that is sorted
-  did not maintain the special <tt>head&#8594;prev</tt> pointer back to the list tail.
+  did not maintain the special <tt>head-&gt;prev</tt> pointer back to the list tail.
 </p>
 </li>
 </ul></div>
@@ -456,7 +510,7 @@ The MurmurHash has been removed, and Jenkin&#8217;s hash is once again the defau
 <p>
 The linked list macros in <tt>utlist.h</tt> now comply with the strict-aliasing
   rule so they generate correct code under high optimization levels (O2 or O3).
-  The use of the <tt><em>typeof</em></tt> extension, which was originally a GNU extension,
+  The use of the <tt>__typeof__</tt> extension, which was originally a GNU extension,
   may reduce portability to other compilers that do not support this extension.
   This extension is used in the singly-linked list macros and the sort macros.
 </p>
@@ -566,7 +620,7 @@ added <a href="userguide.pdf">PDF version</a> of User Guide
 <li>
 <p>
 added <a href="http://troydhanson.wordpress.com/feed/">update news</a> <span class="image">
-<img src="img/rss.png" alt="(RSS)" title="(RSS)" />
+<img src="img/rss.png" alt="(RSS)" />
 </span>
 </p>
 </li>
@@ -738,7 +792,7 @@ Initial release
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2009-09-08 22:01:07 EDT
+Last updated 2010-05-14 21:46:32 PDT
 </div>
 </div>
 </body>

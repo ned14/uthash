@@ -22,7 +22,7 @@ test17: sort, add more items, sort again
 test18: test pathological HASH_DEL(a,a) scenario (single head,deletee variable)
 test19: sort two hash tables with shared elements using HASH_SRT
 test20: test a 5-byte "binary" key
-test21: test a "double" (floating point) key (userguide)
+test21: test a structure key (userguide)
 test22: test multi-field key using flexible array member (userguide utf32)
 test23: test whether delete in iteration works
 test24: make 10-item hash and confirm item count (HASH_COUNT)
@@ -42,6 +42,23 @@ test37: HASH_CLEAR
 test38: find-or-add test on integer keys in short loop
 test39: HASH_ADD_KEYPTR then HASH_FIND using array element as key pointer
 test40: HASH_ADD_KEYPTR on string keys; pointer equivalent to test15.c
+test41: test LL_FOREACH_SAFE,DL_FOREACH_SAFE,CDL_FOREACH_SAFE
+test42: test LL_SEARCH, LL_SEARCH_SCALAR, and DL and CDL counterparts
+test43: test utarray with intpair objects
+test44: test utarray with int objects
+test45: test utarray with int objects
+test46: test utarray with char* objects
+test47: test utstring
+test48: test utarray of int
+test49: test utarray of str
+test50: test utarray of long
+test51: test utarray of intpair
+test52: test utarray of intchar
+test53: test utstring
+test54: test utstring
+test55: test utstring
+test56: test uthash, utlist and utstring together for #define conflicts etc
+test57: test uthash HASH_ADD_PTR and HASH_FIND_PTR
 
 Other Make targets
 ================================================================================
@@ -56,6 +73,7 @@ Other files
 keystats:  key statistics analyzer. See the User Guide (http://uthash.sf.net)
 emit_keys: reads a data file of unique strings, emits as keys w/HASH_EMIT_KEYS=1
 all_funcs: a script which executes the test suite with every hash function
+win32tests:builds and runs the test suite under Microsoft Visual Studio
 
 LINUX-ONLY
 ----------

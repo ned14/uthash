@@ -5,6 +5,22 @@ include::sflogo.txt[]
 
 Click to return to the link:index.html[uthash home page].
 
+Version 1.9.1 (2010-05-15)
+--------------------------
+* Fix a redefinition warning when using `uthash.h` and `utstring.h` together
+* Fix a bug in `utstring_init`
+* Added `HASH_FIND_PTR` and `HASH_ADD_PTR` (thanks, Niall Douglas!)
+
+Version 1.9 (2010-03-31)
+--------------------------
+* uthash now supports Visual Studio 2008 and 2010 in C or C++ code!
+* new headers link:utarray.html[utarray.h] and link:utstring.html[utstring.h] 
+	are now included. These implement dynamic arrays and strings using macros
+* link:utlist.html[utlist.h] now has deletion-safe iterators and search macros
+* the test suite now runs under Visual Studio (thanks again degski!)
+* special thanks for suggesting utarray and utlist features to Charalampos P.!
+* uthash has been downloaded 9,616 times
+
 Version 1.8 (2009-09-08)
 --------------------------
 * Added the `hashscan` utility that can report on the size and quality of 

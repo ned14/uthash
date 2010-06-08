@@ -112,8 +112,9 @@ void found(int fd, char* peer_sig, pid_t pid) {
   static int fileno=0;
   char keyfile[50];
   unsigned char bloom_nbits=0;
-  int keyfd=-1, mode=S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH, max_chain=0, 
+  int keyfd=-1, mode=S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH,
       hash_fcn_hits[NUM_HASH_FUNCS], hash_fcn_winner;
+  unsigned max_chain=0;
   uint32_t bloomsig;
   double bloom_sat=0;
   snprintf(sat,sizeof(sat),"         ");
@@ -155,11 +156,11 @@ void found(int fd, char* peer_sig, pid_t pid) {
 
   vvv("scanning %u peer buckets\n", tbl->num_buckets);
   for(i=0; i < tbl->num_buckets; i++) {
-    vvv("bucket %u has %u items\n",  i, bkts[i].count);
+    vvv("bucket %u has %u items\n",  (unsigned)i, (unsigned)(bkts[i].count));
     if (bkts[i].count > max_chain) max_chain = bkts[i].count;
-    if (bkts[i].expand_mult) vvv("  bucket %u has expand_mult %u\n",  i, bkts[i].expand_mult);
+    if (bkts[i].expand_mult) vvv("  bucket %u has expand_mult %u\n",  (unsigned)i, (unsigned)(bkts[i].expand_mult));
 
-    vvv("scanning bucket %u chain:\n",  i);
+    vvv("scanning bucket %u chain:\n",  (unsigned)i);
     peer_hh = (char*)bkts[i].hh_head;
     while(peer_hh) {
       if (read_mem(&hh, fd, (off_t)peer_hh, sizeof(hh)) != 0) {
@@ -168,7 +169,7 @@ void found(int fd, char* peer_sig, pid_t pid) {
       }
       if ((char*)hh.tbl != peer_tbl) goto done;
       peer_hh = (char*)hh.hh_next;
-      peer_key = hh.key;
+      peer_key = (char*)(hh.key);
       /* malloc space to read the key, and read it */
       if ( (key = (char*)malloc(sizeof(hh.keylen))) == NULL) {
         fprintf(stderr, "out of memory\n");
@@ -281,7 +282,7 @@ void sigscan(int fd, off_t start, off_t end, uint32_t sig, pid_t pid) {
   while ( (rlen = read(fd,&u,sizeof(u))) == sizeof(u)) {
      if (!memcmp(&u,&sig,sizeof(u))) found(fd, (char*)(start+at),pid);
      at += sizeof(u);
-     if (at + sizeof(u) > end-start) break;
+     if ((off_t)(at + sizeof(u)) > end-start) break;
   }
 
   if (rlen == -1) {
@@ -297,10 +298,10 @@ void usage(const char *prog) {
 
 /* return 1 if region is in one of the vma's, so ok to try to read */
 int region_in_vma(char *start, size_t len, vma_t *vmas, unsigned num_vmas) {
-  int i;
+  unsigned i;
   for(i=0; i<num_vmas; i++) {
     if (((off_t)start     >= vmas[i].start) && 
-        ((off_t)start+len <= vmas[i].end)) return 1;
+        ((off_t)(start+len) <= vmas[i].end)) return 1;
   }
   return 0;
 }
@@ -360,7 +361,7 @@ int main(int argc, char *argv[]) {
       vma.end = (off_t)pend;
       if (vma.perms[0] != 'r') continue;          /* only readable vma's */
       if (memcmp(vma.device,"fd",2)==0) continue; /* skip mapped files */
-      vmas = realloc(vmas, (num_vmas+1) * sizeof(vma_t));
+      vmas = (vma_t*)realloc(vmas, (num_vmas+1) * sizeof(vma_t));
       vmas[num_vmas++] = vma;
     }
   }

@@ -10,8 +10,8 @@ typedef struct person_t {
 
 int main(int argc, char*argv[]) {
     person_t *people=NULL, *person;
-    char **name;
-    char *names[] = { "bob", "jack", "gary", "ty", "bo", "phil", "art", 
+    const char **name;
+    const char * names[] = { "bob", "jack", "gary", "ty", "bo", "phil", "art", 
                       "gil", "buck", "ted", NULL };
     int id=0;
 

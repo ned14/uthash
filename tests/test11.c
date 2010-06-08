@@ -18,7 +18,9 @@ typedef struct name_rec {
     UT_hash_handle hh;
 } name_rec;
 
-int namecmp(name_rec *a, name_rec *b) {
+int namecmp(void *_a, void *_b) {
+    name_rec *a = (name_rec*)_a;
+    name_rec *b = (name_rec*)_b;
     return strcmp(a->boy_name,b->boy_name);
 }
 

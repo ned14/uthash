@@ -10,7 +10,9 @@ typedef struct el {
     struct el *next, *prev;
 } el;
 
-int namecmp(el *a, el *b) {
+int namecmp(void *_a, void *_b) {
+    el *a = (el*)_a;
+    el *b = (el*)_b;
     return strcmp(a->bname,b->bname);
 }
 

@@ -11,7 +11,7 @@ struct my_struct {
 
 
 int main(int argc, char *argv[]) {
-    char **n, *names[] = { "joe", "bob", "betty", NULL };
+    const char **n, *names[] = { "joe", "bob", "betty", NULL };
     struct my_struct *s, *users = NULL;
     int i=0;
 
