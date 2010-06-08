@@ -58,6 +58,14 @@ a img {
     font-size: 10pt;
 }
 
+#nav h3 {
+    /* font-weight: bold; */
+    padding-left: 5px;
+    /* font-style: oblique;  */
+    font-family: sans-serif;
+    font-size: 7pt;
+}
+
 #nav div {
     font-size: 9pt;
     padding-left: 15px;

@@ -4,14 +4,14 @@
 #include "uthash.h"
 
 struct my_struct {
-    char *name;                /* key */
+    const char *name;          /* key */
     int id;                    
     UT_hash_handle hh;         /* makes this structure hashable */
 };
 
 
 int main(int argc, char *argv[]) {
-    char **n, *names[] = { "joe", "bob", "betty", NULL };
+    const char **n, *names[] = { "joe", "bob", "betty", NULL };
     struct my_struct *s, *users = NULL;
     int i=0;
 

@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.3.4" />
+<meta name="generator" content="AsciiDoc 8.5.0" />
 <title>uthash User Guide</title>
 <link rel="stylesheet" href="./tdh.css" type="text/css" />
 <link rel="stylesheet" href="./tdh-quirks.css" type="text/css" />
@@ -13,8 +13,8 @@
 <h1>uthash User Guide</h1>
 <span id="author">Troy D. Hanson</span><br />
 <span id="email"><tt>&lt;<a href="mailto:thanson@users.sourceforge.net">thanson@users.sourceforge.net</a>&gt;</tt></span><br />
-<span id="revision">version 1.8,</span>
-September 2009
+<span id="revnumber">version 1.9.1,</span>
+<span id="revdate">May 2010</span>
 </div>
 <div id="preamble">
 <div class="sectionbody">
@@ -184,6 +184,11 @@ Mac OS X
 </li>
 <li>
 <p>
+Windows using Visual Studio 2008 and 2010
+</p>
+</li>
+<li>
+<p>
 Solaris
 </p>
 </li>
@@ -192,30 +197,12 @@ Solaris
 OpenBSD
 </p>
 </li>
-<li>
-<p>
-Cygwin
-</p>
-</li>
-<li>
-<p>
-MinGW
-</p>
-</li>
 </ul></div>
-<h4 id="_non_gnu_c_compilers">Non-GNU C++ compilers</h4>
-<div class="paragraph"><p>When compiling C++ code it may be necessary to use the GNU compiler, g++, which
-supports the <tt>typeof</tt> extension. Alternatively some users of non-GNU C++
-compilers simply hardcode the <tt>TYPEOF</tt> macro in <tt>uthash.h</tt> to the data type they
-want to use.</p></div>
 <h4 id="_test_suite">Test suite</h4>
-<div class="paragraph"><p>You can run the test suite on these platforms, or any prospective Unix-like
-platform, in this way:</p></div>
-<div class="literalblock">
-<div class="content">
-<pre><tt>cd tests/
-make</tt></pre>
-</div></div>
+<div class="paragraph"><p>To run the test suite, look in the <tt>tests</tt> directory and either run <tt>make</tt> on
+Unix platforms, or on Windows run the "do_tests_win32.cmd" batch file (if you
+have Visual Studio 2008 or 2010 installed in a non-standard location you may
+have to edit the batch file).</p></div>
 <h3 id="_bsd_licensed">BSD licensed</h3><div style="clear:left"></div>
 <div class="paragraph"><p>This software is made available under the
 <a href="license.html">revised BSD license</a>.
@@ -225,8 +212,10 @@ It is free and open source.</p></div>
 <a href="http://uthash.sourceforge.net">uthash website</a> at <a href="http://uthash.sourceforge.net">http://uthash.sourceforge.net</a>.</p></div>
 <h3 id="_getting_help">Getting help</h3><div style="clear:left"></div>
 <div class="paragraph"><p>Feel free to <a href="mailto:thanson@users.sourceforge.net">email the author</a> at
-thanson@users.sourceforge.net.</p></div>
+<a href="mailto:thanson@users.sourceforge.net">thanson@users.sourceforge.net</a>.</p></div>
 <h3 id="_resources">Resources</h3><div style="clear:left"></div>
+<div class="paragraph"><p>Users of uthash may wish to follow the news feed for information about new
+releases. Also, there are some extra bonus headers included with uthash.</p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
 News
@@ -234,24 +223,25 @@ News
 <dd>
 <p>
  The author has a news feed for <a href="http://troydhanson.wordpress.com/feed/">software updates</a> <span class="image">
-<img src="img/rss.png" alt="(RSS)" title="(RSS)" />
+<img src="img/rss.png" alt="(RSS)" />
 </span>.
 </p>
 </dd>
 <dt class="hdlist1">
-Linked list macros
+Extras included with uthash
 </dt>
 <dd>
 <p>
- uthash includes a separate, standalone header called <a href="utlist.html">utlist.h</a>
- which has <em>linked list macros</em> for C structures, similar in style to the
- hash macros
+ uthash ships with these "extras"-- independent headers similar to uthash.
+ First <a href="utlist.html">utlist.h</a> provides linked list macros for C structures.
+ Second, <a href="utarray.html">utarray.h</a> implements dynamic arrays using macros.
+ Third, <a href="utstring.html">utstring.h</a> implements a basic dynamic string.
 </p>
 </dd>
 </dl></div>
 <h3 id="_who_8217_s_using_it">Who&#8217;s using it?</h3><div style="clear:left"></div>
 <div class="paragraph"><p>Since releasing uthash in 2006, it has been downloaded thousands of times,
-incorporated into commerical software, academic research, and into other
+incorporated into commercial software, academic research, and into other
 open-source software.</p></div>
 </div>
 <h2 id="_your_structure">Your structure</h2>
@@ -304,7 +294,7 @@ listing, see <a href="#Macro_reference">Macro Reference</a>.</p></div>
 <div class="sidebar-content">
 <div class="sidebar-title">Convenience vs. general macros:</div>
 <div class="paragraph"><p>The uthash macros fall into two categories. The <em>convenience</em> macros can be used
-with integer or string keys (and require that you chose the conventional
+with integer, pointer or string keys (and require that you chose the conventional
 name <tt>hh</tt> for the <tt>UT_hash_handle</tt> field).  The convenience macros take fewer
 arguments than the general macros, making their usage a bit simpler for these
 common types of keys.</p></div>
@@ -461,7 +451,7 @@ be reached by repeatedly following these pointers, thus the hash is also a
 doubly-linked list.</p></div>
 </div></div>
 <div class="paragraph"><p>If you&#8217;re using uthash in a C++ program, you need an extra cast on the <tt>for</tt>
-iterator, e.g., <tt>s=(struct my_struct*)s&#8594;hh.next</tt>.</p></div>
+iterator, e.g., <tt>s=(struct my_struct*)s-&gt;hh.next</tt>.</p></div>
 <h4 id="_sorted_iteration">Sorted iteration</h4>
 <div class="paragraph"><p>The items in the hash are, by default, traversed in the order they were added
 ("insertion order") when you follow the <tt>hh.next</tt> pointer. But you can sort
@@ -639,7 +629,15 @@ int main(int argc, char *argv[]) {
 <h2 id="_standard_key_types">Standard key types</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>This section goes into specifics of how to work with different kinds of keys.
-You can use any type of key-- integers, strings, pointers, etc.</p></div>
+You can use nearly any type of key-- integers, strings, pointers, structures, etc.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">Use of floating point values (<tt>float</tt> or <tt>double</tt>) as keys is not recommended.</td>
+</tr></table>
+</div>
 <h3 id="_integer_keys">Integer keys</h3><div style="clear:left"></div>
 <div class="paragraph"><p>The preceding examples demonstrated use of integer keys. To recap, use the
 convenience macros <tt>HASH_ADD_INT</tt> and <tt>HASH_FIND_INT</tt> for structures with
@@ -734,36 +732,91 @@ int main(int argc, char *argv[]) {
    return 0;
 }</tt></pre>
 </div></div>
-<h3 id="_binary_keys">Binary keys</h3><div style="clear:left"></div>
-<div class="paragraph"><p>We&#8217;re using the term "binary" here to simply mean an arbitrary byte sequence.
-Your key field can have any data type. To uthash, it is just a sequence of
-bytes.  We&#8217;ll use the general macros <tt>HASH_ADD</tt> and <tt>HASH_FIND</tt> to demonstrate
-usage of a floating point key of type <tt>double</tt>.</p></div>
+<h3 id="_pointer_keys">Pointer keys</h3><div style="clear:left"></div>
+<div class="paragraph"><p>Your key can be a pointer. Here is a simple example where a structure has a
+pointer member, called <tt>key</tt>.</p></div>
 <div class="listingblock">
-<div class="title">A key of type double</div>
+<div class="title">A pointer key</div>
+<div class="content">
+<pre><tt>#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include "uthash.h"
+
+typedef struct {
+  void *key;
+  int i;
+  UT_hash_handle hh;
+} el_t;
+
+el_t *hash = NULL;
+char *someaddr = NULL;
+
+int main() {
+  el_t *d;
+  el_t *e = malloc(sizeof(el_t));
+  if (!e) return -1;
+  e-&gt;key = (void*)someaddr;
+  e-&gt;i = 1;
+  HASH_ADD_PTR(hash,key,e);
+  HASH_FIND_PTR(hash, &amp;someaddr, d);
+  if (d) printf("found\n");
+  free(e);
+  return 0;
+}</tt></pre>
+</div></div>
+<h3 id="_structure_keys">Structure keys</h3><div style="clear:left"></div>
+<div class="paragraph"><p>Your key field can have any data type. To uthash, it is just a sequence of
+bytes.  Therefore, even a nested structure can be used as a key. We&#8217;ll use the
+general macros <tt>HASH_ADD</tt> and <tt>HASH_FIND</tt> to demonstrate.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">Structures contain padding (wasted internal space used to fulfill
+alignment requirements for the members of the structure). These padding bytes
+<em>must be zeroed</em> before adding an item to the hash or looking up an item.
+Therefore always zero the whole structure before setting the members of
+interest. The example below does this-- see the two calls to <tt>memset</tt>.</td>
+</tr></table>
+</div>
+<div class="listingblock">
+<div class="title">A key which is a structure</div>
 <div class="content">
 <pre><tt>#include &lt;stdlib.h&gt;
 #include &lt;stdio.h&gt;
 #include "uthash.h"
 
-typedef struct {
-    double veloc;
+typedef struct {   /* this structure will be our key */
+  char a;
+  int b;
+} record_key_t;
+
+typedef struct {  /* the hash is comprised of these */
+    record_key_t key;
     /* ... other data ... */
     UT_hash_handle hh;
-} veloc_t;
+} record_t;
 
 int main(int argc, char *argv[]) {
-    veloc_t *v, *v2, *veloc_table = NULL;
-    double x = 1/3.0;
+    record_t l, *p, *r, *records = NULL;
 
-    v = malloc( sizeof(*v) );
-    v-&gt;veloc = x;
-    HASH_ADD(hh, veloc_table, veloc, sizeof(double), v);
-    HASH_FIND(hh, veloc_table, &amp;x, sizeof(double), v2 );
+    r = (record_t*)malloc( sizeof(record_t) );
+    memset(r, 0, sizeof(record_t)); /* zero fill! */
+    r-&gt;key.a = 'a';
+    r-&gt;key.b = 1;
+    HASH_ADD(hh, records, key, sizeof(record_key_t), r);
 
-    if (v2) printf("found (%.2f)\n", v2-&gt;veloc);
+    memset(&amp;l, 0, sizeof(record_t)); /* zero fill! */
+    l.key.a = 'a';
+    l.key.b = 1;
+    HASH_FIND(hh, records, &amp;l.key, sizeof(record_key_t), p);
+
+    if (p) printf("found %c %d\n", p-&gt;key.a, p-&gt;key.b);
+    return 0;
 }</tt></pre>
 </div></div>
+<div class="paragraph"><p>This usage is nearly the same as use of a compound key explained below.</p></div>
 <div class="paragraph"><p>Note that the general macros require the name of the <tt>UT_hash_handle</tt> to be
 passed as the first argument (here, this is <tt>hh</tt>). The general macros are
 documented in <a href="#Macro_reference">Macro Reference</a>.</p></div>
@@ -964,9 +1017,9 @@ easy iteration in two different sort orders.</p></div>
 <div class="paragraph"><p>Programs that generate a fair miss rate (<tt>HASH_FIND</tt> that result in <tt>NULL</tt>) may
 benefit from the built-in Bloom filter support. This is disabled by default,
 because programs that generate only hits would incur a slight penalty from it.
-Also, programs that do deletes should not use the Bloom filter-- while the
-program would operate correctly, the deletes diminish the benefit of the filter.</p></div>
-<div class="paragraph"><p>To enable the Bloom filter, simply compile with <tt>-DHASH_BLOOM=n</tt> like:</p></div>
+Also, programs that do deletes should not use the Bloom filter. While the
+program would operate correctly, deletes diminish the benefit of the filter.
+To enable the Bloom filter, simply compile with <tt>-DHASH_BLOOM=n</tt> like:</p></div>
 <div class="literalblock">
 <div class="content">
 <pre><tt>-DHASH_BLOOM=27</tt></pre>
@@ -980,35 +1033,35 @@ out faster.</p></div>
 width="50%"
 frame="border"
 cellspacing="0" cellpadding="4">
-<caption class="title">Bloom filter sizes for selected values of n</caption>
+<caption class="title">Table 1: Bloom filter sizes for selected values of n</caption>
 <col width="25%" />
 <col width="75%" />
-<thead valign="top">
+<thead>
 <tr>
-<th align="left"> n   </th>
-<th align="left"> Bloom filter memory used per hash table</th>
+<th align="left" valign="top"> n   </th>
+<th align="left" valign="top"> Bloom filter size (per hash table)</th>
 </tr>
 </thead>
-<tbody valign="top">
+<tbody>
 <tr>
-<td align="left"><p class="table"><tt>16</tt></p></td>
-<td align="left"><p class="table">8 kilobytes</p></td>
+<td align="left" valign="top"><p class="table"><tt>16</tt></p></td>
+<td align="left" valign="top"><p class="table">8 kilobytes</p></td>
 </tr>
 <tr>
-<td align="left"><p class="table"><tt>20</tt></p></td>
-<td align="left"><p class="table">128 kilobytes</p></td>
+<td align="left" valign="top"><p class="table"><tt>20</tt></p></td>
+<td align="left" valign="top"><p class="table">128 kilobytes</p></td>
 </tr>
 <tr>
-<td align="left"><p class="table"><tt>24</tt></p></td>
-<td align="left"><p class="table">2 megabytes</p></td>
+<td align="left" valign="top"><p class="table"><tt>24</tt></p></td>
+<td align="left" valign="top"><p class="table">2 megabytes</p></td>
 </tr>
 <tr>
-<td align="left"><p class="table"><tt>28</tt></p></td>
-<td align="left"><p class="table">32 megabytes</p></td>
+<td align="left" valign="top"><p class="table"><tt>28</tt></p></td>
+<td align="left" valign="top"><p class="table">32 megabytes</p></td>
 </tr>
 <tr>
-<td align="left"><p class="table"><tt>32</tt></p></td>
-<td align="left"><p class="table">512 megabytes</p></td>
+<td align="left" valign="top"><p class="table"><tt>32</tt></p></td>
+<td align="left" valign="top"><p class="table">512 megabytes</p></td>
 </tr>
 </tbody>
 </table>
@@ -1082,43 +1135,43 @@ below. E.g.,</p></div>
 width="50%"
 frame="border"
 cellspacing="0" cellpadding="4">
-<caption class="title">Built-in hash functions</caption>
+<caption class="title">Table 2: Built-in hash functions</caption>
 <col width="20%" />
 <col width="80%" />
-<thead valign="top">
+<thead>
 <tr>
-<th align="center">Symbol </th>
-<th align="left">   Name</th>
+<th align="center" valign="top">Symbol </th>
+<th align="left" valign="top">   Name</th>
 </tr>
 </thead>
-<tbody valign="top">
+<tbody>
 <tr>
-<td align="center"><p class="table"><tt>JEN</tt></p></td>
-<td align="left"><p class="table">Jenkins (default)</p></td>
+<td align="center" valign="top"><p class="table"><tt>JEN</tt></p></td>
+<td align="left" valign="top"><p class="table">Jenkins (default)</p></td>
 </tr>
 <tr>
-<td align="center"><p class="table"><tt>BER</tt></p></td>
-<td align="left"><p class="table">Bernstein</p></td>
+<td align="center" valign="top"><p class="table"><tt>BER</tt></p></td>
+<td align="left" valign="top"><p class="table">Bernstein</p></td>
 </tr>
 <tr>
-<td align="center"><p class="table"><tt>SAX</tt></p></td>
-<td align="left"><p class="table">Shift-Add-Xor</p></td>
+<td align="center" valign="top"><p class="table"><tt>SAX</tt></p></td>
+<td align="left" valign="top"><p class="table">Shift-Add-Xor</p></td>
 </tr>
 <tr>
-<td align="center"><p class="table"><tt>OAT</tt></p></td>
-<td align="left"><p class="table">One-at-a-time</p></td>
+<td align="center" valign="top"><p class="table"><tt>OAT</tt></p></td>
+<td align="left" valign="top"><p class="table">One-at-a-time</p></td>
 </tr>
 <tr>
-<td align="center"><p class="table"><tt>FNV</tt></p></td>
-<td align="left"><p class="table">Fowler/Noll/Vo</p></td>
+<td align="center" valign="top"><p class="table"><tt>FNV</tt></p></td>
+<td align="left" valign="top"><p class="table">Fowler/Noll/Vo</p></td>
 </tr>
 <tr>
-<td align="center"><p class="table"><tt>SFH</tt></p></td>
-<td align="left"><p class="table">Paul Hsieh</p></td>
+<td align="center" valign="top"><p class="table"><tt>SFH</tt></p></td>
+<td align="left" valign="top"><p class="table">Paul Hsieh</p></td>
 </tr>
 <tr>
-<td align="center"><p class="table"><tt>MUR</tt></p></td>
-<td align="left"><p class="table">MurmurHash (see note)</p></td>
+<td align="center" valign="top"><p class="table"><tt>MUR</tt></p></td>
+<td align="left" valign="top"><p class="table">MurmurHash (see note)</p></td>
 </tr>
 </tbody>
 </table>
@@ -1275,7 +1328,7 @@ approaches 100%, the hash table approaches constant-time lookup performance.</p>
 </div></div>
 <h3 id="hashscan">hashscan</h3><div style="clear:left"></div>
 <div class="paragraph"><p>A <strong>Linux-only</strong> utility called <tt>hashscan</tt> is included in the <tt>tests/</tt> directory. It
-is built built automatically when you run <tt>make</tt> in that directory. This tool
+is built automatically when you run <tt>make</tt> in that directory. This tool
 examines a running process and reports on the uthash tables that it finds in
 that program&#8217;s memory. It can also save the keys from each table in a format
 that can be fed into <tt>keystats</tt>.</p></div>
@@ -1620,7 +1673,7 @@ the structure&#8217;s <tt>UT_hash_handle</tt> field must be named <tt>hh</tt>, a
 </li>
 <li>
 <p>
-for add or find, the key field must be of type <tt>int</tt> or <tt>char[]</tt>
+for add or find, the key field must be of type <tt>int</tt> or <tt>char[]</tt> or pointer
 </p>
 </li>
 </ol></div>
@@ -1629,43 +1682,51 @@ for add or find, the key field must be of type <tt>int</tt> or <tt>char[]</tt>
 width="90%"
 frame="border"
 cellspacing="0" cellpadding="4">
-<caption class="title">Convenience macros</caption>
+<caption class="title">Table 3: Convenience macros</caption>
 <col width="25%" />
 <col width="75%" />
-<thead valign="top">
+<thead>
 <tr>
-<th align="left">macro         </th>
-<th align="left"> arguments</th>
+<th align="left" valign="top">macro         </th>
+<th align="left" valign="top"> arguments</th>
 </tr>
 </thead>
-<tbody valign="top">
+<tbody>
 <tr>
-<td align="left"><p class="table"><tt>HASH_ADD_INT</tt></p></td>
-<td align="left"><p class="table"><tt>(head, keyfield_name, item_ptr)</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>HASH_ADD_INT</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>(head, keyfield_name, item_ptr)</tt></p></td>
 </tr>
 <tr>
-<td align="left"><p class="table"><tt>HASH_FIND_INT</tt></p></td>
-<td align="left"><p class="table"><tt>(head, key_ptr, item_ptr)</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>HASH_FIND_INT</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>(head, key_ptr, item_ptr)</tt></p></td>
 </tr>
 <tr>
-<td align="left"><p class="table"><tt>HASH_ADD_STR</tt></p></td>
-<td align="left"><p class="table"><tt>(head, keyfield_name, item_ptr)</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>HASH_ADD_STR</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>(head, keyfield_name, item_ptr)</tt></p></td>
 </tr>
 <tr>
-<td align="left"><p class="table"><tt>HASH_FIND_STR</tt></p></td>
-<td align="left"><p class="table"><tt>(head, key_ptr, item_ptr)</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>HASH_FIND_STR</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>(head, key_ptr, item_ptr)</tt></p></td>
 </tr>
 <tr>
-<td align="left"><p class="table"><tt>HASH_DEL</tt></p></td>
-<td align="left"><p class="table"><tt>(head, item_ptr)</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>HASH_ADD_PTR</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>(head, keyfield_name, item_ptr)</tt></p></td>
 </tr>
 <tr>
-<td align="left"><p class="table"><tt>HASH_SORT</tt></p></td>
-<td align="left"><p class="table"><tt>(head, cmp)</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>HASH_FIND_PTR</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>(head, key_ptr, item_ptr)</tt></p></td>
 </tr>
 <tr>
-<td align="left"><p class="table"><tt>HASH_COUNT</tt></p></td>
-<td align="left"><p class="table"><tt>(head)</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>HASH_DEL</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>(head, item_ptr)</tt></p></td>
+</tr>
+<tr>
+<td align="left" valign="top"><p class="table"><tt>HASH_SORT</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>(head, cmp)</tt></p></td>
+</tr>
+<tr>
+<td align="left" valign="top"><p class="table"><tt>HASH_COUNT</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>(head)</tt></p></td>
 </tr>
 </tbody>
 </table>
@@ -1679,47 +1740,47 @@ than <tt>hh</tt>, or if your key&#8217;s data type isn&#8217;t <tt>int</tt> or <
 width="90%"
 frame="border"
 cellspacing="0" cellpadding="4">
-<caption class="title">General macros</caption>
+<caption class="title">Table 4: General macros</caption>
 <col width="25%" />
 <col width="75%" />
-<thead valign="top">
+<thead>
 <tr>
-<th align="left">macro          </th>
-<th align="left"> arguments</th>
+<th align="left" valign="top">macro          </th>
+<th align="left" valign="top"> arguments</th>
 </tr>
 </thead>
-<tbody valign="top">
+<tbody>
 <tr>
-<td align="left"><p class="table"><tt>HASH_ADD</tt></p></td>
-<td align="left"><p class="table"><tt>(hh_name, head, keyfield_name, key_len, item_ptr)</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>HASH_ADD</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>(hh_name, head, keyfield_name, key_len, item_ptr)</tt></p></td>
 </tr>
 <tr>
-<td align="left"><p class="table"><tt>HASH_ADD_KEYPTR</tt></p></td>
-<td align="left"><p class="table"><tt>(hh_name, head, key_ptr, key_len, item_ptr)</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>HASH_ADD_KEYPTR</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>(hh_name, head, key_ptr, key_len, item_ptr)</tt></p></td>
 </tr>
 <tr>
-<td align="left"><p class="table"><tt>HASH_FIND</tt></p></td>
-<td align="left"><p class="table"><tt>(hh_name, head, key_ptr, key_len, item_ptr)</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>HASH_FIND</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>(hh_name, head, key_ptr, key_len, item_ptr)</tt></p></td>
 </tr>
 <tr>
-<td align="left"><p class="table"><tt>HASH_DELETE</tt></p></td>
-<td align="left"><p class="table"><tt>(hh_name, head, item_ptr)</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>HASH_DELETE</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>(hh_name, head, item_ptr)</tt></p></td>
 </tr>
 <tr>
-<td align="left"><p class="table"><tt>HASH_SRT</tt></p></td>
-<td align="left"><p class="table"><tt>(hh_name, head, cmp)</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>HASH_SRT</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>(hh_name, head, cmp)</tt></p></td>
 </tr>
 <tr>
-<td align="left"><p class="table"><tt>HASH_CNT</tt></p></td>
-<td align="left"><p class="table"><tt>(hh_name, head)</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>HASH_CNT</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>(hh_name, head)</tt></p></td>
 </tr>
 <tr>
-<td align="left"><p class="table"><tt>HASH_CLEAR</tt></p></td>
-<td align="left"><p class="table"><tt>(hh_name, head)</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>HASH_CLEAR</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>(hh_name, head)</tt></p></td>
 </tr>
 <tr>
-<td align="left"><p class="table"><tt>HASH_SELECT</tt></p></td>
-<td align="left"><p class="table"><tt>(dst_hh_name, dst_head, src_hh_name, src_head, condition)</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>HASH_SELECT</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>(dst_hh_name, dst_head, src_hh_name, src_head, condition)</tt></p></td>
 </tr>
 </tbody>
 </table>
@@ -1819,8 +1880,8 @@ condition
 </div>
 <div id="footer">
 <div id="footer-text">
-Version 1.8<br />
-Last updated 2009-09-08 22:04:10 EDT
+Version 1.9.1<br />
+Last updated 2010-05-14 22:02:43 PDT
 </div>
 </div>
 </body>

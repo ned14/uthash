@@ -87,7 +87,8 @@ void hash_chain_len_histogram(UT_hash_table *tbl) {
 int main(int argc, char *argv[]) {
     int dups=0, rc, fd, done=0, err=0, want, i=0, padding=0, v=1, percent=100;
     unsigned keylen, max_keylen=0, verbose=0;
-    char *filename = "/dev/stdin", *dst; 
+    const char *filename = "/dev/stdin";
+    char *dst; 
     stat_key *keyt, *keytmp, *keys=NULL, *keys2=NULL;
     struct timeval start_tm, end_tm, elapsed_tm, elapsed_tm2, elapsed_tm3;
 

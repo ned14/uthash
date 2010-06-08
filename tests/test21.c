@@ -3,21 +3,31 @@
 #include "uthash.h"
 
 typedef struct {
-    double veloc;
+  char a;
+  int b;
+} record_key_t;
+
+typedef struct {
+    record_key_t key;
     /* ... other data ... */
     UT_hash_handle hh;
-} veloc_t;
+} record_t;
 
 int main(int argc, char *argv[]) {
-    veloc_t *v, *v2, *veloc_table = NULL;
-    double x = 1/3.0;
+    record_t l, *p, *r, *records = NULL;
 
-    v = (veloc_t*)malloc( sizeof(*v) );
-    v->veloc = x;
-    HASH_ADD(hh, veloc_table, veloc, sizeof(double), v);
-    HASH_FIND(hh, veloc_table, &x, sizeof(double), v2 );
+    r = (record_t*)malloc( sizeof(record_t) );
+    memset(r, 0, sizeof(record_t));
+    r->key.a = 'a';
+    r->key.b = 1;
+    HASH_ADD(hh, records, key, sizeof(record_key_t), r);
 
-    if (v2) printf("found (%.2f)\n", v2->veloc);
-   return 0;
+    memset(&l, 0, sizeof(record_t));
+    l.key.a = 'a';
+    l.key.b = 1;
+    HASH_FIND(hh, records, &l.key, sizeof(record_key_t), p);
+
+    if (p) printf("found %c %d\n", p->key.a, p->key.b);
+    return 0;
 }
 

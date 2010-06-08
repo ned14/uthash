@@ -14,7 +14,9 @@ int evens(void *userv) {
   return ((user->id & 1) ? 0 : 1);
 }
 
-int idcmp(example_user_t *a, example_user_t *b) {
+int idcmp(void *_a, void *_b) {
+  example_user_t *a = (example_user_t*)_a;
+  example_user_t *b = (example_user_t*)_b;
   return (a->id - b->id);
 }
 

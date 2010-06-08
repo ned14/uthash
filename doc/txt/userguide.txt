@@ -1,7 +1,7 @@
 uthash User Guide
 =================
 Troy D. Hanson <thanson@users.sourceforge.net>
-v1.8, September 2009
+v1.9.1, May 2010
 
 include::sflogo.txt[]
 include::topnav.txt[]
@@ -53,26 +53,16 @@ This software can be used in C and C++ programs.  It has been tested on:
 
  * Linux
  * Mac OS X
+ * Windows using Visual Studio 2008 and 2010
  * Solaris 
  * OpenBSD
- * Cygwin
- * MinGW
-
-Non-GNU C++ compilers
-^^^^^^^^^^^^^^^^^^^^^
-When compiling C\+\+ code it may be necessary to use the GNU compiler, g\+\+, which
-supports the `typeof` extension. Alternatively some users of non-GNU C++
-compilers simply hardcode the `TYPEOF` macro in `uthash.h` to the data type they
-want to use.
 
 Test suite
 ^^^^^^^^^^
-You can run the test suite on these platforms, or any prospective Unix-like
-platform, in this way:
-
-  cd tests/
-  make
-
+To run the test suite, look in the `tests` directory and either run `make` on
+Unix platforms, or on Windows run the "do_tests_win32.cmd" batch file (if you
+have Visual Studio 2008 or 2010 installed in a non-standard location you may
+have to edit the batch file).
 
 BSD licensed
 ~~~~~~~~~~~~
@@ -92,17 +82,21 @@ thanson@users.sourceforge.net.
 
 Resources
 ~~~~~~~~~
+Users of uthash may wish to follow the news feed for information about new
+releases. Also, there are some extra bonus headers included with uthash.
+
 News::
  The author has a news feed for http://troydhanson.wordpress.com/feed/[software updates] image:img/rss.png[(RSS)].
-Linked list macros::
- uthash includes a separate, standalone header called link:utlist.html[utlist.h]
- which has 'linked list macros' for C structures, similar in style to the
- hash macros
+Extras included with uthash::
+ uthash ships with these "extras"-- independent headers similar to uthash. 
+ First link:utlist.html[utlist.h] provides linked list macros for C structures.
+ Second, link:utarray.html[utarray.h] implements dynamic arrays using macros. 
+ Third, link:utstring.html[utstring.h] implements a basic dynamic string.
 
 Who's using it?
 ~~~~~~~~~~~~~~~
 Since releasing uthash in 2006, it has been downloaded thousands of times,
-incorporated into commerical software, academic research, and into other
+incorporated into commercial software, academic research, and into other
 open-source software.  
 
 Your structure
@@ -164,7 +158,7 @@ listing, see <<Macro_reference,Macro Reference>>.
 .Convenience vs. general macros:
 *****************************************************************************
 The uthash macros fall into two categories. The 'convenience' macros can be used
-with integer or string keys (and require that you chose the conventional
+with integer, pointer or string keys (and require that you chose the conventional
 name `hh` for the `UT_hash_handle` field).  The convenience macros take fewer
 arguments than the general macros, making their usage a bit simpler for these
 common types of keys. 
@@ -532,7 +526,9 @@ This program is included in the distribution in `tests/example.c`. You can run
 Standard key types
 ------------------
 This section goes into specifics of how to work with different kinds of keys.
-You can use any type of key-- integers, strings, pointers, etc. 
+You can use nearly any type of key-- integers, strings, pointers, structures, etc. 
+
+NOTE: Use of floating point values (`float` or `double`) as keys is not recommended.
 
 Integer keys
 ~~~~~~~~~~~~
@@ -631,37 +627,90 @@ int main(int argc, char *argv[]) {
 }
 ----------------------------------------------------------------------
 
-Binary keys
-~~~~~~~~~~~
-We're using the term "binary" here to simply mean an arbitrary byte sequence.
-Your key field can have any data type. To uthash, it is just a sequence of
-bytes.  We'll use the general macros `HASH_ADD` and `HASH_FIND` to demonstrate
-usage of a floating point key of type `double`.
+Pointer keys
+~~~~~~~~~~~~
+Your key can be a pointer. Here is a simple example where a structure has a
+pointer member, called `key`.
 
-.A key of type double
+.A pointer key
+----------------------------------------------------------------------
+#include <stdio.h>
+#include <stdlib.h>
+#include "uthash.h"
+
+typedef struct {
+  void *key;
+  int i;
+  UT_hash_handle hh;
+} el_t;
+
+el_t *hash = NULL;
+char *someaddr = NULL;
+
+int main() {
+  el_t *d;
+  el_t *e = (el_t*)malloc(sizeof(el_t));
+  if (!e) return -1;
+  e->key = (void*)someaddr;
+  e->i = 1;
+  HASH_ADD_PTR(hash,key,e);
+  HASH_FIND_PTR(hash, &someaddr, d);
+  if (d) printf("found\n");
+  free(e);
+  return 0;
+}
+----------------------------------------------------------------------
+
+Structure keys
+~~~~~~~~~~~~~~
+Your key field can have any data type. To uthash, it is just a sequence of
+bytes.  Therefore, even a nested structure can be used as a key. We'll use the
+general macros `HASH_ADD` and `HASH_FIND` to demonstrate.
+
+NOTE: Structures contain padding (wasted internal space used to fulfill
+alignment requirements for the members of the structure). These padding bytes
+'must be zeroed' before adding an item to the hash or looking up an item.
+Therefore always zero the whole structure before setting the members of
+interest. The example below does this-- see the two calls to `memset`.
+
+.A key which is a structure
 ----------------------------------------------------------------------
 #include <stdlib.h>
 #include <stdio.h>
 #include "uthash.h"
 
-typedef struct {
-    double veloc; 
+typedef struct {   /* this structure will be our key */
+  char a;
+  int b;
+} record_key_t;
+
+typedef struct {  /* the hash is comprised of these */
+    record_key_t key;
     /* ... other data ... */
     UT_hash_handle hh;
-} veloc_t;
+} record_t;
 
 int main(int argc, char *argv[]) {
-    veloc_t *v, *v2, *veloc_table = NULL;
-    double x = 1/3.0;
+    record_t l, *p, *r, *records = NULL;
 
-    v = malloc( sizeof(*v) );
-    v->veloc = x;
-    HASH_ADD(hh, veloc_table, veloc, sizeof(double), v);
-    HASH_FIND(hh, veloc_table, &x, sizeof(double), v2 );
+    r = (record_t*)malloc( sizeof(record_t) );
+    memset(r, 0, sizeof(record_t)); /* zero fill! */
+    r->key.a = 'a';
+    r->key.b = 1;
+    HASH_ADD(hh, records, key, sizeof(record_key_t), r);
 
-    if (v2) printf("found (%.2f)\n", v2->veloc);
+    memset(&l, 0, sizeof(record_t)); /* zero fill! */
+    l.key.a = 'a';
+    l.key.b = 1;
+    HASH_FIND(hh, records, &l.key, sizeof(record_key_t), p);
+
+    if (p) printf("found %c %d\n", p->key.a, p->key.b);
+    return 0;
 }
+
 ----------------------------------------------------------------------
+
+This usage is nearly the same as use of a compound key explained below.
 
 Note that the general macros require the name of the `UT_hash_handle` to be
 passed as the first argument (here, this is `hh`). The general macros are 
@@ -1365,7 +1414,7 @@ require fewer arguments.
 In order to use the convenience macros, 
 
 1. the structure's `UT_hash_handle` field must be named `hh`, and
-2. for add or find, the key field must be of type `int` or `char[]` 
+2. for add or find, the key field must be of type `int` or `char[]` or pointer
 
 .Convenience macros
 [width="90%",cols="10m,30m",grid="none",options="header"]
@@ -1375,6 +1424,8 @@ In order to use the convenience macros,
 |HASH_FIND_INT | (head, key_ptr, item_ptr)
 |HASH_ADD_STR  | (head, keyfield_name, item_ptr)
 |HASH_FIND_STR | (head, key_ptr, item_ptr)
+|HASH_ADD_PTR  | (head, keyfield_name, item_ptr)
+|HASH_FIND_PTR | (head, key_ptr, item_ptr)
 |HASH_DEL      | (head, item_ptr)
 |HASH_SORT     | (head, cmp)
 |HASH_COUNT    | (head)

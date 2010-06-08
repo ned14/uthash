@@ -23,13 +23,21 @@
       <div id="nav">
 
         <h2>documentation</h2>
-        <div><a href="userguide.html">user guide</a> [<a href="userguide.html">html</a>] [<a href="userguide.pdf">pdf</a>]</div>
+        <div><a href="userguide.html">uthash</a> (<a href="userguide.html">html</a>) (<a href="userguide.pdf">pdf</a>)</div>
+
+        <h2>extras included</h2>
+        <div><a href="utlist.html">utlist</a></div>
+        <div><a href="utarray.html">utarray</a></div>
+        <div><a href="utstring.html">utstring</a></div>
 
         <h2>download</h2>
-        <div><a href="http://downloads.sourceforge.net/uthash/uthash-1.8.tar.bz2">uthash-1.8.tar.bz2</a></div>
+        <h3>Linux, Mac OSX, Solaris, BSD</h3>
+        <div><a href="http://downloads.sourceforge.net/uthash/uthash-1.9.1.tar.bz2">uthash-1.9.1.tar.bz2</a></div>
+        <h3>Windows</h3>
+        <div><a href="http://downloads.sourceforge.net/uthash/uthash-1.9.1.zip">uthash-1.9.1.zip</a></div>
 
         <h2>last release</h2>
-        <div>September, 2009</div>
+        <div>May, 2010</div>
         <div><a href="ChangeLog.html">ChangeLog</a></div>
 
         <h2>license</h2>
@@ -39,11 +47,12 @@
         <div><a href="http://troydhanson.wordpress.com/">updates</a> [<a href="http://troydhanson.wordpress.com/feed/">rss</a>]<img alt=" rss" src="img/rss.png"/></div>
 
         <h2>other projects</h2>
-        <div><a href="http://tpl.sourceforge.net/">libtpl</a> binary save/restore</div>
-        <div><a href="utlist.html">utlist</a> linked lists</div>
+        <div><a href="http://tpl.sourceforge.net/">tpl</a></div>
+        <div><a href="http://tkhanson.net/misc/">scripts & snippets</a></div>
 
         <h2>developer</h2>
         <div>Troy D. Hanson</div>
+        <div>tdh at tkhanson.net</div>
 
       </div>
 
@@ -61,9 +70,9 @@ Example 1. Adding an item to a hash.
 #include "uthash.h"
 
 struct my_struct {
-    int id;                  /* we'll use this field as the key */
+    int id;            /* we'll use this field as the key */
     char name[10];             
-    UT_hash_handle hh;       /* makes this structure hashable */
+    UT_hash_handle hh; /* makes this structure hashable */
 };
 
 struct my_struct *users = NULL;
