@@ -66,7 +66,7 @@ typedef unsigned int uint32_t;
 
 #define uthash_fatal(msg) exit(-1)        /* fatal error (out of memory,etc) */
 #define uthash_malloc(sz) malloc(sz)      /* malloc fcn                      */
-#define uthash_free(ptr) free(ptr)        /* free fcn                        */
+#define uthash_free(ptr,sz) free(ptr)     /* free fcn                        */
 
 #define uthash_noexpand_fyi(tbl)          /* can be defined to log noexpand  */
 #define uthash_expand_fyi(tbl)            /* can be defined to log expands   */
@@ -106,7 +106,7 @@ do {                                                                            
 
 #define HASH_BLOOM_FREE(tbl)                                                     \
 do {                                                                             \
-  uthash_free((tbl)->bloom_bv);                                                  \
+  uthash_free((tbl)->bloom_bv, HASH_BLOOM_BYTELEN);                             \
 } while (0);
 
 #define HASH_BLOOM_BITSET(bv,idx) (bv[(idx)/8] |= (1U << ((idx)%8)))
@@ -194,9 +194,10 @@ do {                                                                            
     unsigned _hd_bkt;                                                            \
     struct UT_hash_handle *_hd_hh_del;                                           \
     if ( ((delptr)->hh.prev == NULL) && ((delptr)->hh.next == NULL) )  {         \
-        uthash_free((head)->hh.tbl->buckets );                                   \
+        uthash_free((head)->hh.tbl->buckets,                                    \
+                    (head)->hh.tbl->num_buckets*sizeof(struct UT_hash_bucket) );\
         HASH_BLOOM_FREE((head)->hh.tbl);                                         \
-        uthash_free((head)->hh.tbl);                                             \
+        uthash_free((head)->hh.tbl, sizeof(UT_hash_table));                     \
         head = NULL;                                                             \
     } else {                                                                     \
         _hd_hh_del = &((delptr)->hh);                                            \
@@ -736,9 +737,9 @@ do {                                                                            
            _he_thh = _he_hh_nxt;                                                 \
         }                                                                        \
     }                                                                            \
+    uthash_free( tbl->buckets, tbl->num_buckets*sizeof(struct UT_hash_bucket) );\
     tbl->num_buckets *= 2;                                                       \
     tbl->log2_num_buckets++;                                                     \
-    uthash_free( tbl->buckets );                                                 \
     tbl->buckets = _he_new_buckets;                                              \
     tbl->ineff_expands = (tbl->nonideal_items > (tbl->num_items >> 1)) ?         \
         (tbl->ineff_expands+1) : 0;                                              \
@@ -879,8 +880,9 @@ do {                                                                            
 #define HASH_CLEAR(hh,head)                                                      \
 do {                                                                             \
   if (head) {                                                                    \
-    uthash_free((head)->hh.tbl->buckets );                                       \
-    uthash_free((head)->hh.tbl);                                                 \
+    uthash_free((head)->hh.tbl->buckets,                                        \
+                (head)->hh.tbl->num_buckets*sizeof(struct UT_hash_bucket));     \
+    uthash_free((head)->hh.tbl, sizeof(UT_hash_table));                         \
     (head)=NULL;                                                                 \
   }                                                                              \
 } while(0)

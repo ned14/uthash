@@ -5,6 +5,11 @@ include::sflogo.txt[]
 
 Click to return to the link:index.html[uthash home page].
 
+Version ?.?.? (201?-??-??)
+--------------------------
+* Add sz parameter to `uthash_free` for convenience on embedded platforms
+(thanks, Niall Douglas)
+
 Version 1.9.1 (2010-05-15)
 --------------------------
 * Fix a redefinition warning when using `uthash.h` and `utstring.h` together

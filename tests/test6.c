@@ -6,7 +6,7 @@
 #undef uthash_malloc
 #undef uthash_free
 #define uthash_malloc(sz) alt_malloc(sz)
-#define uthash_free(ptr) alt_free(ptr)
+#define uthash_free(ptr,sz) alt_free(ptr)
 
 typedef struct example_user_t {
     int id;

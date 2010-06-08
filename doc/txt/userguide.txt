@@ -1265,10 +1265,13 @@ If your application uses its own custom allocator, this hash can use them too.
 
 /* re-define, specifying alternate functions */
 #define uthash_malloc(sz) my_malloc(sz) 
-#define uthash_free(ptr) my_free(ptr)    
+#define uthash_free(ptr,sz) my_free(ptr)    
 
 ...
 ----------------------------------------------------------------------------
+
+Notice that `uthash_free` receives two parameters. The `sz` parameter is for
+convenience on embedded platforms that manage their own memory.
 
 Out of memory
 ^^^^^^^^^^^^^
