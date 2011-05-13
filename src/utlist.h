@@ -424,6 +424,12 @@ do {                                                                            
   }                                                                                            \
 } while (0);
 
+#define DL_LENGTH(head,len,tmp)                                                                \
+do {                                                                                           \
+  len=0;                                                                                       \
+  DL_FOREACH(head,tmp)                                                                         \
+    len++;                                                                                     \
+} while (0);
 
 #define DL_FOREACH(head,el)                                                                    \
     for(el=head;el;el=el->next)
