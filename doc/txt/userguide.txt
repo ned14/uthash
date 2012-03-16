@@ -1,7 +1,7 @@
 uthash User Guide
 =================
 Troy D. Hanson <thanson@users.sourceforge.net>
-v1.9.1, May 2010
+v1.9.5, November 2011
 
 include::sflogo.txt[]
 include::topnav.txt[]
@@ -56,13 +56,15 @@ This software can be used in C and C++ programs.  It has been tested on:
  * Windows using Visual Studio 2008 and 2010
  * Solaris 
  * OpenBSD
+ * FreeBSD
 
 Test suite
 ^^^^^^^^^^
-To run the test suite, look in the `tests` directory and either run `make` on
-Unix platforms, or on Windows run the "do_tests_win32.cmd" batch file (if you
-have Visual Studio 2008 or 2010 installed in a non-standard location you may
-have to edit the batch file).
+To run the test suite, enter the `tests` directory. Then,
+
+ * on Unix platforms, run `make` 
+ * on Windows, run the "do_tests_win32.cmd" batch file. (You may edit the
+   batch file if your Visual Studio is installed in a non-standard location).
 
 BSD licensed
 ~~~~~~~~~~~~
@@ -75,10 +77,13 @@ Obtaining uthash
 Please follow the link to download on the 
 http://uthash.sourceforge.net[uthash website] at http://uthash.sourceforge.net.
 
+A number of platforms include uthash in their package repositories. For example,
+Debian/Ubuntu users may simply `aptitude install uthash-dev`.
+
 Getting help
 ~~~~~~~~~~~~
-Feel free to mailto:thanson@users.sourceforge.net[email the author] at
-thanson@users.sourceforge.net.
+Feel free to mailto:tdh@tkhanson.net[email the author] at
+tdh@tkhanson.net.
 
 Resources
 ~~~~~~~~~
@@ -86,7 +91,7 @@ Users of uthash may wish to follow the news feed for information about new
 releases. Also, there are some extra bonus headers included with uthash.
 
 News::
- The author has a news feed for http://troydhanson.wordpress.com/feed/[software updates] image:img/rss.png[(RSS)].
+ The author has a news feed for http://troydhanson.wordpress.com/[software updates] image:img/rss.png[(RSS)].
 Extras included with uthash::
  uthash ships with these "extras"-- independent headers similar to uthash. 
  First link:utlist.html[utlist.h] provides linked list macros for C structures.
@@ -184,7 +189,7 @@ a unique value. Then call `HASH_ADD`. (Here we use the convenience macro
 
 .Add an item to a hash
 ----------------------------------------------------------------------
-int add_user(int user_id, char *name) {
+void add_user(int user_id, char *name) {
     struct my_struct *s;
 
     s = malloc(sizeof(struct my_struct));
@@ -265,24 +270,17 @@ The hash table pointer (which initially points to the first item added to the
 hash) can change in response to `HASH_DEL` (i.e. if you delete the first item
 in the hash table).
 
-Delete all items
-~~~~~~~~~~~~~~~~
-To delete all the structures in a hash table, you can either iteratively delete
-the items (if you plan to free each one or need to other per-element work), or
-you can delete all the items in a single operation.
-
 Iterative deletion
 ^^^^^^^^^^^^^^^^^^
-It's easy: just keep deleting the first item. If you plan to free it, copy the
-pointer beforehand since the delete will advance the "first item" to the next.
+The `HASH_ITER` macro is a deletion-safe iteration construct which expands
+to a simple 'for' loop.
 
 .Delete all items from a hash
 ----------------------------------------------------------------------
 void delete_all() {
-  user_struct *current_user; 
+  struct my_struct *current_user, *tmp; 
 
-  while(users) { 
-    current_user = users;          /* copy pointer to first item     */
+  HASH_ITER(hh, users, current_user, tmp) {
     HASH_DEL(users,current_user);  /* delete; users advances to next */
     free(current_user);            /* optional- if you want to free  */
   } 
@@ -332,6 +330,23 @@ void print_users() {
 
 There is also an `hh.prev` pointer you could use to iterate backwards through
 the hash, starting from any known item.
+
+[[deletesafe]]
+Deletion-safe iteration
+^^^^^^^^^^^^^^^^^^^^^^^
+In the example above, it would not be safe to delete and free `s` in the body
+of the 'for' loop, (because `s` is derefenced each time the loop iterates).
+This is easy to rewrite correctly (by copying the `s->hh.next` pointer to a
+temporary variable 'before' freeing `s`), but it comes up often enough that a
+deletion-safe iteration macro, `HASH_ITER`, is included. It expands to a
+`for`-loop header. Here is how it could be used to rewrite the last example:
+
+    struct my_struct *s, *tmp;
+
+    HASH_ITER(hh, users, s, tmp) {
+        printf("user id %d: name %s\n", s->id, s->name);
+        /* ... it is safe to delete and free s here */
+    }
 
 .A hash is also a doubly-linked list.
 *******************************************************************************
@@ -394,7 +409,7 @@ If this code was placed in a file called `example.c` in the same directory as
 
 Follow the prompts to try the program, and type `Ctrl-C` when done.
 
-.A complete program (part 1 of 2)
+.A complete program 
 ----------------------------------------------------------------------
 #include <stdio.h>   /* gets */
 #include <stdlib.h>  /* atoi, malloc */
@@ -409,7 +424,7 @@ struct my_struct {
 
 struct my_struct *users = NULL;
 
-int add_user(int user_id, char *name) {
+void add_user(int user_id, char *name) {
     struct my_struct *s;
 
     s = malloc(sizeof(struct my_struct));
@@ -431,10 +446,9 @@ void delete_user(struct my_struct *user) {
 }
 
 void delete_all() {
-  struct my_struct *current_user; 
+  struct my_struct *current_user, *tmp; 
 
-  while(users) { 
-    current_user = users;          /* grab pointer to first item */
+  HASH_ITER(hh, users, current_user, tmp) {
     HASH_DEL(users,current_user);  /* delete it (users advances to next) */
     free(current_user);            /* free it */
   } 
@@ -455,10 +469,7 @@ int name_sort(struct my_struct *a, struct my_struct *b) {
 int id_sort(struct my_struct *a, struct my_struct *b) {
     return (a->id - b->id);
 }
-----------------------------------------------------------------------
 
-.A complete program (part 2 of 2)
-----------------------------------------------------------------------
 void sort_by_name() {
     HASH_SORT(users, name_sort);
 }
@@ -528,7 +539,13 @@ Standard key types
 This section goes into specifics of how to work with different kinds of keys.
 You can use nearly any type of key-- integers, strings, pointers, structures, etc. 
 
-NOTE: Use of floating point values (`float` or `double`) as keys is not recommended.
+[NOTE]
+.A note about float
+================================================================================
+You can use floating point keys. This comes with the same caveats as with any
+program that tests floating point equality. In other words, even the tiniest
+difference in two floating point numbers makes them distinct keys.
+================================================================================
 
 Integer keys
 ~~~~~~~~~~~~
@@ -541,15 +558,19 @@ String keys
 ~~~~~~~~~~~
 If your structure has a string key, the operations to use depend on whether your
 structure 'points to' the key (`char *`) or the string resides `within` the
-structure (`char a[10]`).
+structure (`char a[10]`).  *This distinction is important*.  As we'll see below,
+you need to use `HASH_ADD_KEYPTR` when your structure 'points' to a key (that is,
+the key itself is 'outside' of the structure); in contrast, use `HASH_ADD_STR`
+for a string key that is contained *within* your structure.
 
 [NOTE]
 .char[ ] vs. char* 
 ================================================================================
 The string is 'within' the structure in the first example below-- `name` is a
-`char[10]` field.  If instead the structure 'points' to the key (i.e., `name` is
-declared `char *`), as in the second example below, use `HASH_ADD_KEYPTR`
-described in the <<Macro_reference,Macro reference>>.
+`char[10]` field.  In the second example, the key is 'outside' of the
+structure-- `name` is a `char *`. So the first example uses `HASH_ADD_STR` but
+the second example uses `HASH_ADD_KEYPTR`.  For information on this macro, see
+the <<Macro_reference,Macro reference>>.
 ================================================================================
 
 String 'within' structure
@@ -629,8 +650,11 @@ int main(int argc, char *argv[]) {
 
 Pointer keys
 ~~~~~~~~~~~~
-Your key can be a pointer. Here is a simple example where a structure has a
-pointer member, called `key`.
+Your key can be a pointer. To be very clear, this means the 'pointer itself'
+can be the key (in contrast, if the thing 'pointed to' is the key, this is a
+different use case handled by `HASH_ADD_KEYPTR`).
+
+Here is a simple example where a structure has a pointer member, called `key`.
 
 .A pointer key
 ----------------------------------------------------------------------
@@ -807,6 +831,82 @@ zero-filling it. This zeroes out any padding between the key fields. If we
 didn't zero-fill the structure, this padding would contain random values.  The
 random values would lead to `HASH_FIND` failures; as two "identical" keys will
 appear to mismatch if there are any differences within their padding.
+
+[[multilevel]]
+Multi-level hash tables
+~~~~~~~~~~~~~~~~~~~~~~~
+A multi-level hash table arises when each element of a hash table contains its
+own secondary hash table. There can be any number of levels. In a scripting
+language you might see:
+
+  $items{bob}{age}=37
+  
+The C program below builds this example in uthash: the hash table is called
+`items`. It contains one element (`bob`) whose own hash table contains one
+element (`age`) with value 37.  No special functions are necessary to build
+a multi-level hash table. 
+
+While this example represents both levels (`bob` and `age`) using the same
+structure, it would also be fine to use two different structure definitions.
+It would also be fine if there were three or more levels instead of two.
+
+.Multi-level hash table
+----------------------------------------------------------------------
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include "uthash.h"
+
+/* hash of hashes */
+typedef struct item {
+  char name[10];
+  struct item *sub;
+  int val;
+  UT_hash_handle hh;
+} item_t;
+
+item_t *items=NULL;
+
+int main(int argc, char *argvp[]) {
+  item_t *item1, *item2, *tmp1, *tmp2;
+
+  /* make initial element */
+  item_t *i = malloc(sizeof(*i));
+  strcpy(i->name, "bob");
+  i->sub = NULL;
+  i->val = 0;
+  HASH_ADD_STR(items, name, i);
+
+  /* add a sub hash table off this element */
+  item_t *s = malloc(sizeof(*s));
+  strcpy(s->name, "age");
+  s->sub = NULL;
+  s->val = 37;
+  HASH_ADD_STR(i->sub, name, s);
+
+  /* iterate over hash elements */
+  HASH_ITER(hh, items, item1, tmp1) {
+    HASH_ITER(hh, item1->sub, item2, tmp2) {
+      printf("$items{%s}{%s} = %d\n", item1->name, item2->name, item2->val);
+    }
+  }
+
+  return 0;
+}
+----------------------------------------------------------------------
+The example above is included in `tests/test59.c`.  By adding a few lines we
+can delete and free all the elements in the multi-level hash:
+
+  /* iterate over hash elements, deleting and freeing them */
+  HASH_ITER(hh, items, item1, tmp1) {
+    HASH_ITER(hh, item1->sub, item2, tmp2) {
+      HASH_DEL(item1->sub, item2);
+      free(item2);
+    }
+    HASH_DEL(items, item1);
+    free(item1);
+  }
+
 
 [[multihash]]
 Items in several hash tables
@@ -1011,7 +1111,7 @@ below. E.g.,
 |OAT    |   One-at-a-time
 |FNV    |   Fowler/Noll/Vo
 |SFH    |   Paul Hsieh 
-|MUR    |   MurmurHash (see note)
+|MUR    |   MurmurHash v3 (see note)
 |===============================================================================
 
 [NOTE]
@@ -1110,7 +1210,9 @@ approaches 100%, the hash table approaches constant-time lookup performance.
 [[hashscan]]
 hashscan
 ~~~~~~~~
-A *Linux-only* utility called `hashscan` is included in the `tests/` directory. It
+NOTE: This utility is only available on Linux, and on FreeBSD (8.1 and up).
+
+A utility called `hashscan` is included in the `tests/` directory. It
 is built automatically when you run `make` in that directory. This tool
 examines a running process and reports on the uthash tables that it finds in
 that program's memory. It can also save the keys from each table in a format
@@ -1453,6 +1555,7 @@ than `hh`, or if your key's data type isn't `int` or `char[]`.
 |HASH_CNT       | (hh_name, head)
 |HASH_CLEAR     | (hh_name, head)
 |HASH_SELECT    | (dst_hh_name, dst_head, src_hh_name, src_head, condition)
+|HASH_ITER      | (hh_name, head, item_ptr, tmp_item_ptr)
 |===============================================================================
 
 [NOTE]
@@ -1482,9 +1585,11 @@ key_ptr::
     (since it's a pointer, you can't directly pass a literal value here). For
     `HASH_ADD_KEYPTR`, this is the address of the key of the item being added.
 item_ptr::
-    pointer to the structure being added, deleted or looked up. This is an
-    input parameter for `HASH_ADD` and `HASH_DELETE` macros, and an output
-    parameter for `HASH_FIND`.
+    pointer to the structure being added, deleted, or looked up, or the current
+    pointer during iteration. This is an input parameter for `HASH_ADD` and
+    `HASH_DELETE` macros, and an output parameter for `HASH_FIND` and
+    `HASH_ITER`. (When using `HASH_ITER` to iterate, `tmp_item_ptr`
+    is another variable of the same type as `item_ptr`, used internally).
 cmp::
     pointer to comparison function which accepts two arguments (pointers to
     items to compare) and returns an int specifying whether the first item

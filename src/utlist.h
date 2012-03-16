@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Troy D. Hanson   http://uthash.sourceforge.net
+Copyright (c) 2007-2011, Troy D. Hanson   http://uthash.sourceforge.net
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -24,7 +24,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef UTLIST_H
 #define UTLIST_H
 
-#define UTLIST_VERSION 1.9.1
+#define UTLIST_VERSION 1.9.4
+
+#include <assert.h>
 
 /* 
  * This file contains macros to manipulate singly and doubly-linked lists.
@@ -62,7 +64,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    when compiling c++ code), this code uses whatever method is needed
    or, for VS2008 where neither is available, uses casting workarounds. */
 #ifdef _MSC_VER            /* MS compiler */
-#if _MSC_VER >= 1600 && __cplusplus  /* VS2010 and newer in C++ mode */
+#if _MSC_VER >= 1600 && defined(__cplusplus)  /* VS2010 or newer in C++ mode */
 #define LDECLTYPE(x) decltype(x)
 #else                     /* VS2008 or older (or VS2010 in C mode) */
 #define NO_DECLTYPE
@@ -290,6 +292,18 @@ do {                                                                            
   head = add;                                                                                  \
 } while (0)
 
+#define LL_CONCAT(head1,head2)                                                                 \
+do {                                                                                           \
+  LDECLTYPE(head1) _tmp;                                                                       \
+  if (head1) {                                                                                 \
+    _tmp = head1;                                                                              \
+    while (_tmp->next) { _tmp = _tmp->next; }                                                  \
+    _tmp->next=(head2);                                                                        \
+  } else {                                                                                     \
+    (head1)=(head2);                                                                           \
+  }                                                                                            \
+} while (0)
+
 #define LL_APPEND(head,add)                                                                    \
 do {                                                                                           \
   LDECLTYPE(head) _tmp;                                                                        \
@@ -355,6 +369,8 @@ do {                                                                            
 #define LL_APPEND LL_APPEND_VS2008
 #undef LL_DELETE
 #define LL_DELETE LL_DELETE_VS2008
+#undef LL_CONCAT /* no LL_CONCAT_VS2008 */
+#undef DL_CONCAT /* no DL_CONCAT_VS2008 */
 #endif
 /* end VS2008 replacements */
 
@@ -405,10 +421,26 @@ do {                                                                            
       (head)->prev = (head);                                                                   \
       (head)->next = NULL;                                                                     \
   }                                                                                            \
-} while (0)
+} while (0);
+
+#define DL_CONCAT(head1,head2)                                                                 \
+do {                                                                                           \
+  LDECLTYPE(head1) _tmp;                                                                       \
+  if (head2) {                                                                                 \
+    if (head1) {                                                                               \
+        _tmp = (head2)->prev;                                                                  \
+        (head2)->prev = (head1)->prev;                                                         \
+        (head1)->prev->next = (head2);                                                         \
+        (head1)->prev = _tmp;                                                                  \
+    } else {                                                                                   \
+        (head1)=(head2);                                                                       \
+    }                                                                                          \
+  }                                                                                            \
+} while (0);
 
 #define DL_DELETE(head,del)                                                                    \
 do {                                                                                           \
+  assert((del)->prev != NULL);                                                                 \
   if ((del)->prev == (del)) {                                                                  \
       (head)=NULL;                                                                             \
   } else if ((del)==(head)) {                                                                  \
@@ -422,14 +454,8 @@ do {                                                                            
           (head)->prev = (del)->prev;                                                          \
       }                                                                                        \
   }                                                                                            \
-} while (0)
+} while (0);
 
-#define DL_LENGTH(head,len,tmp)                                                                \
-do {                                                                                           \
-  len=0;                                                                                       \
-  DL_FOREACH(head,tmp)                                                                         \
-    len++;                                                                                     \
-} while (0)
 
 #define DL_FOREACH(head,el)                                                                    \
     for(el=head;el;el=el->next)
@@ -468,7 +494,7 @@ do {                                                                            
      (del)->prev->next = (del)->next;                                                          \
      if ((del) == (head)) (head)=(del)->next;                                                  \
   }                                                                                            \
-} while (0)
+} while (0);
 
 #define CDL_FOREACH(head,el)                                                                   \
     for(el=head;el;el=(el->next==head ? 0L : el->next)) 

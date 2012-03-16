@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2005-2009, Troy D. Hanson    http://uthash.sourceforge.net
+Copyright (c) 2005-2010, Troy D. Hanson    http://uthash.sourceforge.net
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,16 +34,28 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sys/wait.h>
 #include <assert.h>
 
+#ifdef __FreeBSD__
+#include <sys/param.h>  /* MAXPATHLEN */
+#include <vm/vm.h>      /* VM_PROT_* flags */
+#endif
+
 /* need this defined so offsetof can give us bloom offsets in UT_hash_table */
 #define HASH_BLOOM 16
 #include "uthash.h"
 
+#ifdef __FreeBSD__
+typedef struct {
+  void *start;
+  void *end;
+} vma_t;
+#else
 typedef struct {
   off_t start;
   off_t end;
   char perms[4];   /* rwxp */
   char device[5];  /* fd:01 or 00:00 */
 } vma_t;
+#endif
 
 const uint32_t sig = HASH_SIGNATURE;
 int verbose=0;
@@ -78,6 +90,29 @@ int infer_hash_function(char *key, size_t keylen, uint32_t hashv) {
 }
 
 /* read peer's memory from addr for len bytes, store into our dst */
+#ifdef __FreeBSD__
+int read_mem(void *dst, pid_t pid, void *start, size_t len) {
+  struct ptrace_io_desc io_desc;
+  int ret;
+
+  io_desc.piod_op = PIOD_READ_D;
+  io_desc.piod_offs = start;
+  io_desc.piod_addr = dst;
+  io_desc.piod_len = len;
+
+  ret = ptrace(PT_IO, pid, (void *) &io_desc, 0);
+  
+  if (ret) {
+    vv("read_mem: ptrace failed: %s\n", strerror(errno));
+    return -1;
+  } else if (io_desc.piod_len != len) {
+    vv("read_mem: short read!\n");
+    return -1;
+  }
+
+  return 0;
+}
+#else
 int read_mem(void *dst, int fd, off_t start, size_t len) {
   int rc;
   size_t bytes_read=0;
@@ -93,6 +128,7 @@ int read_mem(void *dst, int fd, off_t start, size_t len) {
   if ((len != 0 && rc >= 0)) vv("INTERNAL ERROR\n");
   return (rc == -1) ? -1 : 0;
 }
+#endif
 
 /* later compensate for possible presence of bloom filter */
 char *tbl_from_sig_addr(char *sig) {
@@ -136,7 +172,11 @@ void found(int fd, char* peer_sig, pid_t pid) {
     fprintf(stderr, "out of memory\n");
     exit(-1);
   }
+#ifdef __FreeBSD__
+  if (read_mem(tbl, pid, (void *)peer_tbl, sizeof(UT_hash_table)) != 0) {
+#else
   if (read_mem(tbl, fd, (off_t)peer_tbl, sizeof(UT_hash_table)) != 0) {
+#endif
     fprintf(stderr, "failed to read peer memory\n");
     goto done;
   }
@@ -149,7 +189,11 @@ void found(int fd, char* peer_sig, pid_t pid) {
     fprintf(stderr, "out of memory\n");
     exit(-1);
   }
+#ifdef __FreeBSD__
+  if (read_mem(bkts, pid, (void *)peer_bkts, sizeof(UT_hash_bucket)*tbl->num_buckets) != 0) {
+#else
   if (read_mem(bkts, fd, (off_t)peer_bkts, sizeof(UT_hash_bucket)*tbl->num_buckets) != 0) {
+#endif
     fprintf(stderr, "failed to read peer memory\n");
     goto done;
   }
@@ -163,7 +207,11 @@ void found(int fd, char* peer_sig, pid_t pid) {
     vvv("scanning bucket %u chain:\n",  (unsigned)i);
     peer_hh = (char*)bkts[i].hh_head;
     while(peer_hh) {
+#ifdef __FreeBSD__
+      if (read_mem(&hh, pid, (void *)peer_hh, sizeof(hh)) != 0) {
+#else
       if (read_mem(&hh, fd, (off_t)peer_hh, sizeof(hh)) != 0) {
+#endif
         fprintf(stderr, "failed to read peer memory\n");
         goto done;
       }
@@ -175,7 +223,11 @@ void found(int fd, char* peer_sig, pid_t pid) {
         fprintf(stderr, "out of memory\n");
         exit(-1);
       }
+#ifdef __FreeBSD__
+      if (read_mem(key, pid, (void*)peer_key, hh.keylen) != 0) {
+#else
       if (read_mem(key, fd, (off_t)peer_key, hh.keylen) != 0) {
+#endif
         fprintf(stderr, "failed to read peer memory\n");
         goto done;
       }
@@ -194,11 +246,20 @@ void found(int fd, char* peer_sig, pid_t pid) {
   peer_bloombv_ptr = peer_tbl + offsetof(UT_hash_table, bloom_bv);
   peer_bloom_nbits = peer_tbl + offsetof(UT_hash_table, bloom_nbits);
   vvv("looking for bloom signature at peer %p\n", peer_bloom_sig);
+#ifdef __FreeBSD__
+  if ((read_mem(&bloomsig, pid, (void *)peer_bloom_sig, sizeof(uint32_t)) == 0)  &&
+      (bloomsig == HASH_BLOOM_SIGNATURE)) {
+#else
   if ((read_mem(&bloomsig, fd, (off_t)peer_bloom_sig, sizeof(uint32_t)) == 0)  &&
       (bloomsig == HASH_BLOOM_SIGNATURE)) {
+#endif
     vvv("bloom signature (%x) found\n",bloomsig);
     /* bloom found. get at bv, nbits */
+#ifdef __FreeBSD__
+    if (read_mem(&bloom_nbits, pid, (void *)peer_bloom_nbits, sizeof(char)) == 0) {
+#else
     if (read_mem(&bloom_nbits, fd, (off_t)peer_bloom_nbits, sizeof(char)) == 0) {
+#endif
        /* scan bloom filter, calculate saturation */
        bloom_bitlen = (1ULL << bloom_nbits);
        bloom_len = (bloom_bitlen / 8) + ((bloom_bitlen % 8) ? 1 : 0);
@@ -208,8 +269,13 @@ void found(int fd, char* peer_sig, pid_t pid) {
           exit(-1);
        }
        /* read the address of the bitvector in the peer, then read the bv itself */
+#ifdef __FreeBSD__
+       if ((read_mem(&peer_bloombv, pid, (void *)peer_bloombv_ptr, sizeof(void*)) == 0) &&
+          (read_mem(bloombv, pid, (void *)peer_bloombv, bloom_len) == 0)) {
+#else
        if ((read_mem(&peer_bloombv, fd, (off_t)peer_bloombv_ptr, sizeof(void*)) == 0) && 
           (read_mem(bloombv, fd, (off_t)peer_bloombv, bloom_len) == 0)) {
+#endif
           /* calculate saturation */
           vvv("read peer bloom bitvector from %p (%u bytes)\n", peer_bloombv, (unsigned)bloom_len);
           for(i=0; i < bloom_bitlen; i++) {
@@ -269,6 +335,59 @@ Address            items    ideal  buckets mxch/<10 fl bloom/sat fcn keys saved 
   if (bloombv) free(bloombv);
 }
 
+
+#ifdef __FreeBSD__
+void sigscan(pid_t pid, void *start, void *end, uint32_t sig) {
+  struct ptrace_io_desc io_desc;
+  int page_size = getpagesize();
+  char *buf;
+  char *pos;
+
+  /* make sure page_size is a multiple of the signature size, code below assumes this */
+  assert(page_size % sizeof(sig) == 0);
+
+  buf = malloc(page_size);
+
+  if (buf == NULL) {
+	fprintf(stderr, "malloc failed in sigscan()\n");
+	return;
+  }
+
+  io_desc.piod_op = PIOD_READ_D;
+  io_desc.piod_offs = start;
+  io_desc.piod_addr = buf;
+  io_desc.piod_len = page_size;
+
+  /* read in one page after another and search sig */
+  while(!ptrace(PT_IO, pid, (void *) &io_desc, 0)) {
+    if (io_desc.piod_len != page_size) {
+      fprintf(stderr, "PT_IO returned less than page size in sigscan()\n");
+      return;
+    }
+    
+    /* iterate over the the page using the signature size and look for the sig */
+    for (pos = buf; pos < (buf + page_size); pos += sizeof(sig)) {
+      if (*(uint32_t *) pos == sig) {
+        found(pid, (char *) io_desc.piod_offs + (pos - buf), pid);
+      }
+    }
+    
+    /* 
+     * 'end' is inclusive (the address of the last valid byte), so if the current offset
+     * plus a page is beyond 'end', we're already done. since all vm map entries consist
+     * of entire pages and 'end' is inclusive, current offset plus one page should point 
+     * exactly one byte beyond 'end'. this is assert()ed below to be on the safe side.
+     */
+    if (io_desc.piod_offs + page_size > end) {
+      assert(io_desc.piod_offs + page_size == (end + 1));
+      break;
+    }
+    
+    /* advance to the next page */
+    io_desc.piod_offs += page_size;
+  }
+}
+#else
 void sigscan(int fd, off_t start, off_t end, uint32_t sig, pid_t pid) {
   int rlen;
   uint32_t u;
@@ -290,49 +409,90 @@ void sigscan(int fd, off_t start, off_t end, uint32_t sig, pid_t pid) {
     //exit(-1);
   }
 }
+#endif
 
-void usage(const char *prog) {
-  fprintf(stderr,"usage: %s [-v] [-k] <pid>\n", prog);
-  exit(-1);
-}
 
-/* return 1 if region is in one of the vma's, so ok to try to read */
-int region_in_vma(char *start, size_t len, vma_t *vmas, unsigned num_vmas) {
-  unsigned i;
-  for(i=0; i<num_vmas; i++) {
-    if (((off_t)start     >= vmas[i].start) && 
-        ((off_t)(start+len) <= vmas[i].end)) return 1;
+#ifdef __FreeBSD__
+int scan(pid_t pid) {
+  vma_t *vmas=NULL, vma;
+  unsigned i, num_vmas = 0;
+  int ret;
+  struct ptrace_vm_entry vm_entry;
+  char path[MAXPATHLEN];
+
+  vv("attaching to peer\n");
+  if (ptrace(PT_ATTACH,pid,NULL,0) == -1) {
+    fprintf(stderr,"failed to attach to %u: %s\n", (unsigned)pid, strerror(errno));
+    exit(EXIT_FAILURE);
+  }
+  vv("waiting for peer to suspend temporarily\n");
+  if (waitpid(pid,NULL,0) != pid) {
+    fprintf(stderr,"failed to wait for pid %u: %s\n",(unsigned)pid, strerror(errno));
+    goto die;
+  }
+  
+  /* read memory map using ptrace */
+  vv("listing peer virtual memory areas\n");
+  vm_entry.pve_entry = 0;
+  vm_entry.pve_path = path; /* not used but required to make vm_entry.pve_pathlen work */
+  while(1) {
+    /* set pve_pathlen every turn, it gets overwritten by ptrace */
+    vm_entry.pve_pathlen = MAXPATHLEN;
+    errno = 0;
+    
+    ret = ptrace(PT_VM_ENTRY, pid, (void *) &vm_entry, 0);
+    
+    if (ret) {
+      if (errno == ENOENT) {
+        /* we've reached the last entry */
+	break;
+      }
+      fprintf(stderr, "fetching vm map entry failed: %s (%i)\n", strerror(errno), errno);
+      goto die;
+    }
+    
+    vvv("vmmap entry: start: %p, end: %p", (void *) vm_entry.pve_start, (void *) vm_entry.pve_end);
+    
+    /* skip unreadable or vnode-backed entries */
+    if (!(vm_entry.pve_prot & VM_PROT_READ) || vm_entry.pve_pathlen > 0) {
+      vvv(" -> skipped (not readable or vnode-backed)\n");
+      vm_entry.pve_path[0] = 0;
+      continue;
+    }
+
+    /* useful entry, add to list */
+    vvv(" -> will be scanned\n");
+    vma.start = (void *)vm_entry.pve_start;
+    vma.end = (void *)vm_entry.pve_end;
+    vmas = (vma_t *) realloc(vmas, (num_vmas + 1) * sizeof(vma_t));
+    vmas[num_vmas++] = vma;
+  }
+
+  vv("peer has %u virtual memory areas\n", num_vmas);
+  
+  /* look for the hash signature */
+  vv("scanning peer memory for hash table signatures\n");
+  for(i=0;i<num_vmas;i++) {
+    vma = vmas[i];
+    sigscan(pid, vma.start, vma.end, sig);
+  }
+ 
+die:
+  vv("detaching and resuming peer\n");
+  if (ptrace(PT_DETACH, pid, NULL, 0) == -1) {
+    fprintf(stderr,"failed to detach from %u: %s\n", (unsigned)pid, strerror(errno));
   }
   return 0;
 }
-
-
-int main(int argc, char *argv[]) {
-  pid_t pid;
+# else
+int scan(pid_t pid) {
   FILE *mapf;
   char mapfile[30], memfile[30], line[100];
   vma_t *vmas=NULL, vma;
   unsigned i, num_vmas = 0;
-  int memfd,opt;
+  int memfd;
   void *pstart, *pend, *unused;
-
-  while ( (opt = getopt(argc, argv, "kv")) != -1) {
-    switch (opt) {
-      case 'v':
-        verbose++;
-        break;
-      case 'k':
-        getkeys++;
-        break;
-      default:
-        usage(argv[0]);
-        break;
-    }
-  }
- 
-  if (optind < argc) pid=atoi(argv[optind++]);
-  else usage(argv[0]);
-
+  
   /* attach to the target process and wait for it to suspend */
   vv("attaching to peer\n");
   if (ptrace(PTRACE_ATTACH,pid,NULL,NULL) == -1) {
@@ -394,4 +554,35 @@ int main(int argc, char *argv[]) {
     fprintf(stderr,"failed to detach from %u: %s\n", (unsigned)pid, strerror(errno));
   }
   return 0;
+}
+#endif
+
+
+void usage(const char *prog) {
+  fprintf(stderr,"usage: %s [-v] [-k] <pid>\n", prog);
+  exit(-1);
+}
+
+int main(int argc, char *argv[]) {
+  pid_t pid;
+  int opt;
+
+  while ( (opt = getopt(argc, argv, "kv")) != -1) {
+    switch (opt) {
+      case 'v':
+        verbose++;
+        break;
+      case 'k':
+        getkeys++;
+        break;
+      default:
+        usage(argv[0]);
+        break;
+    }
+  }
+ 
+  if (optind < argc) pid=atoi(argv[optind++]);
+  else usage(argv[0]);
+
+  return scan(pid);
 }

@@ -59,6 +59,14 @@ test54: test utstring
 test55: test utstring
 test56: test uthash, utlist and utstring together for #define conflicts etc
 test57: test uthash HASH_ADD_PTR and HASH_FIND_PTR
+test58: test HASH_ITER macro
+test59: sample of multi-level hash 
+test60: sample of multi-level hash that also does HASH_DEL and free
+test61: test utarray_find
+test62: test macros used in safe unaligned reads on non-Intel type platforms
+test63: LL_CONCAT test
+test64: DL_CONCAT test
+test65: LRU cache example courtesy of jehiah.cz with modifications
 
 Other Make targets
 ================================================================================

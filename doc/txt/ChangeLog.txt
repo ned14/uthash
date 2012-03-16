@@ -5,10 +5,43 @@ include::sflogo.txt[]
 
 Click to return to the link:index.html[uthash home page].
 
-Version ?.?.? (201?-??-??)
+Version 1.9.5 (2011-11-16)
 --------------------------
-* Add sz parameter to `uthash_free` for convenience on embedded platforms
-(thanks, Niall Douglas)
+* added `utarray_renew`
+* fixed memory leak in `uthash_clear` when using Bloom filter (thanks, Jan Hättig!)
+* utarray now copies the UT_icd on array creation rather than storing a pointer
+* add parentheses to `HASH_ADD` to fix preprocessing of certain arguments (thanks, Aaron Rosen!) 
+* more parenthesizations for greater macro argument flexibility
+
+Version 1.9.4 (2011-06-05)
+--------------------------
+* uthash now supports MurmurHash v3 
+* utlist now includes concatenation macros (`LL_CONCAT` and `DL_CONCAT`)
+* utarray now supports binary search (`utarray_find`)
+* utstring now supports a new-or-clear-existing macro (`utstring_renew`)
+* documented technique for a multi-level hash table 
+* clarified scope requirements for `UT_icd` in the utarray documentation
+* fixed termination when `utstring_clear` is followed by `utstring_body` 
+* fixed utarray_inserta macro when used with complex arguments
+* on Visual Studio define missing type `uint8_t` 
+* Debian/Ubuntu include uthash in the package `uthash-dev`. 
+* uthash has been downloaded 16,211 times. 
+
+Thanks to Yu Feng, Richard Cook, Dino Ciuffetti, Chris Groer, and Arun Cherian
+for feedback and fixes in this release!
+
+Version 1.9.3 (2010-10-31)
+--------------------------
+* fix an `ifdef` for compatibility with Intel compiler (thanks, degski!)
+* fix `HASH_ITER` macro to satisfy C++ casting rules (thanks, Erik Bai!)
+
+Version 1.9.2 (2010-10-04)
+--------------------------
+* new `HASH_ITER` macro for more convenient deletion-safe iteration
+* `hashscan` can now run on FreeBSD 8.1 and later (thanks, Markus Gebert!)
+* More parens to evaluate complex macro arguments properly (thanks, ngg!)
+* Add sz parameter to the `uthash_free` hook for platforms that do their own memory management. Hopefully this minor API change doesn't cause too much breakage for people. (thanks, Niall Douglas!)
+* uthash has been downloaded 12,294 times
 
 Version 1.9.1 (2010-05-15)
 --------------------------

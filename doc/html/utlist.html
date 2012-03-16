@@ -2,20 +2,27 @@
     "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.5.0" />
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.6" />
 <title>utlist: linked list macros for C structures</title>
 <link rel="stylesheet" href="./tdh.css" type="text/css" />
-<link rel="stylesheet" href="./tdh-quirks.css" type="text/css" />
+<script type="text/javascript" src="./asciidoc.js"></script>
+<script type="text/javascript" src="./tdh.js"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+asciidoc.install();
+/*]]>*/
+</script>
 </head>
-<body>
+<body class="article">
 <div id="header">
 <h1>utlist: linked list macros for C structures</h1>
 <span id="author">Troy D. Hanson</span><br />
 <span id="email"><tt>&lt;<a href="mailto:thanson@users.sourceforge.net">thanson@users.sourceforge.net</a>&gt;</tt></span><br />
-<span id="revnumber">version 1.9,</span>
-<span id="revdate">March 2010</span>
+<span id="revnumber">version 1.9.5,</span>
+<span id="revdate">November 2011</span>
 </div>
+<div id="content">
 <div id="preamble">
 <div class="sectionbody">
 <a style="float: right; padding-right: 50px" href="http://sourceforge.net/projects/uthash"><img style="border: 0" src="http://sflogo.sourceforge.net/sflogo.php?group_id=163879&amp;type=13" width="120" height="30" alt="uthash at SourceForge.net" /></a>
@@ -25,6 +32,7 @@
   </div>
 </div>
 </div>
+<div class="sect1">
 <h2 id="_introduction">Introduction</h2>
 <div class="sectionbody">
 <div id="toc"></div>
@@ -117,14 +125,19 @@ copy <tt>utlist.h</tt> into your source directory and use it in your programs.</
 </div></div>
 <div class="paragraph"><p>These macros support the basic linked list operations: adding and deleting
 elements, sorting them and iterating over them.</p></div>
-<h3 id="_download">Download</h3><div style="clear:left"></div>
+<div class="sect2">
+<h3 id="_download">Download</h3>
 <div class="paragraph"><p>To download the <tt>utlist.h</tt> header file, follow the link on the
 <a href="http://uthash.sourceforge.net">uthash home page</a>.</p></div>
-<h3 id="_bsd_licensed">BSD licensed</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_bsd_licensed">BSD licensed</h3>
 <div class="paragraph"><p>This software is made available under the
 <a href="license.html">revised BSD license</a>.
 It is free and open source.</p></div>
-<h3 id="_platforms">Platforms</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_platforms">Platforms</h3>
 <div class="paragraph"><p>The <em>utlist</em> macros have been tested on:</p></div>
 <div class="ulist"><ul>
 <li>
@@ -144,9 +157,13 @@ Windows, using Visual Studio 2008, Visual Studio 2010, or Cygwin/MinGW.
 </li>
 </ul></div>
 </div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_using_utlist">Using utlist</h2>
 <div class="sectionbody">
-<h3 id="_types_of_lists">Types of lists</h3><div style="clear:left"></div>
+<div class="sect2">
+<h3 id="_types_of_lists">Types of lists</h3>
 <div class="paragraph"><p>Three types of linked lists are supported:</p></div>
 <div class="ulist"><ul>
 <li>
@@ -165,6 +182,7 @@ Windows, using Visual Studio 2008, Visual Studio 2010, or Cygwin/MinGW.
 </p>
 </li>
 </ul></div>
+<div class="sect3">
 <h4 id="_efficiency">Efficiency</h4>
 <div class="paragraph"><p>For all types of lists, prepending elements and deleting elements are
 constant-time operations. Appending to a singly-linked list is an <em>O(n)</em>
@@ -173,13 +191,16 @@ macros.  (This is because, in the utlist implementation of the doubly-linked
 list, the head element&#8217;s <tt>prev</tt> member points back to the list tail, even when
 the list is non-circular). Sorting is an <em>O(n log(n))</em> operation. Iteration
 and searching are <tt>O(n)</tt> for all list types.</p></div>
-<h3 id="_list_elements">List elements</h3><div style="clear:left"></div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_list_elements">List elements</h3>
 <div class="paragraph"><p>You can use any structure with these macros, as long as the structure
 contains a <tt>next</tt> pointer. If you want to make a doubly-linked list,
 the element also needs to have a <tt>prev</tt> pointer.</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><tt>typedef struct {
+<pre><tt>typedef struct element {
     char *name;
     struct element *prev; /* needed for a doubly-linked list only */
     struct element *next; /* needed for singly- or doubly-linked lists */
@@ -187,14 +208,18 @@ the element also needs to have a <tt>prev</tt> pointer.</p></div>
 </div></div>
 <div class="paragraph"><p>You can name your structure anything. In the example above it is called <tt>element</tt>.
 Within a particular list, all elements must be of the same type.</p></div>
-<h3 id="_list_head">List head</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_list_head">List head</h3>
 <div class="paragraph"><p>The list head is simply a pointer to your element structure. You can name it
 anything. <strong>It must be initialized to <tt>NULL</tt></strong>.</p></div>
 <div class="literalblock">
 <div class="content">
 <pre><tt>element *head = NULL;</tt></pre>
 </div></div>
-<h3 id="_list_operations">List operations</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_list_operations">List operations</h3>
 <div class="paragraph"><p>The lists support inserting or deleting elements, sorting the elements and
 iterating over them.</p></div>
 <div class="tableblock">
@@ -221,6 +246,11 @@ cellspacing="0" cellpadding="4">
 <tr>
 <td align="left" valign="top"><p class="table"><tt>LL_APPEND(head,add);</tt></p></td>
 <td align="left" valign="top"><p class="table"><tt>DL_APPEND(head,add);</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt></tt></p></td>
+</tr>
+<tr>
+<td align="left" valign="top"><p class="table"><tt>LL_CONCAT(head1,head2);</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>DL_CONCAT(head1,head2);</tt></p></td>
 <td align="left" valign="top"><p class="table"><tt></tt></p></td>
 </tr>
 <tr>
@@ -258,7 +288,9 @@ cellspacing="0" cellpadding="4">
 </div>
 <div class="paragraph"><p><em>Prepend</em> means to insert an element in front of the existing list head (if any),
 changing the list head to the new element. <em>Append</em> means to add an element at the
-end of the list, so it becomes the new tail element.</p></div>
+end of the list, so it becomes the new tail element. <em>Concatenate</em> takes two
+properly constructed lists and appends the second list to the first.  (Visual
+Studio 2008 does not support <tt>LL_CONCAT</tt> and <tt>DL_CONCAT</tt>, but VS2010 is ok.)</p></div>
 <div class="paragraph"><p>The <em>sort</em> operation never moves the elements in memory; rather it only adjusts
 the list order by altering the <tt>prev</tt> and <tt>next</tt> pointers in each element. Also
 the sort operation can change the list head to point to a new element.</p></div>
@@ -359,7 +391,9 @@ val
 </p>
 </dd>
 </dl></div>
-<h3 id="_example">Example</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_example">Example</h3>
 <div class="paragraph"><p>This example program reads names from a text file (one name per line), and
 appends each name to a doubly-linked list. Then it sorts and prints them.</p></div>
 <div class="listingblock">
@@ -417,10 +451,14 @@ int main(int argc, char *argv[]) {
 }</tt></pre>
 </div></div>
 </div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Version 1.9<br />
-Last updated 2010-03-13 23:46:40 PDT
+Version 1.9.5<br />
+Last updated 2011-11-16 23:21:46 EST
 </div>
 </div>
 </body>

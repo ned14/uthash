@@ -1,7 +1,7 @@
 utlist: linked list macros for C structures
 ===========================================
 Troy D. Hanson <thanson@users.sourceforge.net>
-v1.9, March 2010
+v1.9.5, November 2011
 
 include::sflogo.txt[]
 include::topnav_utlist.txt[]
@@ -65,7 +65,7 @@ You can use any structure with these macros, as long as the structure
 contains a `next` pointer. If you want to make a doubly-linked list, 
 the element also needs to have a `prev` pointer.
 
-  typedef struct {
+  typedef struct element {
       char *name;
       struct element *prev; /* needed for a doubly-linked list only */
       struct element *next; /* needed for singly- or doubly-linked lists */
@@ -91,6 +91,7 @@ iterating over them.
 |Singly-linked             | Doubly-linked              | Circular, doubly-linked
 |LL_PREPEND(head,add);     | DL_PREPEND(head,add);      | CDL_PREPEND(head,add;
 |LL_APPEND(head,add);      | DL_APPEND(head,add);       | 
+|LL_CONCAT(head1,head2);   | DL_CONCAT(head1,head2);    | 
 |LL_DELETE(head,del);      | DL_DELETE(head,del);       | CDL_DELETE(head,del);
 |LL_SORT(head,cmp);        | DL_SORT(head,cmp);         | CDL_SORT(head,cmp);
 |LL_FOREACH(head,elt) {...}| DL_FOREACH(head,elt) {...} | CDL_FOREACH(head,elt) {...}
@@ -101,7 +102,9 @@ iterating over them.
 
 'Prepend' means to insert an element in front of the existing list head (if any),
 changing the list head to the new element. 'Append' means to add an element at the
-end of the list, so it becomes the new tail element.  
+end of the list, so it becomes the new tail element. 'Concatenate' takes two
+properly constructed lists and appends the second list to the first.  (Visual
+Studio 2008 does not support `LL_CONCAT` and `DL_CONCAT`, but VS2010 is ok.)
 
 The 'sort' operation never moves the elements in memory; rather it only adjusts
 the list order by altering the `prev` and `next` pointers in each element. Also
