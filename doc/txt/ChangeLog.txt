@@ -5,6 +5,13 @@ include::sflogo.txt[]
 
 Click to return to the link:index.html[uthash home page].
 
+Version 1.9.6 (2012-04-28)
+--------------------------
+* add utarray_prev (thanks, Ben Hiett!)
+* add parens/casts for greater compatibility (thanks, Atis, Debasis Ganguly, and Steve McClellan!)
+* added ifndef to uthash_malloc and related hooks (thanks, Holger Machens!)
+* edit examples so they do not leak memory (thanks, 任晶磊!)
+
 Version 1.9.5 (2011-11-16)
 --------------------------
 * added `utarray_renew`

@@ -67,6 +67,8 @@ test62: test macros used in safe unaligned reads on non-Intel type platforms
 test63: LL_CONCAT test
 test64: DL_CONCAT test
 test65: LRU cache example courtesy of jehiah.cz with modifications
+test66: test example where output variable to HASH_FIND needs extra parens
+test67: test utarray_prev
 
 Other Make targets
 ================================================================================

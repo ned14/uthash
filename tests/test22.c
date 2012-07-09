@@ -20,7 +20,7 @@ typedef struct {
 
 int main(int argc, char *argv[]) {
     unsigned keylen;
-    msg_t *msg, *msgs = NULL;
+    msg_t *msg, *tmp, *msgs = NULL;
     lookup_key_t *lookup_key;
 
     int beijing[] = {0x5317, 0x4eac};   /* UTF-32LE for 北京 */
@@ -50,5 +50,10 @@ int main(int argc, char *argv[]) {
     HASH_FIND( hh, msgs, &lookup_key->encoding, keylen, msg );
     if (msg) printf("found \n");
     free(lookup_key);
+
+    HASH_ITER(hh, msgs, msg, tmp) {
+      HASH_DEL(msgs, msg);
+      free(msg);
+    }
     return 0;
 }

@@ -1,7 +1,7 @@
 uthash User Guide
 =================
 Troy D. Hanson <thanson@users.sourceforge.net>
-v1.9.5, November 2011
+v1.9.6, April 2012
 
 include::sflogo.txt[]
 include::topnav.txt[]
@@ -25,7 +25,7 @@ This software supports these operations on items in a hash table:
 4. count
 5. iterate
 6. sort
-7. select (explained later)
+7. select 
 
 Is it fast?
 ~~~~~~~~~~~
@@ -97,6 +97,8 @@ Extras included with uthash::
  First link:utlist.html[utlist.h] provides linked list macros for C structures.
  Second, link:utarray.html[utarray.h] implements dynamic arrays using macros. 
  Third, link:utstring.html[utstring.h] implements a basic dynamic string.
+Other software::
+ Other open-source software by the author is listed at http://tkhanson.net.
 
 Who's using it?
 ~~~~~~~~~~~~~~~
@@ -153,6 +155,12 @@ the internal bookkeeping that makes the hash work.  It does not require
 initialization. It can be named anything, but you can simplify matters by
 naming it `hh`. This allows you to use the easier "convenience" macros to add,
 find and delete items.
+
+A word about memory
+~~~~~~~~~~~~~~~~~~~
+Some have asked how uthash cleans up its internal memory. The answer is simple:
+'when you delete the final item' from a hash table, uthash releases all the
+internal memory associated with that hash table, and sets its pointer to NULL.
 
 Hash operations
 ---------------
@@ -215,6 +223,33 @@ Key must not be modified while in-use
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Once a structure has been added to the hash, do not change the value of its key.
 Instead, delete the item from the hash, change the key, and then re-add it.
+
+Passing the hash pointer into functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In the example above `users` is a global variable, but what if the caller wanted
+to pass the hash pointer 'into' the `add_user` function? At first glance it would 
+appear that you could simply pass `users` as an argument, but that won't work
+right. 
+
+  /* bad */
+  void add_user(struct my_struct *users, int user_id, char *name) { 
+    ...
+    HASH_ADD_INT( users, id, s );  
+  }
+
+You really need to pass 'a pointer' to the hash pointer: 
+
+  /* good */
+  void add_user(struct my_struct **users, int user_id, char *name) { ...
+    ...
+    HASH_ADD_INT( *users, id, s );
+  }
+
+Note that we dereferenced the pointer in the `HASH_ADD` also.
+
+The reason it's necessary to deal with a pointer to the hash pointer is simple:
+the hash macros modify it (in other words, they modify the 'pointer itself' not
+just what it points to). 
 
 Find item 
 ~~~~~~~~~
@@ -407,7 +442,7 @@ If this code was placed in a file called `example.c` in the same directory as
     cc -o example example.c
     ./example
 
-Follow the prompts to try the program, and type `Ctrl-C` when done.
+Follow the prompts to try the program.
 
 .A complete program 
 ----------------------------------------------------------------------
@@ -427,7 +462,7 @@ struct my_struct *users = NULL;
 void add_user(int user_id, char *name) {
     struct my_struct *s;
 
-    s = malloc(sizeof(struct my_struct));
+    s = (struct my_struct*)malloc(sizeof(struct my_struct));
     s->id = user_id;
     strcpy(s->name, name);
     HASH_ADD_INT( users, id, s );  /* id: name of key field */
@@ -457,7 +492,7 @@ void delete_all() {
 void print_users() {
     struct my_struct *s;
 
-    for(s=users; s != NULL; s=s->hh.next) {
+    for(s=users; s != NULL; s=(struct my_struct*)(s->hh.next)) {
         printf("user id %d: name %s\n", s->id, s->name);
     }
 }
@@ -480,11 +515,11 @@ void sort_by_id() {
 
 int main(int argc, char *argv[]) {
     char in[10];
-    int id=1;
+    int id=1, running=1;
     struct my_struct *s;
     unsigned num_users;
 
-    while (1) {
+    while (running) {
         printf("1. add user\n");
         printf("2. find user\n");
         printf("3. delete user\n");
@@ -493,6 +528,7 @@ int main(int argc, char *argv[]) {
         printf("6. sort items by id\n");
         printf("7. print users\n");
         printf("8. count users\n");
+        printf("9. quit\n");
         gets(in);
         switch(atoi(in)) {
             case 1:
@@ -526,8 +562,14 @@ int main(int argc, char *argv[]) {
                 num_users=HASH_COUNT(users);
                 printf("there are %u users\n", num_users);
                 break;
+            case 9:
+                running=0;
+                break;
         }
     }
+
+    delete_all();  /* free any structures */
+    return 0;
 }
 ----------------------------------------------------------------------
 
@@ -591,19 +633,26 @@ struct my_struct {
 
 
 int main(int argc, char *argv[]) {
-    char **n, *names[] = { "joe", "bob", "betty", NULL };
-    struct my_struct *s, *users = NULL;
+    const char **n, *names[] = { "joe", "bob", "betty", NULL };
+    struct my_struct *s, *tmp, *users = NULL;
     int i=0;
 
     for (n = names; *n != NULL; n++) {
-        s = malloc(sizeof(struct my_struct));
-        strcpy(s->name, *n);
+        s = (struct my_struct*)malloc(sizeof(struct my_struct));
+        strncpy(s->name, *n,10);
         s->id = i++;
         HASH_ADD_STR( users, name, s );  
     }
 
     HASH_FIND_STR( users, "betty", s);
     if (s) printf("betty's id is %d\n", s->id);
+
+    /* free the hash table contents */
+    HASH_ITER(hh, users, s, tmp) {
+      HASH_DEL(users, s);
+      free(s);
+    }
+    return 0;
 }
 ----------------------------------------------------------------------
 
@@ -624,15 +673,15 @@ Now, here is the same example but using a `char *` key instead of `char [ ]`:
 #include "uthash.h"
 
 struct my_struct {
-    char *name;                /* key (structure POINTS TO string */
+    const char *name;          /* key */
     int id;                    
     UT_hash_handle hh;         /* makes this structure hashable */
 };
 
 
 int main(int argc, char *argv[]) {
-    char **n, *names[] = { "joe", "bob", "betty", NULL };
-    struct my_struct *s, *users = NULL;
+    const char **n, *names[] = { "joe", "bob", "betty", NULL };
+    struct my_struct *s, *tmp, *users = NULL;
     int i=0;
 
     for (n = names; *n != NULL; n++) {
@@ -644,9 +693,17 @@ int main(int argc, char *argv[]) {
 
     HASH_FIND_STR( users, "betty", s);
     if (s) printf("betty's id is %d\n", s->id);
-   return 0;
+
+    /* free the hash table contents */
+    HASH_ITER(hh, users, s, tmp) {
+      HASH_DEL(users, s);
+      free(s);
+    }
+    return 0;
 }
 ----------------------------------------------------------------------
+
+This example is included in `tests/test40.c`.
 
 Pointer keys
 ~~~~~~~~~~~~
@@ -680,10 +737,17 @@ int main() {
   HASH_ADD_PTR(hash,key,e);
   HASH_FIND_PTR(hash, &someaddr, d);
   if (d) printf("found\n");
+
+  /* release memory */
+  HASH_DEL(hash,e);
   free(e);
   return 0;
 }
 ----------------------------------------------------------------------
+
+This example is included in `tests/test57.c`. Note that the end of the program
+deletes the element out of the hash, (and since no more elements remain in the
+hash), uthash releases its internal memory.
 
 Structure keys
 ~~~~~~~~~~~~~~
@@ -703,32 +767,37 @@ interest. The example below does this-- see the two calls to `memset`.
 #include <stdio.h>
 #include "uthash.h"
 
-typedef struct {   /* this structure will be our key */
+typedef struct {
   char a;
   int b;
 } record_key_t;
 
-typedef struct {  /* the hash is comprised of these */
+typedef struct {
     record_key_t key;
     /* ... other data ... */
     UT_hash_handle hh;
 } record_t;
 
 int main(int argc, char *argv[]) {
-    record_t l, *p, *r, *records = NULL;
+    record_t l, *p, *r, *tmp, *records = NULL;
 
     r = (record_t*)malloc( sizeof(record_t) );
-    memset(r, 0, sizeof(record_t)); /* zero fill! */
+    memset(r, 0, sizeof(record_t));
     r->key.a = 'a';
     r->key.b = 1;
     HASH_ADD(hh, records, key, sizeof(record_key_t), r);
 
-    memset(&l, 0, sizeof(record_t)); /* zero fill! */
+    memset(&l, 0, sizeof(record_t));
     l.key.a = 'a';
     l.key.b = 1;
     HASH_FIND(hh, records, &l.key, sizeof(record_key_t), p);
 
     if (p) printf("found %c %d\n", p->key.a, p->key.b);
+
+    HASH_ITER(hh, records, p, tmp) {
+      HASH_DEL(records, p);
+      free(p);
+    }
     return 0;
 }
 
@@ -764,15 +833,20 @@ typedef struct {
   int text[];         /* comprise the key */
 } msg_t;
 
+typedef struct {
+    char encoding; 
+    int text[]; 
+} lookup_key_t;
+
 int main(int argc, char *argv[]) {
-    int keylen;
-    msg_t *msg, *msgs = NULL;
-    struct { char encoding; int text[]; } *lookup_key;
+    unsigned keylen;
+    msg_t *msg, *tmp, *msgs = NULL;
+    lookup_key_t *lookup_key;
 
     int beijing[] = {0x5317, 0x4eac};   /* UTF-32LE for 北京 */
 
     /* allocate and initialize our structure */
-    msg = malloc( sizeof(msg_t) + sizeof(beijing) );
+    msg = (msg_t*)malloc( sizeof(msg_t) + sizeof(beijing) );
     memset(msg, 0, sizeof(msg_t)+sizeof(beijing)); /* zero fill */
     msg->len = sizeof(beijing);
     msg->encoding = UTF32;
@@ -789,13 +863,19 @@ int main(int argc, char *argv[]) {
     /* look it up to prove that it worked :-) */
     msg=NULL;
 
-    lookup_key = malloc(sizeof(*lookup_key) + sizeof(beijing));
+    lookup_key = (lookup_key_t*)malloc(sizeof(*lookup_key) + sizeof(beijing));
     memset(lookup_key, 0, sizeof(*lookup_key) + sizeof(beijing));
     lookup_key->encoding = UTF32;
     memcpy(lookup_key->text, beijing, sizeof(beijing));
     HASH_FIND( hh, msgs, &lookup_key->encoding, keylen, msg );
     if (msg) printf("found \n");
     free(lookup_key);
+
+    HASH_ITER(hh, msgs, msg, tmp) {
+      HASH_DEL(msgs, msg);
+      free(msg);
+    }
+    return 0;
 }
 ----------------------------------------------------------------------
 
@@ -884,20 +964,14 @@ int main(int argc, char *argvp[]) {
   s->val = 37;
   HASH_ADD_STR(i->sub, name, s);
 
-  /* iterate over hash elements */
+  /* iterate over hash elements  */
   HASH_ITER(hh, items, item1, tmp1) {
     HASH_ITER(hh, item1->sub, item2, tmp2) {
       printf("$items{%s}{%s} = %d\n", item1->name, item2->name, item2->val);
     }
   }
 
-  return 0;
-}
-----------------------------------------------------------------------
-The example above is included in `tests/test59.c`.  By adding a few lines we
-can delete and free all the elements in the multi-level hash:
-
-  /* iterate over hash elements, deleting and freeing them */
+  /* clean up both hash tables */
   HASH_ITER(hh, items, item1, tmp1) {
     HASH_ITER(hh, item1->sub, item2, tmp2) {
       HASH_DEL(item1->sub, item2);
@@ -907,6 +981,10 @@ can delete and free all the elements in the multi-level hash:
     free(item1);
   }
 
+  return 0;
+}
+----------------------------------------------------------------------
+The example above is included in `tests/test59.c`.  
 
 [[multihash]]
 Items in several hash tables

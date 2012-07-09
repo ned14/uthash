@@ -19,8 +19,8 @@ asciidoc.install();
 <h1>uthash User Guide</h1>
 <span id="author">Troy D. Hanson</span><br />
 <span id="email"><tt>&lt;<a href="mailto:thanson@users.sourceforge.net">thanson@users.sourceforge.net</a>&gt;</tt></span><br />
-<span id="revnumber">version 1.9.5,</span>
-<span id="revdate">November 2011</span>
+<span id="revnumber">version 1.9.6,</span>
+<span id="revdate">April 2012</span>
 </div>
 <div id="content">
 <div id="preamble">
@@ -158,7 +158,7 @@ sort
 </li>
 <li>
 <p>
-select (explained later)
+select
 </p>
 </li>
 </ol></div>
@@ -280,6 +280,14 @@ Extras included with uthash
  Third, <a href="utstring.html">utstring.h</a> implements a basic dynamic string.
 </p>
 </dd>
+<dt class="hdlist1">
+Other software
+</dt>
+<dd>
+<p>
+ Other open-source software by the author is listed at <a href="http://tkhanson.net">http://tkhanson.net</a>.
+</p>
+</dd>
 </dl></div>
 </div>
 <div class="sect2">
@@ -337,6 +345,12 @@ the internal bookkeeping that makes the hash work.  It does not require
 initialization. It can be named anything, but you can simplify matters by
 naming it <tt>hh</tt>. This allows you to use the easier "convenience" macros to add,
 find and delete items.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_a_word_about_memory">A word about memory</h3>
+<div class="paragraph"><p>Some have asked how uthash cleans up its internal memory. The answer is simple:
+<em>when you delete the final item</em> from a hash table, uthash releases all the
+internal memory associated with that hash table, and sets its pointer to NULL.</p></div>
 </div>
 </div>
 </div>
@@ -398,6 +412,34 @@ worry- the C preprocessor expands this to valid C code.</p></div>
 <h4 id="_key_must_not_be_modified_while_in_use">Key must not be modified while in-use</h4>
 <div class="paragraph"><p>Once a structure has been added to the hash, do not change the value of its key.
 Instead, delete the item from the hash, change the key, and then re-add it.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_passing_the_hash_pointer_into_functions">Passing the hash pointer into functions</h4>
+<div class="paragraph"><p>In the example above <tt>users</tt> is a global variable, but what if the caller wanted
+to pass the hash pointer <em>into</em> the <tt>add_user</tt> function? At first glance it would
+appear that you could simply pass <tt>users</tt> as an argument, but that won&#8217;t work
+right.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>/* bad */
+void add_user(struct my_struct *users, int user_id, char *name) {
+  ...
+  HASH_ADD_INT( users, id, s );
+}</tt></pre>
+</div></div>
+<div class="paragraph"><p>You really need to pass <em>a pointer</em> to the hash pointer:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>/* good */
+void add_user(struct my_struct **users, int user_id, char *name) { ...
+  ...
+  HASH_ADD_INT( *users, id, s );
+}</tt></pre>
+</div></div>
+<div class="paragraph"><p>Note that we dereferenced the pointer in the <tt>HASH_ADD</tt> also.</p></div>
+<div class="paragraph"><p>The reason it&#8217;s necessary to deal with a pointer to the hash pointer is simple:
+the hash macros modify it (in other words, they modify the <em>pointer itself</em> not
+just what it points to).</p></div>
 </div>
 </div>
 <div class="sect2">
@@ -591,7 +633,7 @@ working example.</p></div>
 <pre><tt>cc -o example example.c
 ./example</tt></pre>
 </div></div>
-<div class="paragraph"><p>Follow the prompts to try the program, and type <tt>Ctrl-C</tt> when done.</p></div>
+<div class="paragraph"><p>Follow the prompts to try the program.</p></div>
 <div class="listingblock">
 <div class="title">A complete program</div>
 <div class="content">
@@ -611,7 +653,7 @@ struct my_struct *users = NULL;
 void add_user(int user_id, char *name) {
     struct my_struct *s;
 
-    s = malloc(sizeof(struct my_struct));
+    s = (struct my_struct*)malloc(sizeof(struct my_struct));
     s-&gt;id = user_id;
     strcpy(s-&gt;name, name);
     HASH_ADD_INT( users, id, s );  /* id: name of key field */
@@ -641,7 +683,7 @@ void delete_all() {
 void print_users() {
     struct my_struct *s;
 
-    for(s=users; s != NULL; s=s-&gt;hh.next) {
+    for(s=users; s != NULL; s=(struct my_struct*)(s-&gt;hh.next)) {
         printf("user id %d: name %s\n", s-&gt;id, s-&gt;name);
     }
 }
@@ -664,11 +706,11 @@ void sort_by_id() {
 
 int main(int argc, char *argv[]) {
     char in[10];
-    int id=1;
+    int id=1, running=1;
     struct my_struct *s;
     unsigned num_users;
 
-    while (1) {
+    while (running) {
         printf("1. add user\n");
         printf("2. find user\n");
         printf("3. delete user\n");
@@ -677,6 +719,7 @@ int main(int argc, char *argv[]) {
         printf("6. sort items by id\n");
         printf("7. print users\n");
         printf("8. count users\n");
+        printf("9. quit\n");
         gets(in);
         switch(atoi(in)) {
             case 1:
@@ -710,8 +753,14 @@ int main(int argc, char *argv[]) {
                 num_users=HASH_COUNT(users);
                 printf("there are %u users\n", num_users);
                 break;
+            case 9:
+                running=0;
+                break;
         }
     }
+
+    delete_all();  /* free any structures */
+    return 0;
 }</tt></pre>
 </div></div>
 <div class="paragraph"><p>This program is included in the distribution in <tt>tests/example.c</tt>. You can run
@@ -785,19 +834,26 @@ struct my_struct {
 
 
 int main(int argc, char *argv[]) {
-    char **n, *names[] = { "joe", "bob", "betty", NULL };
-    struct my_struct *s, *users = NULL;
+    const char **n, *names[] = { "joe", "bob", "betty", NULL };
+    struct my_struct *s, *tmp, *users = NULL;
     int i=0;
 
     for (n = names; *n != NULL; n++) {
-        s = malloc(sizeof(struct my_struct));
-        strcpy(s-&gt;name, *n);
+        s = (struct my_struct*)malloc(sizeof(struct my_struct));
+        strncpy(s-&gt;name, *n,10);
         s-&gt;id = i++;
         HASH_ADD_STR( users, name, s );
     }
 
     HASH_FIND_STR( users, "betty", s);
     if (s) printf("betty's id is %d\n", s-&gt;id);
+
+    /* free the hash table contents */
+    HASH_ITER(hh, users, s, tmp) {
+      HASH_DEL(users, s);
+      free(s);
+    }
+    return 0;
 }</tt></pre>
 </div></div>
 <div class="paragraph"><p>This example is included in the distribution in <tt>tests/test15.c</tt>. It prints:</p></div>
@@ -818,15 +874,15 @@ int main(int argc, char *argv[]) {
 #include "uthash.h"
 
 struct my_struct {
-    char *name;                /* key (structure POINTS TO string */
+    const char *name;          /* key */
     int id;
     UT_hash_handle hh;         /* makes this structure hashable */
 };
 
 
 int main(int argc, char *argv[]) {
-    char **n, *names[] = { "joe", "bob", "betty", NULL };
-    struct my_struct *s, *users = NULL;
+    const char **n, *names[] = { "joe", "bob", "betty", NULL };
+    struct my_struct *s, *tmp, *users = NULL;
     int i=0;
 
     for (n = names; *n != NULL; n++) {
@@ -838,9 +894,16 @@ int main(int argc, char *argv[]) {
 
     HASH_FIND_STR( users, "betty", s);
     if (s) printf("betty's id is %d\n", s-&gt;id);
-   return 0;
+
+    /* free the hash table contents */
+    HASH_ITER(hh, users, s, tmp) {
+      HASH_DEL(users, s);
+      free(s);
+    }
+    return 0;
 }</tt></pre>
 </div></div>
+<div class="paragraph"><p>This example is included in <tt>tests/test40.c</tt>.</p></div>
 </div>
 </div>
 <div class="sect2">
@@ -874,10 +937,16 @@ int main() {
   HASH_ADD_PTR(hash,key,e);
   HASH_FIND_PTR(hash, &amp;someaddr, d);
   if (d) printf("found\n");
+
+  /* release memory */
+  HASH_DEL(hash,e);
   free(e);
   return 0;
 }</tt></pre>
 </div></div>
+<div class="paragraph"><p>This example is included in <tt>tests/test57.c</tt>. Note that the end of the program
+deletes the element out of the hash, (and since no more elements remain in the
+hash), uthash releases its internal memory.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_structure_keys">Structure keys</h3>
@@ -903,32 +972,37 @@ interest. The example below does this-- see the two calls to <tt>memset</tt>.</t
 #include &lt;stdio.h&gt;
 #include "uthash.h"
 
-typedef struct {   /* this structure will be our key */
+typedef struct {
   char a;
   int b;
 } record_key_t;
 
-typedef struct {  /* the hash is comprised of these */
+typedef struct {
     record_key_t key;
     /* ... other data ... */
     UT_hash_handle hh;
 } record_t;
 
 int main(int argc, char *argv[]) {
-    record_t l, *p, *r, *records = NULL;
+    record_t l, *p, *r, *tmp, *records = NULL;
 
     r = (record_t*)malloc( sizeof(record_t) );
-    memset(r, 0, sizeof(record_t)); /* zero fill! */
+    memset(r, 0, sizeof(record_t));
     r-&gt;key.a = 'a';
     r-&gt;key.b = 1;
     HASH_ADD(hh, records, key, sizeof(record_key_t), r);
 
-    memset(&amp;l, 0, sizeof(record_t)); /* zero fill! */
+    memset(&amp;l, 0, sizeof(record_t));
     l.key.a = 'a';
     l.key.b = 1;
     HASH_FIND(hh, records, &amp;l.key, sizeof(record_key_t), p);
 
     if (p) printf("found %c %d\n", p-&gt;key.a, p-&gt;key.b);
+
+    HASH_ITER(hh, records, p, tmp) {
+      HASH_DEL(records, p);
+      free(p);
+    }
     return 0;
 }</tt></pre>
 </div></div>
@@ -963,15 +1037,20 @@ typedef struct {
   int text[];         /* comprise the key */
 } msg_t;
 
+typedef struct {
+    char encoding;
+    int text[];
+} lookup_key_t;
+
 int main(int argc, char *argv[]) {
-    int keylen;
-    msg_t *msg, *msgs = NULL;
-    struct { char encoding; int text[]; } *lookup_key;
+    unsigned keylen;
+    msg_t *msg, *tmp, *msgs = NULL;
+    lookup_key_t *lookup_key;
 
     int beijing[] = {0x5317, 0x4eac};   /* UTF-32LE for 北京 */
 
     /* allocate and initialize our structure */
-    msg = malloc( sizeof(msg_t) + sizeof(beijing) );
+    msg = (msg_t*)malloc( sizeof(msg_t) + sizeof(beijing) );
     memset(msg, 0, sizeof(msg_t)+sizeof(beijing)); /* zero fill */
     msg-&gt;len = sizeof(beijing);
     msg-&gt;encoding = UTF32;
@@ -988,13 +1067,19 @@ int main(int argc, char *argv[]) {
     /* look it up to prove that it worked :-) */
     msg=NULL;
 
-    lookup_key = malloc(sizeof(*lookup_key) + sizeof(beijing));
+    lookup_key = (lookup_key_t*)malloc(sizeof(*lookup_key) + sizeof(beijing));
     memset(lookup_key, 0, sizeof(*lookup_key) + sizeof(beijing));
     lookup_key-&gt;encoding = UTF32;
     memcpy(lookup_key-&gt;text, beijing, sizeof(beijing));
     HASH_FIND( hh, msgs, &amp;lookup_key-&gt;encoding, keylen, msg );
     if (msg) printf("found \n");
     free(lookup_key);
+
+    HASH_ITER(hh, msgs, msg, tmp) {
+      HASH_DEL(msgs, msg);
+      free(msg);
+    }
+    return 0;
 }</tt></pre>
 </div></div>
 <div class="paragraph"><p>This example is included in the distribution in <tt>tests/test22.c</tt>.</p></div>
@@ -1078,30 +1163,27 @@ int main(int argc, char *argvp[]) {
   s-&gt;val = 37;
   HASH_ADD_STR(i-&gt;sub, name, s);
 
-  /* iterate over hash elements */
+  /* iterate over hash elements  */
   HASH_ITER(hh, items, item1, tmp1) {
     HASH_ITER(hh, item1-&gt;sub, item2, tmp2) {
       printf("$items{%s}{%s} = %d\n", item1-&gt;name, item2-&gt;name, item2-&gt;val);
     }
   }
 
+  /* clean up both hash tables */
+  HASH_ITER(hh, items, item1, tmp1) {
+    HASH_ITER(hh, item1-&gt;sub, item2, tmp2) {
+      HASH_DEL(item1-&gt;sub, item2);
+      free(item2);
+    }
+    HASH_DEL(items, item1);
+    free(item1);
+  }
+
   return 0;
 }</tt></pre>
 </div></div>
-<div class="paragraph"><p>The example above is included in <tt>tests/test59.c</tt>.  By adding a few lines we
-can delete and free all the elements in the multi-level hash:</p></div>
-<div class="literalblock">
-<div class="content">
-<pre><tt>/* iterate over hash elements, deleting and freeing them */
-HASH_ITER(hh, items, item1, tmp1) {
-  HASH_ITER(hh, item1-&gt;sub, item2, tmp2) {
-    HASH_DEL(item1-&gt;sub, item2);
-    free(item2);
-  }
-  HASH_DEL(items, item1);
-  free(item1);
-}</tt></pre>
-</div></div>
+<div class="paragraph"><p>The example above is included in <tt>tests/test59.c</tt>.</p></div>
 </div>
 <div class="sect2">
 <h3 id="multihash">Items in several hash tables</h3>
@@ -2150,8 +2232,8 @@ condition
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Version 1.9.5<br />
-Last updated 2011-11-16 23:18:57 EST
+Version 1.9.6<br />
+Last updated 2012-04-28 01:49:37 EDT
 </div>
 </div>
 </body>

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2008-2011, Troy D. Hanson   http://uthash.sourceforge.net
+Copyright (c) 2008-2012, Troy D. Hanson   http://uthash.sourceforge.net
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef UTSTRING_H
 #define UTSTRING_H
 
-#define UTSTRING_VERSION 1.9.4
+#define UTSTRING_VERSION 1.9.6
 
 #ifdef __GNUC__
 #define _UNUSED_ __attribute__ ((__unused__)) 
@@ -104,12 +104,12 @@ do {                                                       \
   (s)->d[(s)->i]='\0';                                         \
 } while(0)
 
-#define utstring_concat(dst,src)                           \
-do {                                                       \
-  utstring_reserve(dst,(src->i)+1);                        \
-  if (src->i) memcpy(&(dst)->d[(dst)->i], src->d, src->i); \
-  dst->i += src->i;                                        \
-  dst->d[dst->i]='\0';                                     \
+#define utstring_concat(dst,src)                                 \
+do {                                                             \
+  utstring_reserve((dst),((src)->i)+1);                          \
+  if ((src)->i) memcpy(&(dst)->d[(dst)->i], (src)->d, (src)->i); \
+  (dst)->i += (src)->i;                                          \
+  (dst)->d[(dst)->i]='\0';                                       \
 } while(0)
 
 #define utstring_len(s) ((unsigned)((s)->i))

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2011, Troy D. Hanson   http://uthash.sourceforge.net
+Copyright (c) 2007-2012, Troy D. Hanson   http://uthash.sourceforge.net
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -24,7 +24,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef UTLIST_H
 #define UTLIST_H
 
-#define UTLIST_VERSION 1.9.4
+#define UTLIST_VERSION 1.9.6
 
 #include <assert.h>
 
@@ -352,11 +352,11 @@ do {                                                                            
     (head)=(head)->next;                                                                       \
   } else {                                                                                     \
     char *_tmp = (char*)(head);                                                                \
-    while (head->next && (head->next != (del))) {                                              \
-      head = head->next;                                                                       \
+    while ((head)->next && ((head)->next != (del))) {                                          \
+      head = (head)->next;                                                                     \
     }                                                                                          \
-    if (head->next) {                                                                          \
-      head->next = ((del)->next);                                                              \
+    if ((head)->next) {                                                                        \
+      (head)->next = ((del)->next);                                                            \
     }                                                                                          \
     {                                                                                          \
       char **_head_alias = (char**)&(head);                                                    \
@@ -375,7 +375,7 @@ do {                                                                            
 /* end VS2008 replacements */
 
 #define LL_FOREACH(head,el)                                                                    \
-    for(el=head;el;el=el->next)
+    for(el=head;el;el=(el)->next)
 
 #define LL_FOREACH_SAFE(head,el,tmp)                                                           \
   for((el)=(head);(el) && (tmp = (el)->next, 1); (el) = tmp)
@@ -421,7 +421,7 @@ do {                                                                            
       (head)->prev = (head);                                                                   \
       (head)->next = NULL;                                                                     \
   }                                                                                            \
-} while (0);
+} while (0) 
 
 #define DL_CONCAT(head1,head2)                                                                 \
 do {                                                                                           \
@@ -436,7 +436,7 @@ do {                                                                            
         (head1)=(head2);                                                                       \
     }                                                                                          \
   }                                                                                            \
-} while (0);
+} while (0) 
 
 #define DL_DELETE(head,del)                                                                    \
 do {                                                                                           \
@@ -454,11 +454,11 @@ do {                                                                            
           (head)->prev = (del)->prev;                                                          \
       }                                                                                        \
   }                                                                                            \
-} while (0);
+} while (0) 
 
 
 #define DL_FOREACH(head,el)                                                                    \
-    for(el=head;el;el=el->next)
+    for(el=head;el;el=(el)->next)
 
 /* this version is safe for deleting the elements during iteration */
 #define DL_FOREACH_SAFE(head,el,tmp)                                                           \
@@ -494,10 +494,10 @@ do {                                                                            
      (del)->prev->next = (del)->next;                                                          \
      if ((del) == (head)) (head)=(del)->next;                                                  \
   }                                                                                            \
-} while (0);
+} while (0) 
 
 #define CDL_FOREACH(head,el)                                                                   \
-    for(el=head;el;el=(el->next==head ? 0L : el->next)) 
+    for(el=head;el;el=((el)->next==head ? 0L : (el)->next)) 
 
 #define CDL_FOREACH_SAFE(head,el,tmp1,tmp2)                                                    \
   for((el)=(head), ((tmp1)=(head)?((head)->prev):NULL);                                        \

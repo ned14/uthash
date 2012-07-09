@@ -67,11 +67,11 @@ void sort_by_id() {
 
 int main(int argc, char *argv[]) {
     char in[10];
-    int id=1;
+    int id=1, running=1;
     struct my_struct *s;
     unsigned num_users;
 
-    while (1) {
+    while (running) {
         printf("1. add user\n");
         printf("2. find user\n");
         printf("3. delete user\n");
@@ -80,6 +80,7 @@ int main(int argc, char *argv[]) {
         printf("6. sort items by id\n");
         printf("7. print users\n");
         printf("8. count users\n");
+        printf("9. quit\n");
         gets(in);
         switch(atoi(in)) {
             case 1:
@@ -113,6 +114,12 @@ int main(int argc, char *argv[]) {
                 num_users=HASH_COUNT(users);
                 printf("there are %u users\n", num_users);
                 break;
+            case 9:
+                running=0;
+                break;
         }
     }
+
+    delete_all();  /* free any structures */
+    return 0;
 }

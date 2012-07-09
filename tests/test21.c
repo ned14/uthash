@@ -14,7 +14,7 @@ typedef struct {
 } record_t;
 
 int main(int argc, char *argv[]) {
-    record_t l, *p, *r, *records = NULL;
+    record_t l, *p, *r, *tmp, *records = NULL;
 
     r = (record_t*)malloc( sizeof(record_t) );
     memset(r, 0, sizeof(record_t));
@@ -28,6 +28,11 @@ int main(int argc, char *argv[]) {
     HASH_FIND(hh, records, &l.key, sizeof(record_key_t), p);
 
     if (p) printf("found %c %d\n", p->key.a, p->key.b);
+
+    HASH_ITER(hh, records, p, tmp) {
+      HASH_DEL(records, p);
+      free(p);
+    }
     return 0;
 }
 
